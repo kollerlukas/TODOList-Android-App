@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <android.support.v7.widget.CardView
+        android:id="@+id/name0_cardview"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:onClick="doesNothing"
+        android:padding="20dp"
+        android:paddingStart="16dp"
+        app:cardBackgroundColor="@color/transparent"
+        app:cardCornerRadius="0dp"
+        app:cardElevation="0dp">
+
+        <TextView
+            android:id="@+id/name0"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_gravity="center_vertical"
+            android:layout_margin="5dp"
+            android:paddingStart="16dp"
+            android:text="@string/translators_names0"
+            android:textColor="@color/dark_grey"
+            android:textSize="20sp" />
+    </android.support.v7.widget.CardView>
+
+    <android.support.v7.widget.CardView
+        android:id="@+id/name1_cardview"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_below="@id/name0_cardview"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:onClick="doesNothing"
+        android:padding="20dp"
+        android:paddingStart="16dp"
+        app:cardBackgroundColor="@color/transparent"
+        app:cardCornerRadius="0dp"
+        app:cardElevation="0dp">
+
+        <TextView
+            android:id="@+id/name1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_gravity="center_vertical"
+            android:layout_margin="5dp"
+            android:paddingStart="16dp"
+            android:text="@string/translators_names1"
+            android:textColor="@color/dark_grey"
+            android:textSize="20sp" />
+    </android.support.v7.widget.CardView>
+
+    <android.support.v7.widget.CardView
+        android:id="@+id/name2_cardview"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_below="@id/name1_cardview"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:onClick="oemerCardClicked"
+        android:padding="20dp"
+        android:paddingStart="16dp"
+        app:cardBackgroundColor="@color/transparent"
+        app:cardCornerRadius="0dp"
+        app:cardElevation="0dp">
+
+        <TextView
+            android:id="@+id/name2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_gravity="center_vertical"
+            android:layout_margin="5dp"
+            android:paddingStart="16dp"
+            android:text="@string/translators_names2"
+            android:textColor="@color/dark_grey"
+            android:textSize="20sp" />
+    </android.support.v7.widget.CardView>
+
+    <android.support.v7.widget.CardView
+        android:id="@+id/robbe_card"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_below="@id/name2_cardview"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:onClick="robbeCardClicked"
+        android:padding="20dp"
+        android:paddingStart="16dp"
+        app:cardBackgroundColor="@color/transparent"
+        app:cardCornerRadius="0dp"
+        app:cardElevation="0dp">
+
+        <TextView
+            android:id="@+id/name3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_gravity="center_vertical"
+            android:layout_margin="5dp"
+            android:paddingStart="16dp"
+            android:text="@string/translators_names3"
+            android:textColor="@color/dark_grey"
+            android:textSize="20sp" />
+    </android.support.v7.widget.CardView>
+
+    <android.support.v7.widget.CardView
+        android:id="@+id/name4_cardview"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_below="@id/robbe_card"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:onClick="doesNothing"
+        android:padding="20dp"
+        android:paddingStart="16dp"
+        app:cardBackgroundColor="@color/transparent"
+        app:cardCornerRadius="0dp"
+        app:cardElevation="0dp">
+
+        <TextView
+            android:id="@+id/name4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_gravity="center_vertical"
+            android:layout_margin="5dp"
+            android:paddingStart="16dp"
+            android:text="@string/translators_names4"
+            android:textColor="@color/dark_grey"
+            android:textSize="20sp" />
+    </android.support.v7.widget.CardView>
+</RelativeLayout>

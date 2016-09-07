@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/text_view_1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_margin="5dp"
+            android:paddingEnd="24dp"
+            android:paddingStart="24dp"
+            android:text="@string/licences_text1"
+            android:textColor="@color/dark_grey"
+            android:textSize="20sp"/>
+
+        <android.support.v7.widget.CardView
+            android:id="@+id/card_text_1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="24dp"
+            android:layout_marginStart="24dp"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="2dp"
+            app:cardElevation="2dp"
+            app:cardPreventCornerOverlap="true">
+
+            <WebView
+                android:id="@+id/web_view_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:scrollbars="none"></WebView>
+        </android.support.v7.widget.CardView>
+
+        <TextView
+            android:id="@+id/text_view_2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_margin="5dp"
+            android:paddingEnd="24dp"
+            android:paddingStart="24dp"
+            android:text="@string/licences_text3"
+            android:textColor="@color/dark_grey"
+            android:textSize="20sp"/>
+
+        <android.support.v7.widget.CardView
+            android:id="@+id/card_text_2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="24dp"
+            android:layout_marginStart="24dp"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="2dp"
+            app:cardElevation="2dp"
+            app:cardPreventCornerOverlap="true">
+
+            <WebView
+                android:id="@+id/web_view_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:scrollbars="none"></WebView>
+        </android.support.v7.widget.CardView>
+
+        <TextView
+            android:id="@+id/text_view_3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_margin="5dp"
+            android:paddingEnd="24dp"
+            android:paddingStart="24dp"
+            android:text="@string/licences_text5"
+            android:textColor="@color/dark_grey"
+            android:textSize="20sp"/>
+
+        <android.support.v7.widget.CardView
+            android:id="@+id/card_text_3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="24dp"
+            android:layout_marginStart="24dp"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="2dp"
+            app:cardElevation="2dp"
+            app:cardPreventCornerOverlap="true">
+
+            <WebView
+                android:id="@+id/web_view_3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:scrollbars="none"></WebView>
+        </android.support.v7.widget.CardView>
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,11 @@
+<menu xmlns:tools="http://schemas.android.com/tools"
+      xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      tools:context=".Activities.MainActivity">
+
+    <item
+        android:id="@+id/share_todos"
+        app:showAsAction="never"
+        android:icon="@drawable/ic_share_white_24dp"
+        android:title="@string/share_todos"/>
+</menu>

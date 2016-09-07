@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/navigation_header0"
+        android:title="@string/navigation_header0"
+        android:visible="false">
+        <menu>
+            <item
+                android:id="@+id/syncData"
+                android:title="@string/syncData"
+                app:showAsAction="ifRoom"
+                android:visible="false"/>
+            <item
+                android:id="@+id/autoSync"
+                android:icon="@drawable/ic_vibration_grey_500_24dp"
+                android:title="@string/autoSync"
+                app:actionLayout="@layout/menu_switch"
+                app:showAsAction="ifRoom"/>
+        </menu>
+    </item>
+
+    <group android:visible="false">
+        <item
+            android:id="@+id/restore_last_removed_event"
+            android:icon="@drawable/ic_restore_grey_500_24dp"
+            android:title="@string/restore_last_removed_event"/>
+        <item
+            android:id="@+id/restore_last_removed_event2"
+            android:title="@string/restore_last_removed_event1"
+            app:paddingStart="72dp"
+            android:visible="false"/>
+        <!--android:visible="@bool/turkish"-->
+    </group>
+
+    <item
+        android:id="@+id/navigation_header1"
+        android:title="@string/navigation_header1">
+        <menu>
+            <item
+                android:id="@+id/silence_all_alarms"
+                android:icon="@drawable/ic_vibration_grey_500_24dp"
+                android:title="@string/silence_all_alarms"
+                app:actionLayout="@layout/menu_switch"
+                app:showAsAction="ifRoom"/>
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/navigation_header2"
+        android:title="@string/navigation_header2">
+        <menu>
+            <item
+                android:id="@+id/select_category"
+                android:icon="@drawable/ic_apps_grey_500_24dp"
+                android:title="@string/select_category"/>
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/navigation_header3"
+        android:title="@string/navigation_header3">
+        <menu>
+            <item
+                android:id="@+id/select_theme"
+                android:icon="@drawable/ic_invert_colors_on_grey_500_24dp"
+                android:title="@string/select_theme"/>
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/navigation_header4"
+        android:title="@string/navigation_header4">
+        <menu>
+            <item
+                android:id="@+id/show_notification_toggle"
+                android:icon="@drawable/ic_notifications_on_grey_500_24dp"
+                android:title="@string/show_notification"
+                app:actionLayout="@layout/menu_switch"
+                app:showAsAction="always"/>
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/navigation_header5"
+        android:title="@string/navigation_header5">
+        <menu>
+            <item
+                android:id="@+id/info"
+                android:icon="@drawable/ic_info_grey_500_24dp"
+                android:title="@string/info"/>
+        </menu>
+    </item>
+</menu>

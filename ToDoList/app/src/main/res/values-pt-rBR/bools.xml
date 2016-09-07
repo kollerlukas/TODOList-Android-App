@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <bool name="turkish">false</bool>
+    <bool name="german">false</bool>
+    <bool name="english">false</bool>
+    <bool name="portugese">true</bool>
+    <bool name="italian">false</bool>
+    <bool name="dutch">false</bool>
+    <bool name="french">false</bool>
+</resources>

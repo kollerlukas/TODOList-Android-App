@@ -1,0 +1,132 @@
+﻿<resources>
+    <string name="app_name">TODOList</string>
+    <string name="app_version">1.2.6</string>
+    <string name="icon">Icona</string>
+    <string name="licences_text1">Librerie di Supporto Android:</string>
+    <string name="licences_text2">
+        Copyright © 2011 The Android Open Source Project
+\n
+\nLicensed under the Apache License, Version 2.0 (the "License");
+\nyou may not use this file except in compliance with the License.
+\nYou may obtain a copy of the License at
+\n
+\n      http://www.apache.org/licenses/LICENSE-2.0
+\n
+\nUnless required by applicable law or agreed to in writing, software
+\ndistributed under the License is distributed on an "AS IS" BASIS,
+\nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+\nSee the License for the specific language governing permissions and
+\nlimitations under the License.</string>
+
+    <string name="edit">Modifica</string>
+    <string name="add_event">Aggiungi TODO</string>
+    <string name="show_notification">Notifica Generale</string>
+    <string name="info">Info</string>
+    <string name="restore_last_removed_event">Ripristina L\'Utimo TODO Rimosso</string>
+    <string name="select_theme">Tema</string>
+    <string name="select_category">Categorie</string>
+    <string name="show_all_events">Mostra Tutti gli Eventi</string>
+    <string name="edit_alarm">Imposta un Promemoria</string>
+    <string name="silence_all_alarms">Silenzia Tutti Le TODO</string>
+    <string name="remove_all_alarms">Rimuovi Tutti i Promemoria</string>
+    <string name="report_a_bug">Segnala un Bug</string>
+    <string name="contact_me">Contattami</string>
+
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
+
+    <string name="navigation_header1">Promemoria</string>
+    <string name="navigation_header2">Categorie</string>
+    <string name="navigation_header3">Aspetto</string>
+    <string name="navigation_header4">Notifica</string>
+    <string name="navigation_header5">A proposito di</string>
+
+    <string name="choose_a_theme_color">Scegli un Colore per il Tema</string>
+    <string name="choose_a_category">Categorie Selezionate</string>
+    <string name="cancel">Cancella</string>
+    <string name="you_have">Hai </string>
+    <string name="event_in_your_todolist">TODO nella lista</string>
+    <string name="events_in_your_todolist">TODOs nella lista</string>
+    <string name="your_events_are">I tuoi TODOs sono:</string>
+    <string name="today">Oggi</string>
+    <string name="tomorrow">Domani</string>
+    <string name="alarm_scheduled_for">Promemoria pianificati per: </string>
+    <string name="at"> a </string>
+    <string name="alarm">Pomemoria</string>
+    <string name="edit_time">Modifica l\'ora</string>
+    <string name="remove">Rimuovi</string>
+    <string name="alarm_removed">Promemoria rimosso</string>
+    <string name="do_you_want_to_add_an_alarm">Vuoi aggiungere un promemoria?</string>
+    <string name="add_alarm">Aggiungi un Promemoria</string>
+    <string name="ok">OK</string>
+    <string name="schedule_for_this_alarm_for_tomorrow">Vuoi Pianificare Questo Promemoria per Domani?</string>
+    <string name="alarm_was_set_for">Il promemoria è stato impostato per </string>
+    <string name="hinzugefuegt"> </string>
+    <string name="edit_event">Modifica TODO</string>
+    <string name="choose_a_color">Scegli un Colore</string>
+    <string name="this_category_contains_no_events">Questa categoria non contiene nessun TODO</string>
+    <string name="do_you_really_want_to_remove_all_alarms">Vuoi davvero rimuovere tutti i promemoria?</string>
+    <string name="all_alarms_removed">Tutti i promemoria sono stati rimossi</string>
+    <string name="general_notification_is_hidden">La notifica generale è nascosta</string>
+    <string name="general_notification_is_shown">La notifica generale è visibile</string>
+    <string name="you_have_no_event_to_restore">Non hai TODO da ripristinare</string>
+    <string name="all_alarm_are_now_silent">I promemoria adesso sono silenziosi</string>
+    <string name="now_the_Phone_will_vibrate_when_alarms_are_fired">Adesso il telefono vibrerà quando i promemoria verranno attivati</string>
+    <string name="event_removed">TODO rimosso</string>
+    <string name="undo">Annulla</string>
+    <string name="send_email">Invia un\'e-mail...</string>
+    <string name="do_not_remove">!!Non cancellare!!</string>
+    <string name="dont_forget">Non dimenticare</string>
+    <string name="search">Cerca</string>
+    <string name="search_an_event">Cerca un TODO</string>
+    <string name="version">Versione</string>
+    <string name="developer">Sviluppatore</string>
+    <string name="developer_name">©2016 Lukas Koller, Monaco, Germania</string>
+    <string name="supported_languages">Lingue Supportate</string>
+    <string name="english_german">Inglese, Tedesco, Italiano, Portoghese, Turco, Francese</string>
+    <string name="licences">Licenze</string>
+    <string name="do_homework">Fare i Compiti</string>
+    <string name="clean_kitchen">Pulire la Cucina</string>
+    <string name="do_laundry">Fare il Bucato</string>
+    <string name="done">Fatto</string>
+    <string name="these_categories_contains_no_events">Queste categorie non contengono TODOs</string>
+    <string name="not_all_events_shown">Non tutti i TODOs sono mostrati</string>
+    <string name="color">Colore</string>
+    <string name="app_intro">App Intro</string>
+    <string name="welcome">Benvenuto in TODOList</string>
+    <string name="button_for_adding_events">Pulsante per aggiungere dei TODO alla tua lista TODOs</string>
+    <string name="this_is_a_todo">Questo è un TODO</string>
+    <string name="tap_event">Tocca la nota per vedere le sue opzioni</string>
+    <string name="action_area">Colora il TODO, modificalo o imposta un promemoria</string>
+    <string name="swipe_event">Scorri sul TODO per rimuoverlo</string>
+    <string name="share_app">Condividi</string>
+    <string name="no_category_selected">Nessuna categoria selezionata</string>
+    <string name="no_events">Niente da fare!</string>
+
+    <string name="signOut">Sign out</string>
+    <string name="signOutDialog_content">Do you want to sign out?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="syncData">Sync</string>
+    <string name="navigation_header0">Sync</string>
+
+    <string name="licences_text"></string>
+    <string name="licences_text3">Google Play Services Attribution:</string>
+
+    <string name="restore_last_removed_event1"></string>
+    <string name="silence_all_alarms2"></string>
+    <string name="translators">Translators</string>
+    <string name="translators_names0">Matteo Delton</string>
+    <string name="translators_names1">Renata Suzart</string>
+    <string name="translators_names2">Ömer Yigit Uzun</string>
+    <string name="translators_names3">Robbe Delabre</string>
+    <string name="translators_names4">Eric Pujol</string>
+    <string name="app_id">com.koller.lukas.todolist</string>
+    <string name="app_theme">App Theme</string>
+    <string name="autoSync">AutoSync</string>
+
+    <string name="legal_notices">Legal Notices</string>
+    <string name="themeActivityInfoDialogTitle">Click any element to style its color!</string>
+    <string name="themeActivityInfoDialogContent">(even the Toolbar and FloatingActionButton)</string>
+    <string name="restore_from_default_themes">Restore from default themes</string>
+</resources>

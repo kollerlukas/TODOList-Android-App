@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:colorPrimary">@color/dark_background</item>
+        <item name="android:colorPrimaryDark">@color/dark</item>
+        <item name="android:colorAccent">@color/accent</item>
+        <item name="android:textColorSecondary">@color/button_color</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="navigationIcon">@drawable/ic_arrow_back_white_24dp</item>
+        <item name="android:windowDisablePreview">true</item>
+        <!--<item name="android:windowTranslucentNavigation">true</item>-->
+    </style>
+
+    <style name="InfoActivityTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:colorPrimary">@color/dark_background</item>
+        <item name="android:colorPrimaryDark">@color/dark</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <!--<item name="android:windowTranslucentNavigation">true</item>-->
+    </style>
+
+    <style name="ThemeActivityTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:colorPrimary">@color/dark_background</item>
+        <item name="android:colorPrimaryDark">@color/dark</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <!--<item name="android:windowTranslucentNavigation">true</item>-->
+    </style>
+
+    <style name="SwitchTheme" parent="Base.Widget.AppCompat.CompoundButton.Switch">
+        <item name="colorSwitchThumbNormal">@color/grey</item>
+        <item name="colorAccent">@color/light_grey</item>
+    </style>
+
+    <style name="DialogTheme_dark" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="android:textColorPrimary">@color/dark_text_color</item>
+        <item name="colorAccent">@color/dark_text_color</item>
+        <item name="android:colorBackground">@color/dark_dialog</item>
+        <item name="android:windowSoftInputMode">stateVisible|adjustResize</item>
+    </style>
+
+    <style name="DialogTheme_light" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="android:textColorPrimary">@color/light_text_color</item>
+        <item name="colorAccent">@color/light_text_color</item>
+        <item name="android:windowSoftInputMode">stateVisible|adjustResize</item>
+    </style>
+
+    <style name="DialogTheme_light_theme" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="android:textColorPrimary">@color/light_text_color</item>
+        <item name="colorAccent">@color/button_color</item>
+    </style>
+
+    <style name="EditTextTheme" parent="">
+        <item name="colorAccent">@color/accent</item>
+    </style>
+
+    <style name="DialogAnimations">
+        <item name="android:windowEnterAnimation">@android:anim/fade_in</item>
+        <item name="android:windowExitAnimation">@android:anim/fade_out</item>
+    </style>
+
+    <style name="SeekbarRed">
+        <item name="colorAccent">@color/red</item>
+    </style>
+
+    <style name="SeekbarGreen">
+        <item name="colorAccent">@color/green</item>
+    </style>
+
+    <style name="SeekbarBlue">
+        <item name="colorAccent">@color/blue</item>
+    </style>
+
+    <style name="SeekbarGrey">
+        <item name="colorAccent">@color/grey</item>
+    </style>
+</resources>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animation-list
+    android:id="@+id/edit_anim"
+    android:oneshot="true"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:drawable="@drawable/alarm_button_background"
+        android:duration="25"/>
+    <item
+        android:drawable="@drawable/alarm_anim_01_background"
+        android:duration="25"/>
+    <item
+        android:drawable="@drawable/alarm_anim_02_background"
+        android:duration="25"/>
+    <item
+        android:drawable="@drawable/alarm_anim_01_background"
+        android:duration="25"/>
+
+    <item
+        android:drawable="@drawable/alarm_button_background"
+        android:duration="25"/>
+    <item
+        android:drawable="@drawable/alarm_anim_03_background"
+        android:duration="25"/>
+    <item
+        android:drawable="@drawable/alarm_anim_04_background"
+        android:duration="25"/>
+    <item
+        android:drawable="@drawable/alarm_anim_03_background"
+        android:duration="25"/>
+
+    <item
+        android:drawable="@drawable/alarm_button_background"
+        android:duration="25"/>
+    <item
+        android:drawable="@drawable/alarm_anim_01_background"
+        android:duration="25"/>
+    <item
+        android:drawable="@drawable/alarm_anim_02_background"
+        android:duration="25"/>
+    <item
+        android:drawable="@drawable/alarm_anim_01_background"
+        android:duration="25"/>
+
+    <item
+        android:drawable="@drawable/alarm_button_background"
+        android:duration="25"/>
+    <item
+        android:drawable="@drawable/alarm_anim_03_background"
+        android:duration="25"/>
+    <item
+        android:drawable="@drawable/alarm_anim_04_background"
+        android:duration="25"/>
+    <item
+        android:drawable="@drawable/alarm_anim_03_background"
+        android:duration="25"/>
+
+    <item
+        android:drawable="@drawable/alarm_button_background"
+        android:duration="25"/>
+    <item
+        android:drawable="@drawable/alarm_anim_01_background"
+        android:duration="25"/>
+    <item
+        android:drawable="@drawable/alarm_anim_02_background"
+        android:duration="25"/>
+    <item
+        android:drawable="@drawable/alarm_anim_01_background"
+        android:duration="25"/>
+
+    <item
+        android:drawable="@drawable/alarm_button_background"
+        android:duration="25"/>
+</animation-list>

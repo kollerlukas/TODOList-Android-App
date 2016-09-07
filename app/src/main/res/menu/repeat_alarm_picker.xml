@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/daily"
+        android:title="@string/daily"/>
+
+    <item
+        android:id="@+id/weekly"
+        android:title="@string/weekly"/>
+
+    <item
+        android:id="@+id/monthly"
+        android:title="@string/monthly"/>
+
+    <item
+        android:id="@+id/certain_days"
+        android:title="@string/certain_days"/>
+
+    <item
+        android:id="@+id/custom"
+        android:title="@string/custom"/>
+</menu>

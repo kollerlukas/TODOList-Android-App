@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="light_text_color">#000000</color>
+    <color name="dark_text_color">#ffffff</color>
+    <color name="light_text_color_semi_transparent">#64000000</color>
+    <color name="dark_text_color_semi_transparent">#64ffffff</color>
+    <color name="accent">#616161</color>
+
+    <color name="button_color">#ff3d00</color>
+
+    <color name="color1">#9C27B0</color>
+    <color name="color2">#F44336</color>
+    <color name="color3">#FF9800</color>
+    <color name="color4">#2196F3</color>
+    <color name="color5">#ffffff</color>
+    <color name="color6">#FFEB3B</color>
+    <color name="color7">#009688</color>
+    <color name="color8">#4CAF50</color>
+    <color name="color9">#CDDC39</color>
+    <color name="color10">#9E9E9E</color>
+    <color name="color11">#607D8B</color>
+    <color name="color12">#000000</color>
+
+    <color name="color1_semi_transparent">#649C27B0</color>
+    <color name="color2_semi_transparent">#64F44336</color>
+    <color name="color3_semi_transparent">#64FF9800</color>
+    <color name="color4_semi_transparent">#642196F3</color>
+    <color name="color5_semi_transparent">#64ffffff</color>
+    <color name="color6_semi_transparent">#64FFEB3B</color>
+    <color name="color7_semi_transparent">#64009688</color>
+    <color name="color8_semi_transparent">#644CAF50</color>
+    <color name="color9_semi_transparent">#64CDDC39</color>
+    <color name="color10_semi_transparent">#649E9E9E</color>
+    <color name="color11_semi_transparent">#64607D8B</color>
+    <color name="color12_semi_transparent">#64000000</color>
+
+    <color name="transparent">#00000000</color>
+    <color name="white">#ffffff</color>
+    <color name="grey_transparent">#cce0e0e0</color>
+    <color name="light_grey">#e0e0e0</color>
+    <color name="grey">#9e9e9e</color>
+    <color name="dark_grey">#616161</color>
+    <color name="grey_700">#616161</color>
+    <color name="dark_dialog">#424242</color>
+    <color name="dark_background_light">#424242</color>
+    <color name="dark_background">#303030</color>
+    <color name="dark">#212121</color>
+    <color name="black_light">#161616</color>
+    <color name="black">#000000</color>
+    <color name="black_semi_transparent">#64000000</color>
+
+    <color name="grey700">#616161</color>
+
+    <color name="red2">#F44336</color>
+
+    <color name="red">#f44336</color>
+    <color name="green">#4caf50</color>
+    <color name="blue">#2196f3</color>
+</resources>
