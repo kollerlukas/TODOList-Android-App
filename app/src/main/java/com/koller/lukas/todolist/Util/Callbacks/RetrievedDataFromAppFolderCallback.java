@@ -5,4 +5,5 @@ package com.koller.lukas.todolist.Util.Callbacks;
  */
 public interface RetrievedDataFromAppFolderCallback {
     public void retrievedDataFromAppFolder(String data);
+    public void error(String error);
 }

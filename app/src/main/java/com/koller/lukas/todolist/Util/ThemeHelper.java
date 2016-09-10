@@ -16,44 +16,44 @@ import org.json.JSONObject;
 public class ThemeHelper {
     private Context context;
 
-    public int fab_color;
-    public int fab_textcolor;
+    private int fab_color;
+    private int fab_textcolor;
 
-    public int toolbar_color;
-    public int toolbar_textcolor;
+    private int toolbar_color;
+    private int toolbar_textcolor;
 
-    public int cord_color;
-    public int cord_textcolor;
+    private int cord_color;
+    private int cord_textcolor;
 
-    public int color1;
-    public int color2;
-    public int color3;
-    public int color4;
-    public int color5;
-    public int color6;
-    public int color7;
-    public int color8;
-    public int color9;
-    public int color10;
-    public int color11;
-    public int color12;
+    private int color1;
+    private int color2;
+    private int color3;
+    private int color4;
+    private int color5;
+    private int color6;
+    private int color7;
+    private int color8;
+    private int color9;
+    private int color10;
+    private int color11;
+    private int color12;
 
-    public int textcolor1;
-    public int textcolor2;
-    public int textcolor3;
-    public int textcolor4;
-    public int textcolor5;
-    public int textcolor6;
-    public int textcolor7;
-    public int textcolor8;
-    public int textcolor9;
-    public int textcolor10;
-    public int textcolor11;
-    public int textcolor12;
+    private int textcolor1;
+    private int textcolor2;
+    private int textcolor3;
+    private int textcolor4;
+    private int textcolor5;
+    private int textcolor6;
+    private int textcolor7;
+    private int textcolor8;
+    private int textcolor9;
+    private int textcolor10;
+    private int textcolor11;
+    private int textcolor12;
 
-    public int defaultColorIndex = 0;
+    private int defaultColorIndex = 0;
 
-    public long timeStamp = 0;
+    private long timeStamp = 0;
 
     public ThemeHelper(Context context) {
         this.context = context;
@@ -384,5 +384,70 @@ public class ThemeHelper {
             green = (int) (transparency * Color.green(color) + (1 - transparency) *Color.green(cord_color));
             blue = (int) (transparency * Color.blue(color) + (1 - transparency) *Color.blue(cord_color));
         return Color.rgb(red, green, blue);
+    }
+
+    public int get(String key){
+        switch (key){
+            case "fab_color":
+                return fab_color;
+            case "fab_textcolor":
+                return fab_textcolor;
+            case "toolbar_color":
+                return toolbar_color;
+            case "toolbar_textcolor":
+                return toolbar_textcolor;
+            case "cord_color":
+                return cord_color;
+            case "cord_textcolor":
+                return cord_textcolor;
+        }
+        return Color.rgb(255, 255, 255);
+    }
+
+    public void set(String key, int color){
+        switch (key){
+            case "fab_color":
+                fab_color = color;
+            case "fab_textcolor":
+                fab_textcolor = color;
+            case "toolbar_color":
+                toolbar_color = color;
+            case "toolbar_textcolor":
+                toolbar_textcolor = color;
+            case "cord_color":
+                cord_color = color;
+            case "cord_textcolor":
+                cord_textcolor = color;
+        }
+    }
+
+    public int getDefaultColorIndex() {
+        return defaultColorIndex;
+    }
+
+    public void setDefaultColorIndex(int defaultColorIndex) {
+        this.defaultColorIndex = defaultColorIndex;
+    }
+
+    public long getTimeStamp() {
+        return timeStamp;
+    }
+
+    public void setTimeStamp(long timeStamp) {
+        this.timeStamp = timeStamp;
+    }
+
+    public int getToolbarIconColor(){
+        int colorBrightness = Color.red(toolbar_color)
+                + Color.green(toolbar_color)
+                + Color.blue(toolbar_color);
+        if(colorBrightness < 128*3){
+            //dark
+            return Color.argb(95, 255, 255, 255);
+        } else {
+            //light
+            return Color.argb(95, 0, 0, 0);
+        }
+        //return toolbar_textcolor;
     }
 }

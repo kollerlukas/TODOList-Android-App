@@ -8,4 +8,5 @@ import com.google.android.gms.drive.DriveId;
 public interface DriveIdCallback {
     public void gotDriveId(DriveId driveId);
     public void error(int statusCode);
+    public void noFilesFound();
 }

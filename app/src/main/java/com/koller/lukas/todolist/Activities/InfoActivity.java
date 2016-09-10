@@ -2,7 +2,6 @@ package com.koller.lukas.todolist.Activities;
 
 import android.animation.AnimatorInflater;
 import android.animation.AnimatorSet;
-import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -36,8 +35,6 @@ import com.koller.lukas.todolist.Util.ThemeHelper;
  */
 public class InfoActivity extends AppCompatActivity {
 
-    private String selected_theme;
-    private ProgressDialog mProgressDialog;
     private ThemeHelper helper;
 
     @Override
@@ -107,10 +104,10 @@ public class InfoActivity extends AppCompatActivity {
             text_view10.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
         }
 
-        relativeLayout.setBackgroundColor(helper.cord_color);
-        toolbar.setBackgroundColor(helper.toolbar_color);
-        toolbar.setTitleTextColor(helper.toolbar_textcolor);
-        if(helper.cord_color != helper.toolbar_color){
+        relativeLayout.setBackgroundColor(helper.get("cord_color"));
+        toolbar.setBackgroundColor(helper.get("toolbar_color"));
+        toolbar.setTitleTextColor(helper.get("toolbar_textcolor"));
+        if(helper.get("cord_color") != helper.get("toolbar_color")){
             elevateToolbar(toolbar);
         }
 
@@ -118,7 +115,8 @@ public class InfoActivity extends AppCompatActivity {
         for (int i = 0; i < toolbar.getChildCount(); i++) {
             if (toolbar.getChildAt(i) instanceof ImageView) {
                 drawerIcon = toolbar.getChildAt(i);
-                ((ImageView) drawerIcon).setColorFilter(helper.toolbar_textcolor, PorterDuff.Mode.SRC_IN);
+                //((ImageView) drawerIcon).setColorFilter(helper.get("toolbar_textcolor"), PorterDuff.Mode.SRC_IN);
+                ((ImageView) drawerIcon).setColorFilter(helper.getToolbarIconColor(), PorterDuff.Mode.SRC_IN);
             }
         }
     }

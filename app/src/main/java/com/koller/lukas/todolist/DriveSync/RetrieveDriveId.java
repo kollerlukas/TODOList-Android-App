@@ -1,19 +1,23 @@
 package com.koller.lukas.todolist.DriveSync;
 
-import android.os.AsyncTask;
-import android.util.Log;
-
+import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveApi;
 import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.DriveId;
+import com.google.android.gms.drive.DriveResource;
+import com.google.android.gms.drive.Metadata;
 import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
 import com.google.android.gms.drive.query.SortOrder;
 import com.google.android.gms.drive.query.SortableField;
+
+import android.os.AsyncTask;
+import android.util.Log;
+
 import com.koller.lukas.todolist.Util.Callbacks.DriveIdCallback;
 import com.koller.lukas.todolist.Util.Callbacks.ModifiedDateCallback;
 
@@ -24,15 +28,30 @@ import java.util.concurrent.Semaphore;
  */
 public class RetrieveDriveId extends AsyncTask<Void, Void, DriveId> {
     private GoogleApiClient mGoogleApiClient;
+
     private DriveIdCallback driveIdCallback;
-    int statusCode;
-    private DriveId driveId;
-    private Semaphore s;
     private ModifiedDateCallback modifiedDateCallback;
 
-    public RetrieveDriveId(GoogleApiClient mGoogleApiClient, DriveIdCallback driveIdCallback, ModifiedDateCallback modifiedDateCallback) {
+    private int statusCode;
+
+    private DriveId driveId;
+
+    private long modifiedTime = 0;
+
+    private Semaphore s;
+
+    private boolean noFilesFound = false;
+
+    public RetrieveDriveId(GoogleApiClient mGoogleApiClient, DriveIdCallback driveIdCallback) {
         this.mGoogleApiClient = mGoogleApiClient;
         this.driveIdCallback = driveIdCallback;
+        this.modifiedDateCallback = null;
+        s = new Semaphore(0);
+    }
+
+    public RetrieveDriveId(GoogleApiClient mGoogleApiClient, ModifiedDateCallback modifiedDateCallback) {
+        this.mGoogleApiClient = mGoogleApiClient;
+        this.driveIdCallback = null;
         this.modifiedDateCallback = modifiedDateCallback;
         s = new Semaphore(0);
     }
@@ -49,29 +68,23 @@ public class RetrieveDriveId extends AsyncTask<Void, Void, DriveId> {
                 .setSortOrder(sortOrder)
                 .build();
 
-        Drive.DriveApi.query(mGoogleApiClient, query).setResultCallback(new ResultCallback<DriveApi.MetadataBufferResult>() {
+        //Drive.DriveApi.query(mGoogleApiClient, query)
+
+        Drive.DriveApi.getAppFolder(mGoogleApiClient).queryChildren(mGoogleApiClient, query)
+                .setResultCallback(new ResultCallback<DriveApi.MetadataBufferResult>() {
             @Override
             public void onResult(DriveApi.MetadataBufferResult result) {
                 statusCode = result.getStatus().getStatusCode();
 
-                Log.d("RetrieveDriveId", String.valueOf(result.getMetadataBuffer().getCount()));
-
                 if (result.getStatus().isSuccess() && result.getMetadataBuffer().getCount() > 0) {
                     if (result.getMetadataBuffer().get(0).getDriveId() != null) {
                         driveId = result.getMetadataBuffer().get(0).getDriveId();
-                        if(modifiedDateCallback != null){
-                            modifiedDateCallback.getModifiedDate(result.getMetadataBuffer().get(0).getModifiedDate().getTime(),
-                                    result.getMetadataBuffer().get(0).getDriveId());
-                        }
                     }
-
-                    //Delete old files
-                    if (result.getMetadataBuffer().getCount() < 1) {
-                        for (int i = 1; i < result.getMetadataBuffer().getCount(); i++) {
-                            DriveFile file = result.getMetadataBuffer().get(i).getDriveId().asDriveFile();
-                            com.google.android.gms.common.api.Status deleteStatus = file.delete(mGoogleApiClient).await();
-                        }
-                    }
+                } else if(result.getMetadataBuffer().getCount() == 0){
+                    Log.d("RetrieveDriveId", "no items found");
+                    noFilesFound = true;
+                } else {
+                    Log.d("RetrieveDriveId", "result not successful");
                 }
                 result.getMetadataBuffer().release();
                 s.release();
@@ -84,17 +97,51 @@ public class RetrieveDriveId extends AsyncTask<Void, Void, DriveId> {
             e.printStackTrace();
         }
 
+        if (driveId == null || noFilesFound) {
+            return null;
+        }
+
+        if (modifiedDateCallback != null) {
+            /*DriveFile file = driveId.asDriveFile();
+
+            DriveApi.DriveContentsResult driveContentsResult
+                    = file.open(mGoogleApiClient, DriveFile.MODE_READ_ONLY, null).await();
+            DriveResource.MetadataResult metadataResult
+                    = file.getMetadata(mGoogleApiClient).await();
+
+            Metadata metadata = metadataResult.getMetadata();
+
+            modifiedTime = metadata.getModifiedDate().getTime();
+
+            driveContentsResult.getDriveContents().discard(mGoogleApiClient);*/
+        }
+
         return driveId;
     }
 
     @Override
     protected void onPostExecute(DriveId driveId) {
-        if(driveIdCallback != null){
-            if (driveId != null) {
-                driveIdCallback.gotDriveId(driveId);
-                return;
+        if(noFilesFound){
+            if (driveIdCallback != null) {
+                driveIdCallback.noFilesFound();
+            } else if (modifiedDateCallback != null) {
+                modifiedDateCallback.noFilesFound();
             }
-            driveIdCallback.error(statusCode);
+        } else {
+            if (driveIdCallback != null) {
+                if (driveId != null && statusCode == CommonStatusCodes.SUCCESS) {
+                    driveIdCallback.gotDriveId(driveId);
+                } else {
+                    driveIdCallback.error(statusCode);
+                }
+            } else if (modifiedDateCallback != null) {
+                if (driveId != null && statusCode == CommonStatusCodes.SUCCESS) {
+                    //modifiedDateCallback.getModifiedDate(modifiedTime, driveId);
+                    modifiedDateCallback.getModifiedDate(System.currentTimeMillis(), driveId);
+                } else {
+                    modifiedDateCallback.error(statusCode);
+                }
+            }
         }
     }
 }

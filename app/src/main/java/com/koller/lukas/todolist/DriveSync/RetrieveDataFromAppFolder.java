@@ -1,7 +1,11 @@
 package com.koller.lukas.todolist.DriveSync;
 import android.os.AsyncTask;
+import android.util.Log;
 
+import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.drive.DriveApi;
 import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
@@ -20,7 +24,10 @@ public class RetrieveDataFromAppFolder extends AsyncTask<DriveId, Boolean, Strin
     private GoogleApiClient mGoogleApiClient;
     private RetrievedDataFromAppFolderCallback retrievedDataFromAppFolderCallback;
 
-    public RetrieveDataFromAppFolder(GoogleApiClient mGoogleApiClient, RetrievedDataFromAppFolderCallback retrievedDataFromAppFolderCallback) {
+    private String error = "none";
+
+    public RetrieveDataFromAppFolder(GoogleApiClient mGoogleApiClient,
+                                     RetrievedDataFromAppFolderCallback retrievedDataFromAppFolderCallback) {
         this.mGoogleApiClient = mGoogleApiClient;
         this.retrievedDataFromAppFolderCallback = retrievedDataFromAppFolderCallback;
     }
@@ -28,17 +35,23 @@ public class RetrieveDataFromAppFolder extends AsyncTask<DriveId, Boolean, Strin
     @Override
     protected String doInBackground(DriveId... params) {
         String contents = null;
+
         if(params[0] == null){
-            return "Error";
+            error = "driveId Error";
         }
+
         DriveFile file = params[0].asDriveFile();
-        DriveApi.DriveContentsResult driveContentsResult = file.open(mGoogleApiClient, DriveFile.MODE_READ_ONLY, null).await();
+        DriveApi.DriveContentsResult driveContentsResult
+                = file.open(mGoogleApiClient, DriveFile.MODE_READ_ONLY, null).await();
         if (!driveContentsResult.getStatus().isSuccess()) {
+            error = "file.open() not successful";
             return null;
         }
         DriveContents driveContents = driveContentsResult.getDriveContents();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(driveContents.getInputStream()));
-        StringBuilder builder = new StringBuilder();
+        BufferedReader reader
+                = new BufferedReader(new InputStreamReader(driveContents.getInputStream()));
+        StringBuilder builder
+                = new StringBuilder();
         String line;
         try {
             while ((line = reader.readLine()) != null) {
@@ -47,14 +60,28 @@ public class RetrieveDataFromAppFolder extends AsyncTask<DriveId, Boolean, Strin
             contents = builder.toString();
         } catch (IOException e) {
             e.printStackTrace();
+
+            error = "no data written";
         }
 
         driveContents.discard(mGoogleApiClient);
+
+        //Delete file
+        //com.google.android.gms.common.api.Status deleteStatus = file.delete(mGoogleApiClient).await();
+        //Log.d("RetrieveDataFromApp...", "deleteFile status: "
+        // + CommonStatusCodes.getStatusCodeString(deleteStatus.getStatusCode()));
+
         return contents;
     }
 
     @Override
     protected void onPostExecute(String result) {
+        if (result == null) {
+            retrievedDataFromAppFolderCallback.error(error);
+            return;
+        } else if(error.equals("")){
+            Log.d("RetrieveDataFromApp...", "content is empty");
+        }
         retrievedDataFromAppFolderCallback.retrievedDataFromAppFolder(result);
     }
 }

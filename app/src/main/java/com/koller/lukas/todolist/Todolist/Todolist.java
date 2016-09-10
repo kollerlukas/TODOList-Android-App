@@ -39,8 +39,6 @@ public class Todolist {
     private Event lastRemovedEvent;
     private int lastRemovedEventPosition;
 
-    public long lastSyncTimeStamp = 0;
-
     public Todolist(Settings settings) {
         this.settings = settings;
 
@@ -53,7 +51,7 @@ public class Todolist {
         todolist.add(e);
         mAdapter.addItem(e);
 
-        if (settings.syncEnabled) {
+        if ((boolean) settings.get("syncEnabled")) {
             addedEvents.add(e.getId());
         }
     }
@@ -83,7 +81,7 @@ public class Todolist {
     public void restoreLastRemovedEvent() {
         if (lastRemovedEvent != null) {
             todolist.add(lastRemovedEventPosition, lastRemovedEvent);
-            if (settings.syncEnabled) {
+            if ((boolean) settings.get("syncEnabled")) {
                 removedEvents.remove(lastRemovedEvent.getId());
             }
             lastRemovedEvent = null;
@@ -96,7 +94,7 @@ public class Todolist {
         lastRemovedEvent = e;
         todolist.remove(e);
 
-        if (settings.syncEnabled) {
+        if ((boolean) settings.get("syncEnabled")) {
             removedEvents.add(e.getId());
         }
     }
@@ -149,7 +147,7 @@ public class Todolist {
     public ArrayList initAdapterList() {
         ArrayList<Event> adapter_list = new ArrayList<>();
         for (int i = 0; i < todolist.size(); i++) {
-            if (settings.selected_categories[todolist.get(i).getColor()]) {
+            if (settings.getCategory(todolist.get(i).getColor())) {
                 adapter_list.add(todolist.get(i));
             }
         }
@@ -163,12 +161,12 @@ public class Todolist {
             tempAdapterList[i] = mAdapter.getList().get(i);
         }
         for (int i = tempAdapterList.length - 1; i >= 0; i--) {
-            if (!settings.selected_categories[tempAdapterList[i].getColor()]) {
+            if (!settings.getCategory(tempAdapterList[i].getColor())) {
                 mAdapter.removeItem(mAdapter.getList().indexOf(tempAdapterList[i]));
             }
         }
         for (int i = 0; i < todolist.size(); i++) {
-            if (settings.selected_categories[todolist.get(i).getColor()]
+            if (settings.getCategory(todolist.get(i).getColor())
                     && !isEventInAdapterList(mAdapter, todolist.get(i))) {
                 int index = getAdapterListPosition(mAdapter, todolist.get(i));
                 mAdapter.addItem(index, todolist.get(i));
@@ -225,7 +223,7 @@ public class Todolist {
             if (todolist.get(i).getId() == e.getId()) {
                 return adapterListPosition;
             }
-            if (settings.selected_categories[todolist.get(i).getColor()]) {
+            if (settings.getCategory(todolist.get(i).getColor())) {
                 adapterListPosition++;
             }
         }
@@ -253,7 +251,7 @@ public class Todolist {
         return false;
     }
 
-    public void EventMoved(int fromPosition, int toPosition) {
+    public void eventMoved(int fromPosition, int toPosition) {
         todolist.get(fromPosition).setMove_timeStamp(System.currentTimeMillis());
         if (fromPosition < toPosition) {
             for (int i = fromPosition; i < toPosition; i++) {
@@ -278,7 +276,7 @@ public class Todolist {
     public void saveData(Context context) throws JSONException {
         saveFile(context, "events", getData());
         //save removed Todos for sync
-        if (settings.syncEnabled) {
+        if ((boolean) settings.get("syncEnabled")) {
             saveRemovedEvents(context);
 
             saveAddedEvents(context);
@@ -335,7 +333,7 @@ public class Todolist {
         }
 
         // read removedEvents and addedEvents
-        if (settings.syncEnabled) {
+        if ((boolean) settings.get("syncEnabled")) {
             String data_removedEvents = readFile(context, "removedEvents");
             JSONArray array_removedEvents = new JSONArray(data_removedEvents);
             for (int i = 0; i < array_removedEvents.length(); i++) {
@@ -448,7 +446,7 @@ public class Todolist {
     }
 
     public boolean hasAlarmFired(Event e) {
-        return e.getAlarm().time < System.currentTimeMillis();
+        return (long) e.getAlarm().get("time") < System.currentTimeMillis();
     }
 
     public Event getLastRemovedEvent() {
@@ -458,6 +456,8 @@ public class Todolist {
     public ArrayList<Event> getTodolist() {
         return todolist;
     }
+
+
 
     //old; that the update correctly imports old data
     public void readData_old(Context context)

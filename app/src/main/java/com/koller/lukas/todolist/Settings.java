@@ -15,27 +15,20 @@ public class Settings {
 
     private SharedPreferences sharedpreferences;
 
-    public boolean vibrate;
-    public boolean showNotification;
-    public boolean syncEnabled = false;
+    private boolean vibrate;
+    private boolean showNotification;
+    private boolean syncEnabled = false;
+    private boolean importTutorialDialogShown;
+    private boolean[] selected_categories;
 
-    public boolean autoSync;
-
-    public long lastSyncTimeStamp;
-
-    public boolean importTutorialDialogShown;
-
-    public boolean[] selected_categories;
-
-    public DriveId driveId;
-
-    private Context context;
+    private boolean autoSync;
+    private long lastSyncTimeStamp;
+    private DriveId driveId;
+    private long lastReceivedDataTimeStamp;
 
     public Settings(Context context){
         sharedpreferences
                 = context.getSharedPreferences("todolist", Context.MODE_PRIVATE);
-
-        this.context = context;
     }
 
     public void readSettings() {
@@ -43,13 +36,13 @@ public class Settings {
                 = sharedpreferences.getBoolean("vibrate", true);
         showNotification
                 = sharedpreferences.getBoolean("showNotification", true);
+        importTutorialDialogShown
+                = sharedpreferences.getBoolean("importTutorialDialogShown", false);
+
         autoSync
                 = sharedpreferences.getBoolean("autoSync", false);
         lastSyncTimeStamp
                 = sharedpreferences.getLong("lastSyncTimeStamp", 0);
-        importTutorialDialogShown
-                = sharedpreferences.getBoolean("importTutorialDialogShown", false);
-
         String driveIdString
                 = sharedpreferences.getString("DriveId driveId", "Error");
         if(!driveIdString.equals("Error")){
@@ -57,11 +50,13 @@ public class Settings {
         } else {
             driveId = null;
         }
+        lastReceivedDataTimeStamp
+                = sharedpreferences.getLong("lastReceivedDataTimeStamp", 0);
 
         readSelectedCategories();
     }
 
-    public void readSelectedCategories() {
+    private void readSelectedCategories() {
         selected_categories = new boolean[13];
         String s
                 = sharedpreferences.getString("selected_categories", "");
@@ -82,21 +77,24 @@ public class Settings {
                 = sharedpreferences.edit();
         editor.putBoolean("vibrate", vibrate);
         editor.putBoolean("showNotification", showNotification);
+        editor.putBoolean("importTutorialDialogShown", importTutorialDialogShown);
+
         editor.putBoolean("autoSync", autoSync);
         editor.putLong("lastSyncTimeStamp", lastSyncTimeStamp);
-        editor.putBoolean("importTutorialDialogShown", importTutorialDialogShown);
 
         if(driveId != null){
             String driveIdString = driveId.encodeToString();
             editor.putString("driveId", driveIdString);
         }
 
+        editor.putLong("lastReceivedDataTimeStamp", lastReceivedDataTimeStamp);
+
         editor.apply();
 
         saveCategorySettings();
     }
 
-    public void saveCategorySettings() {
+    private void saveCategorySettings() {
         JSONArray array = new JSONArray();
         for (int i = 0; i < selected_categories.length; i++){
             array.put(selected_categories[i]);
@@ -116,11 +114,92 @@ public class Settings {
         }
     }
 
-    public void set(String key, boolean b){
-
+    public void set(String key, Object o){
+        switch (key){
+            case "vibrate":
+                vibrate = (boolean) o;
+                break;
+            case "showNotification":
+                showNotification = (boolean) o;
+                break;
+            case "syncEnabled":
+                syncEnabled = (boolean) o;
+                break;
+            case "importTutorialDialogShown":
+                importTutorialDialogShown = (boolean) o;
+                break;
+            case "selected_categories":
+                selected_categories = (boolean[]) o;
+                break;
+            case "autoSync":
+                autoSync = (boolean) o;
+                break;
+            case "lastSyncTimeStamp":
+                lastSyncTimeStamp = (long) o;
+                break;
+            case "driveId":
+                driveId = (DriveId) o;
+                break;
+            case "lastReceivedDataTimeStamp":
+                lastReceivedDataTimeStamp = (long) o;
+                break;
+        }
     }
 
-    public void get(String key){
+    public Object get(String key){
+        switch (key){
+            case "vibrate":
+                return vibrate;
+            case "showNotification":
+                return showNotification;
+            case "syncEnabled":
+                return syncEnabled;
+            case "autoSync":
+                return autoSync;
+            case "lastSyncTimeStamp":
+                return lastSyncTimeStamp;
+            case "importTutorialDialogShown":
+                return importTutorialDialogShown;
+            case "selected_categories":
+                return selected_categories;
+            case "driveId":
+                return driveId;
+            case "lastReceivedDataTimeStamp":
+                return lastReceivedDataTimeStamp;
+        }
+        return "Error";
+    }
 
+    public void toggle(String key){
+        switch (key){
+            case "vibrate":
+                vibrate = !vibrate;
+                break;
+            case "showNotification":
+                showNotification = !showNotification;
+                break;
+            case "syncEnabled":
+                syncEnabled = !syncEnabled;
+                break;
+            case "autoSync":
+                autoSync = !autoSync;
+                break;
+            case "importTutorialDialogShown":
+                importTutorialDialogShown = !importTutorialDialogShown;
+                break;
+        }
+    }
+
+    public void setCategory(int index, boolean b){
+        selected_categories[index] = b;
+    }
+
+    public boolean getCategory(int index){
+        return selected_categories[index];
+    }
+
+    public boolean driveIdStored(){
+        //return driveId != null;
+        return false;
     }
 }

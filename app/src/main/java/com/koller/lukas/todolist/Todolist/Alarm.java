@@ -8,18 +8,18 @@ import java.util.TimeZone;
  */
 public class Alarm {
 
-    public long id;
-    public long time;
-    public long lastChange_timeStamp;
+    private long id;
+    private long time;
+    private long lastChange_timeStamp;
 
-    public boolean repeating = false;
-    public int repeatMode; //0: daily; 1: weekly; 2: monthly; 3: certain days of the week; 4: custom intervall;
+    private boolean repeating = false;
+    private int repeatMode; //0: daily; 1: weekly; 2: monthly; 3: certain days of the week; 4: custom intervall;
 
-    public boolean[] certain_days = new boolean[7] ;
+    private boolean[] certain_days = new boolean[7] ;
 
-    public long custom_intervall;
-    public int numberPicker1_value;
-    public int numberPicker2_value;
+    private long custom_intervall;
+    private int numberPicker1_value;
+    private int numberPicker2_value;
 
     public Alarm(long id, long time) {
         this.id = id;
@@ -28,8 +28,7 @@ public class Alarm {
         this.lastChange_timeStamp = System.currentTimeMillis();
     }
 
-    public void setTime(long id, long time){
-        this.id = id;
+    public void setTime(long time){
         this.time = time;
 
         this.lastChange_timeStamp = System.currentTimeMillis();
@@ -157,5 +156,54 @@ public class Alarm {
             }
         }
         return true;
+    }
+
+    public void set(String key, Object o){
+        switch (key){
+            case "custom_intervall":
+                custom_intervall = (long) o;
+                break;
+            case "numberPicker1_value":
+                numberPicker1_value = (int) o;
+                break;
+            case "numberPicker2_value":
+                numberPicker2_value = (int) o;
+                break;
+        }
+    }
+
+    public Object get(String key){
+        switch (key){
+            case "id":
+                return id;
+            case "time":
+                return time;
+            case "lastChange_timeStamp":
+                return lastChange_timeStamp;
+            case "repeating":
+                return repeating;
+            case "repeatMode":
+                return repeatMode;
+            case "custom_intervall":
+                return custom_intervall;
+            case "numberPicker1_value":
+                return numberPicker1_value;
+            case "numberPicker2_value":
+                return numberPicker2_value;
+        }
+        return "Error";
+    }
+
+    public void setCertainDay(int index, boolean b){
+        if(index < 7){
+            certain_days[index] = b;
+        }
+    }
+
+    public boolean getCertainDay(int index){
+        if(index < 7){
+            return certain_days[index];
+        }
+        return false;
     }
 }

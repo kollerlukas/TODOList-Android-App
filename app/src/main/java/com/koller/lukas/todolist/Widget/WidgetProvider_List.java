@@ -41,12 +41,12 @@ public class WidgetProvider_List extends AppWidgetProvider {
             widget.setRemoteAdapter(R.id.widget_list, svcIntent);
 
             //color toolbar textView
-            colorBackground(widget, R.id.toolbar_textView, helper.toolbar_color);
-            widget.setTextColor(R.id.toolbar_textView, helper.toolbar_textcolor);
+            colorBackground(widget, R.id.toolbar_textView, helper.get("toolbar_color"));
+            widget.setTextColor(R.id.toolbar_textView, helper.get("toolbar_textcolor"));
             widget.setOnClickPendingIntent(R.id.toolbar_textView, clickPI);
 
             //color background
-            colorBackground(widget, R.id.bg, helper.cord_color);
+            colorBackground(widget, R.id.bg, helper.get("cord_color"));
 
             //read new Data
             appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds[i], R.id.widget_list);

@@ -7,4 +7,6 @@ import com.google.android.gms.drive.DriveId;
  */
 public interface ModifiedDateCallback {
     public void getModifiedDate(long timeStamp, DriveId driveId);
+    public void error(int statusCode);
+    public void noFilesFound();
 }

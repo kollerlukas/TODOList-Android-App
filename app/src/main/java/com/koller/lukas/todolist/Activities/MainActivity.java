@@ -30,6 +30,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.ColorStateList;
@@ -44,6 +45,7 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.design.internal.NavigationMenuView;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -149,8 +151,8 @@ public class MainActivity extends AppCompatActivity
         implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
     private Context context = this;
-    public Todolist todolist;
-    public static MainActivity mThis = null;
+    private Todolist todolist;
+    private static MainActivity mThis = null;
     private NotificationManager mNotificationManager;
     private RVAdapter mAdapter;
     private RecyclerView mRecyclerView;
@@ -186,7 +188,8 @@ public class MainActivity extends AppCompatActivity
 
     private Handler handler = new Handler();
     private boolean actionButtonAlreadyClicked = false;
-    private DialogInterface.OnDismissListener dismisslistener;
+    private DialogInterface.OnDismissListener
+            dismisslistener;
 
     private Event eventToColorChange;
     private int selectedColor; //For Color selecting at the add Dialog
@@ -211,9 +214,7 @@ public class MainActivity extends AppCompatActivity
     private RelativeLayout personData;
     private static final int RC_SIGN_IN = 9001;
     private MenuItem syncData;
-    //private boolean autoSync = false;
-
-    //private DriveId driveId;
+    private long modifiedDateTemp = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -230,21 +231,8 @@ public class MainActivity extends AppCompatActivity
 
         todolist = new Todolist(settings);
 
-        // For Google Drive Api
-        GoogleSignInOptions gso
-                = new GoogleSignInOptions.Builder(
-                GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail()
-                .requestScopes(Drive.SCOPE_APPFOLDER)
-                .build();
-
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this, this)
-                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-                .addApi(Drive.API)
-                .addScope(Drive.SCOPE_APPFOLDER)
-                .addConnectionCallbacks(this)
-                .build();
+        buildGoogleApiClient();
+        mGoogleApiClient.connect();
 
         todolist.initData(context);
 
@@ -277,7 +265,9 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onStart() {
-        lookIfSyncNeeded();
+        /*if((boolean) settings.get("autoSync")){
+            lookForSync();
+        }*/
 
         SharedPreferences.Editor editor
                 = context.getSharedPreferences("todolist",
@@ -298,7 +288,7 @@ public class MainActivity extends AppCompatActivity
 
         mThis = this;
 
-        if (settings.showNotification) {
+        if ((boolean) settings.get("showNotification")) {
             checkForNotificationUpdate();
         }
 
@@ -310,8 +300,25 @@ public class MainActivity extends AppCompatActivity
                 == 0 && todolist.getTodolist().size() > 0) {
             showSnackbar(getString(R.string.no_category_selected));
         }
-
         super.onResume();
+    }
+
+    public void buildGoogleApiClient(){
+        // For Google Drive Api
+        GoogleSignInOptions gso
+                = new GoogleSignInOptions.Builder(
+                GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .requestScopes(Drive.SCOPE_APPFOLDER)
+                .build();
+
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this, this)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .addApi(Drive.API)
+                .addScope(Drive.SCOPE_APPFOLDER)
+                .addConnectionCallbacks(this)
+                .build();
     }
 
     public void initRecyclerView() {
@@ -346,8 +353,7 @@ public class MainActivity extends AppCompatActivity
         mRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                //MainActivity.this.syncData();
-                lookIfSyncNeeded();
+                lookForSync();
             }
         };
         mSwipeRefreshLayout.setOnRefreshListener(mRefreshListener);
@@ -410,13 +416,13 @@ public class MainActivity extends AppCompatActivity
                             generalNotif = subMenuItem;
                             final SwitchCompat shoNotif
                                     = (SwitchCompat) subMenu.getItem(j).getActionView();
-                            shoNotif.setChecked(settings.showNotification);
+                            shoNotif.setChecked((boolean) settings.get("showNotification"));
                             shoNotif.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                                 @Override
                                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                                     ShowNotificationToggleClicked();
                                     if (!(shoNotif.isChecked() && isChecked)) {
-                                        shoNotif.setChecked(settings.showNotification);
+                                        shoNotif.setChecked((boolean) settings.get("showNotification"));
                                     }
                                 }
                             });
@@ -428,7 +434,7 @@ public class MainActivity extends AppCompatActivity
                             }
                             final SwitchCompat silence_all_alarms
                                     = (SwitchCompat) subMenu.getItem(j).getActionView();
-                            silence_all_alarms.setChecked(!settings.vibrate);
+                            silence_all_alarms.setChecked(!(boolean) settings.get("vibrate"));
                             silence_all_alarms.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                                 @Override
                                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -440,7 +446,7 @@ public class MainActivity extends AppCompatActivity
                             autoSyncMenuItem = subMenuItem;
                             final SwitchCompat autoSync
                                     = (SwitchCompat) subMenu.getItem(j).getActionView();
-                            autoSync.setChecked(settings.autoSync);
+                            autoSync.setChecked((boolean) settings.get("autoSync"));
                             autoSync.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                                 @Override
                                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -500,7 +506,6 @@ public class MainActivity extends AppCompatActivity
                 if (mGoogleApiClient.isConnected()) {
 
                     showSyncExperimentalFeatureDialog();
-                    //signIn();
                 } else {
                     showToast("Client not connected!");
                 }
@@ -536,18 +541,19 @@ public class MainActivity extends AppCompatActivity
         }
         helper = new ThemeHelper(MainActivity.this);
 
-        mToolbar.setBackgroundColor(helper.toolbar_color);
-        mToolbar.setTitleTextColor(helper.toolbar_textcolor);
-        ChangeColorOfToolbarDrawerIcon(helper.toolbar_textcolor);
+        mToolbar.setBackgroundColor(helper.get("toolbar_color"));
+        mToolbar.setTitleTextColor(helper.get("toolbar_textcolor"));
+        //ChangeColorOfToolbarDrawerIcon(helper.get("toolbar_textcolor"));
+        ChangeColorOfToolbarDrawerIcon(helper.getToolbarIconColor());
 
         mFab = (FloatingActionButton) findViewById(R.id.fab);
-        mFab.setBackgroundTintList(ColorStateList.valueOf(helper.fab_color));
-        mFab.getDrawable().setTint(helper.fab_textcolor);
+        mFab.setBackgroundTintList(ColorStateList.valueOf(helper.get("fab_color")));
+        mFab.getDrawable().setTint(helper.get("fab_textcolor"));
 
         mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
-        mCoordinatorLayout.setBackgroundColor(helper.cord_color);
+        mCoordinatorLayout.setBackgroundColor(helper.get("cord_color"));
         ((ImageView) findViewById(R.id.nothing_todo))
-                .setColorFilter(helper.cord_textcolor, PorterDuff.Mode.SRC_IN);
+                .setColorFilter(helper.get("cord_textcolor"), PorterDuff.Mode.SRC_IN);
 
         int color_grey = ContextCompat.getColor(context, R.color.grey);
         int color_dark = ContextCompat.getColor(context, R.color.black_light);
@@ -565,9 +571,9 @@ public class MainActivity extends AppCompatActivity
         k++;
 
         states[k] = new int[]{android.R.attr.state_checked};
-        thumbColors[k] = helper.fab_color;
-        trackColors[k] = Color.argb(72, Color.red(helper.fab_color),
-                Color.green(helper.fab_color), Color.blue(helper.fab_color));
+        thumbColors[k] = helper.get("fab_color");
+        trackColors[k] = Color.argb(72, Color.red(helper.get("fab_color")),
+                Color.green(helper.get("fab_color")), Color.blue(helper.get("fab_color")));
         k++;
 
         // Default enabled state
@@ -577,9 +583,8 @@ public class MainActivity extends AppCompatActivity
         k++;
 
         DrawableCompat.setTintList(DrawableCompat.wrap(((SwitchCompat)
-
                 mSilenceAllAlarms.getActionView()).getThumbDrawable()), new ColorStateList(states, thumbColors));
-        ((SwitchCompat) mSilenceAllAlarms.getActionView()).setHighlightColor(helper.fab_color);
+        ((SwitchCompat) mSilenceAllAlarms.getActionView()).setHighlightColor(helper.get("fab_color"));
         DrawableCompat.setTintList(DrawableCompat.wrap(((SwitchCompat)
                 mSilenceAllAlarms.getActionView()).getTrackDrawable()), new ColorStateList(states, trackColors));
         DrawableCompat.setTintList(DrawableCompat.wrap(((SwitchCompat)
@@ -591,11 +596,12 @@ public class MainActivity extends AppCompatActivity
         DrawableCompat.setTintList(DrawableCompat.wrap(((SwitchCompat)
                 generalNotif.getActionView()).getTrackDrawable()), new ColorStateList(states, trackColors));
 
-        setOverflowButtonColor(helper.toolbar_textcolor);
+        //setOverflowButtonColor(helper.get("toolbar_textcolor"));
+        setOverflowButtonColor(helper.getToolbarIconColor());
 
         for (int i = 0; i < navigationHeaders.size(); i++) {
             SpannableString s = new SpannableString(navigationHeaders.get(i).getTitle());
-            s.setSpan(new ForegroundColorSpan(helper.fab_color), 0, s.length(), 0);
+            s.setSpan(new ForegroundColorSpan(helper.get("fab_color")), 0, s.length(), 0);
             navigationHeaders.get(i).setTitle(s);
         }
 
@@ -603,6 +609,14 @@ public class MainActivity extends AppCompatActivity
         newTheme = false;
 
         CheckToolbarElevation();
+    }
+
+    public static boolean isRunning() {
+        return mThis != null;
+    }
+
+    public static MainActivity getThis() {
+        return mThis;
     }
 
     private boolean isNetworkAvailable() {
@@ -620,6 +634,11 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void signIn() {
+        //show loading
+        signInButton.setVisibility(View.GONE);
+        personData.setVisibility(View.VISIBLE);
+        this.personEmail.setText("...");
+
         startActivityForResult(Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient), RC_SIGN_IN);
     }
 
@@ -630,10 +649,10 @@ public class MainActivity extends AppCompatActivity
                     public void onResult(Status status) {
                         // signed out!
                         signedIn = false;
-                        settings.syncEnabled = false;
+                        settings.set("syncEnabled", false);
                         mSwipeRefreshLayout.setEnabled(false);
                         syncData.setVisible(false);
-                        todolist.lastSyncTimeStamp = 0;
+                        settings.set("lastSyncTimeStamp", (long) 0);
                         saveSignedIn();
                         initSignInWithGoogle();
                     }
@@ -675,7 +694,7 @@ public class MainActivity extends AppCompatActivity
             personData.setVisibility(View.VISIBLE);
             this.personName.setText(personName);
             this.personEmail.setText(personEmail);
-            settings.syncEnabled = true;
+            settings.set("syncEnabled", true);
             personData.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -704,11 +723,10 @@ public class MainActivity extends AppCompatActivity
             signedIn = true;
             mSwipeRefreshLayout.setEnabled(true);
 
-            if (settings.autoSync) {
-                syncData();
+            if ((boolean) settings.get("autoSync")) {
+                lookForSync();
             }
         } else {
-
             showToast("SignIn not successful!");
             // Signed out
             personData.setOnClickListener(null);
@@ -716,55 +734,97 @@ public class MainActivity extends AppCompatActivity
             signInButton.setVisibility(View.VISIBLE);
             syncData.setVisible(false);
             signedIn = false;
-            settings.syncEnabled = false;
+            settings.set("syncEnabled", false);
             mSwipeRefreshLayout.setEnabled(false);
         }
         saveSignedIn();
     }
 
-    public void syncData() {
-        //mSwipeRefreshLayout.setRefreshing(true);
+    public void lookForSync() {
+        mSwipeRefreshLayout.setRefreshing(true);
 
-        if (signedIn && mGoogleApiClient.isConnected()) {
-            //request a sync
-            Drive.DriveApi.requestSync(mGoogleApiClient)
-                    .setResultCallback(new ResultCallback<Status>() {
-                        @Override
-                        public void onResult(Status result) {
-                            if (!result.isSuccess()) {
-                                //mSwipeRefreshLayout.setRefreshing(false);
-                                if (result.getStatusCode()
-                                        == DriveStatusCodes.DRIVE_RATE_LIMIT_EXCEEDED) {
-                                    showToast("Sync currently not possible. Please try again later");
-                                    //mSwipeRefreshLayout.setRefreshing(false);
-                                    return;
-                                }
-                                showToast("MainActivity.syncData(), Error: "
-                                        + DriveStatusCodes.getStatusCodeString(result.getStatusCode()));
+        if (!signedIn && !mGoogleApiClient.isConnected()) {
+            showToast("Api Client not connected");
+            mSwipeRefreshLayout.setRefreshing(false);
+            return;
+        }
+
+        Drive.DriveApi.requestSync(mGoogleApiClient)
+                .setResultCallback(new ResultCallback<Status>() {
+                    @Override
+                    public void onResult(@NonNull Status result) {
+                        if (!result.isSuccess()) {
+                            mSwipeRefreshLayout.setRefreshing(false);
+                            if (result.getStatusCode()
+                                    == DriveStatusCodes.DRIVE_RATE_LIMIT_EXCEEDED) {
+                                showToast("Sync currently not possible. Please try again later");
                                 return;
                             }
-
-                            //Sync possible
-                            mSwipeRefreshLayout.setRefreshing(true);
-
-                            if (settings.driveId != null) {
-                                tryToRetrieveData(settings.driveId);
-                            } else {
-                                tryToRetrieveDriveId();
-                            }
+                            showToast("MainActivity.syncData(), Error: "
+                                    + DriveStatusCodes.getStatusCodeString(result.getStatusCode()));
+                            return;
                         }
-                    });
-        } else {
-            showToast("Client not connected or not signed in");
-            //mSwipeRefreshLayout.setRefreshing(false);
-        }
+
+                        new RetrieveDriveId(mGoogleApiClient, new ModifiedDateCallback() {
+                            @Override
+                            public void noFilesFound(){
+                                showToast("MainActivity: modifiedDateCallback, no Files found");
+
+                                createNewFile();
+                            }
+
+                            @Override
+                            public void getModifiedDate(long timeStamp, DriveId driveId) {
+                                Calendar cal = Calendar.getInstance();
+                                cal.setTimeInMillis(timeStamp);
+
+                                Log.d("MainActivity", "getModifiedDate: " + cal.getTime().toString());
+
+                                if (timeStamp > (long) MainActivity.this.settings.get("lastReceivedDataTimeStamp")) {
+                                    if (mGoogleApiClient.isConnected()) {
+
+                                        //settings.set("lastReceivedDataTimeStamp", timeStamp);
+                                        modifiedDateTemp = timeStamp;
+                                        settings.set("driveId", driveId);
+
+                                        tryToRetrieveData(driveId);
+                                    } else {
+                                        mSwipeRefreshLayout.setRefreshing(false);
+                                        showToast("Api Client not connected");
+                                    }
+                                } else {
+                                    //mSwipeRefreshLayout.setRefreshing(false);
+                                    showToast("MainActivity: modifiedDate old!");
+
+                                    settings.set("lastReceivedDataTimeStamp", timeStamp);
+                                    settings.set("driveId", driveId);
+
+                                    writeToGoogleDrive();
+                                }
+                            }
+
+                            @Override
+                            public void error(int statusCode){
+                                mSwipeRefreshLayout.setRefreshing(false);
+                                showToast("MainActivity: modifiedDateCallback, error");
+                            }
+                        }).execute();
+                    }
+                });
     }
 
     public void tryToRetrieveDriveId() {
         new RetrieveDriveId(mGoogleApiClient, new DriveIdCallback() {
             @Override
+            public void noFilesFound(){
+                showToast("MainActivity: driveIdCallback, no Files found");
+
+                createNewFile();
+            }
+
+            @Override
             public void gotDriveId(DriveId driveId) {
-                settings.driveId = driveId;
+                settings.set("driveId", driveId);
                 tryToRetrieveData(driveId);
             }
 
@@ -772,61 +832,94 @@ public class MainActivity extends AppCompatActivity
             public void error(int statusCode) {
                 DriveIdError(statusCode);
             }
-        }, null).execute();
+        }).execute();
     }
 
     public void tryToRetrieveData(DriveId driveId) {
         new RetrieveDataFromAppFolder(mGoogleApiClient, new RetrievedDataFromAppFolderCallback() {
             @Override
-            public void retrievedDataFromAppFolder(String data) {
-                if (data == null) {
-                    showToast("Error while trying to retrieve Data");
-                    createNewFile();
-                } else {
-                    if (!data.equals("")) {
-                        new SyncDataAsyncTask(todolist, data, new SyncDataCallback() {
-                            @Override
-                            public void DoneSyncingData(ArrayList<Long> eventsToUpdate) {
-                                MainActivity.this.DoneSyncingData(eventsToUpdate);
-                            }
+            public void error(String error){
+                switch(error){
+                    case "no data":
+                        showToast("No data -> creating new File");
 
-                            @Override
-                            public void updateAlarms(ArrayList<Long> alarmsToCancel, ArrayList<Alarm> alarmsToSet) {
-                                MainActivity.this.updateAlarms(alarmsToCancel, alarmsToSet);
-                            }
+                        createNewFile();
+                        break;
+                    case "file.open() not successful":
+                        showToast(error);
+                        mSwipeRefreshLayout.setRefreshing(false);
+                        break;
+                    case "no data written":
+                        showToast(error);
+                        mSwipeRefreshLayout.setRefreshing(false);
+                        break;
+                    case "driveId Error":
+                        showToast(error);
 
-                            @Override
-                            public void error(String error) {
-                                showToast("SyncDataAsyncTask: " + error);
-                                mSwipeRefreshLayout.setRefreshing(false);
-                            }
+                        tryToRetrieveDriveId();
+                        break;
+                    case "empty file":
+                        showToast(error);
 
-                            @Override
-                            public void updateColors(int[] newColors, int[] newTextColors) {
-                                helper.setColors(newColors);
-                                helper.setTextColors(newTextColors);
-                                helper.saveData();
-                            }
-
-                        }).execute();
-                    } else {
-                        showToast("no Data received");
-                        //mSwipeRefreshLayout.setRefreshing(false);
                         writeToGoogleDrive();
-                    }
+                        break;
                 }
             }
+
+            @Override
+            public void retrievedDataFromAppFolder(String data) {
+                showToast("data successfully received");
+                syncData(data);
+            }
         }).execute(driveId);
+    }
+
+    public void syncData(String data){
+        Log.d("MainActivity", "received data: " + data);
+
+        new SyncDataAsyncTask(todolist, data,
+                (long) settings.get("lastSyncTimeStamp"), new SyncDataCallback() {
+            @Override
+            public void DoneSyncingData(ArrayList<Long> eventsToUpdate) {
+                MainActivity.this.DoneSyncingData(eventsToUpdate);
+            }
+
+            @Override
+            public void updateAlarms(ArrayList<Long> alarmsToCancel, ArrayList<Alarm> alarmsToSet) {
+                MainActivity.this.updateAlarms(alarmsToCancel, alarmsToSet);
+            }
+
+            @Override
+            public void error(String error) {
+                showToast("SyncDataAsyncTask: " + error);
+                mSwipeRefreshLayout.setRefreshing(false);
+            }
+
+            @Override
+            public void updateColors(int[] newColors, int[] newTextColors) {
+                helper.setColors(newColors);
+                helper.setTextColors(newTextColors);
+                helper.saveData();
+            }
+
+        }).execute();
     }
 
     public void writeToGoogleDrive() {
         mDrawerLayout.closeDrawers();
         if (mGoogleApiClient.isConnected()) {
-            if (settings.driveId != null) {
+            if (settings.driveIdStored()) {
                 showToast("reusing driveId");
-                writeToFile(settings.driveId);
+                writeToFile((DriveId) settings.get("driveId"));
             } else {
-                /*new RetrieveDriveId(mGoogleApiClient, new DriveIdCallback() {
+                new RetrieveDriveId(mGoogleApiClient, new DriveIdCallback() {
+                    @Override
+                    public void noFilesFound(){
+                        showToast("MainActivity: driveIdCallback, no Files found");
+
+                        createNewFile();
+                    }
+
                     @Override
                     public void gotDriveId(DriveId driveId) {
                         writeToFile(driveId);
@@ -836,9 +929,7 @@ public class MainActivity extends AppCompatActivity
                     public void error(int statusCode) {
                         DriveIdError(statusCode);
                     }
-                }, null).execute();*/
-                showToast("no driveId");
-                return;
+                }).execute();
             }
         } else {
             showToast("Client not connected!");
@@ -851,6 +942,8 @@ public class MainActivity extends AppCompatActivity
 
         String data = todolist.getSyncData();
 
+        Log.d("MainActivity", "send data: " + data);
+
         int statusCode = 0;
         try {
             statusCode = new EditFileInAppFolder(mGoogleApiClient, data)
@@ -860,16 +953,23 @@ public class MainActivity extends AppCompatActivity
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
-        showToast("EditFileInAppFolder StatusCode: "
+
+        showToast("EditFileInAppFolder, StatusCode: "
                 + CommonStatusCodes.getStatusCodeString(statusCode));
+
+        if(statusCode == CommonStatusCodes.SUCCESS){
+            settings.set("lastReceivedDataTimeStamp", modifiedDateTemp);
+            settings.set("lastSyncTimeStamp", System.currentTimeMillis());
+        }
+
         mSwipeRefreshLayout.setRefreshing(false);
 
-        todolist.lastSyncTimeStamp = System.currentTimeMillis();
         todolist.clearRemovedAndAdddedEvents(MainActivity.this);
-        return;
     }
 
     public void createNewFile() {
+        showToast("creating File");
+
         mDrawerLayout.closeDrawers();
         if (mGoogleApiClient.isConnected()) {
             Drive.DriveApi.newDriveContents(mGoogleApiClient).setResultCallback(
@@ -891,7 +991,7 @@ public class MainActivity extends AppCompatActivity
                                                 mSwipeRefreshLayout.setRefreshing(false);
                                                 return;
                                             }
-                                            settings.driveId = result.getDriveFile().getDriveId();
+                                            settings.set("driveId", result.getDriveFile().getDriveId());
                                             writeToFile(result.getDriveFile().getDriveId());
                                         }
                                     }, result).execute();
@@ -906,81 +1006,12 @@ public class MainActivity extends AppCompatActivity
     public void DriveIdError(int statusCode) {
         if (statusCode == DriveStatusCodes.SUCCESS) {
             //File not found
-            showToast("creating a new file");
             createNewFile();
         } else {
             mSwipeRefreshLayout.setRefreshing(false);
             showToast("Error while retrieving DriveId; Status-Code: "
                     + DriveStatusCodes.getStatusCodeString(statusCode));
         }
-    }
-
-    public void lookIfSyncNeeded() {
-        if (!signedIn && settings.autoSync) {
-            return;
-        }
-
-        if (!mGoogleApiClient.isConnected()) {
-            return;
-        }
-
-        /*if (todolist.lastSyncTimeStamp + 2 * 60 * 1000 > System.currentTimeMillis()) {
-            //showToast("Sync 2 minutes ago");
-            //return;
-        }
-        if (mGoogleApiClient.isConnected()) {
-            syncData();
-        } else {
-            pendingSync = true;
-        }*/
-
-        if (mGoogleApiClient.isConnected()) {
-            Drive.DriveApi.requestSync(mGoogleApiClient)
-                    .setResultCallback(new ResultCallback<Status>() {
-                        @Override
-                        public void onResult(Status result) {
-                            if (!result.isSuccess()) {
-                                mSwipeRefreshLayout.setRefreshing(false);
-                                if (result.getStatusCode()
-                                        == DriveStatusCodes.DRIVE_RATE_LIMIT_EXCEEDED) {
-                                    showToast("Sync currently not possible. Please try again later");
-                                    return;
-                                }
-                                showToast("MainActivity.syncData(), Error: "
-                                        + DriveStatusCodes.getStatusCodeString(result.getStatusCode()));
-                                return;
-                            }
-
-                            new RetrieveDriveId(mGoogleApiClient, null, new ModifiedDateCallback() {
-                                @Override
-                                public void getModifiedDate(long timeStamp, DriveId driveId) {
-                                    Calendar cal = Calendar.getInstance();
-                                    cal.setTimeInMillis(timeStamp);
-
-                                    // showToast(cal.getTime().toString());
-
-                                    Log.d("MainActivity", "getModifiedDate: " + cal.getTime().toString());
-
-                                    if (timeStamp > MainActivity.this.settings.lastSyncTimeStamp) {
-                                        //showToast("new Data in Drive available!");
-                                        if (mGoogleApiClient.isConnected()) {
-                                            mSwipeRefreshLayout.setRefreshing(true);
-
-                                            settings.driveId = driveId;
-                                            tryToRetrieveData(driveId);
-                                        } else {
-                                            mSwipeRefreshLayout.setRefreshing(false);
-                                            showToast("Api Client not connected");
-                                        }
-                                    }
-                                }
-                            }).execute();
-                        }
-                    });
-        } else {
-            showToast("Api Client not connected");
-        }
-        //syncData();
     }
 
     public void showToast(String s) {
@@ -996,7 +1027,8 @@ public class MainActivity extends AppCompatActivity
                     if (addEventDialog != null) {
                         addEventDialog.dismiss();
                     }
-                    FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+                    FloatingActionButton fab
+                            = (FloatingActionButton) findViewById(R.id.fab);
                     if (fab != null) {
                         FabClicked(fab);
                     }
@@ -1030,7 +1062,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void checkForNotificationUpdate() {
-        if (todolist.getTodolist().size() != 0 && settings.showNotification) {
+        if (todolist.getTodolist().size() != 0
+                && (boolean) settings.get("showNotification")) {
             showNotification();
         } else {
             cancelNotification();
@@ -1095,8 +1128,8 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-                todolist.EventMoved(viewHolder.getAdapterPosition(), target.getAdapterPosition());
-                mAdapter.ItemMoved(viewHolder.getAdapterPosition(), target.getAdapterPosition());
+                todolist.eventMoved(viewHolder.getAdapterPosition(), target.getAdapterPosition());
+                mAdapter.itemMoved(viewHolder.getAdapterPosition(), target.getAdapterPosition());
                 checkForNotificationUpdate();
                 return true;
             }
@@ -1369,9 +1402,9 @@ public class MainActivity extends AppCompatActivity
             buttons[i].getBackground().setColorFilter(getColorByIndex(i), PorterDuff.Mode.SRC_IN);
         }
 
-        if (helper.defaultColorIndex != 0) {
-            buttons[helper.defaultColorIndex].setImageDrawable(getButtonForegroundRes(helper.defaultColorIndex));
-            selectedColor = helper.defaultColorIndex;
+        if (helper.getDefaultColorIndex() != 0) {
+            buttons[helper.getDefaultColorIndex()].setImageDrawable(getButtonForegroundRes(helper.getDefaultColorIndex()));
+            selectedColor = helper.getDefaultColorIndex();
         } else {
             selectedColor = 0;
         }
@@ -1396,7 +1429,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public boolean onLongClick(View v) {
                 int index = getColorIndexByButtonId(v.getId());
-                int default_color = helper.defaultColorIndex;
+                int default_color = helper.getDefaultColorIndex();
                 if (default_color != index) {
                     default_color = index;
                     ImageButton imageButton = (ImageButton) v;
@@ -1405,11 +1438,12 @@ public class MainActivity extends AppCompatActivity
                         buttons[selectedColor].setImageResource(android.R.color.transparent);
                     }
                     selectedColor = index;
+                    helper.setDefaultColorIndex(index);
                     showToast("Default Color set");
                 } else {
                     buttons[index].setImageResource(android.R.color.transparent);
-                    default_color = 0;
                     selectedColor = 0;
+                    helper.setDefaultColorIndex(0);
                     showToast("Default Color removed");
                 }
                 return true;
@@ -1440,7 +1474,8 @@ public class MainActivity extends AppCompatActivity
         final String hint = getAddEventHint();
         editText.setHint(hint);
 
-        AlertDialog.Builder input_dialog_builder = new AlertDialog.Builder(context, getDialogTheme());
+        AlertDialog.Builder input_dialog_builder
+                = new AlertDialog.Builder(context, getDialogTheme());
         input_dialog_builder.setTitle(getString(R.string.add_event))
                 .setView(inputDialog)
                 .setNegativeButton(getString(R.string.cancel), null)
@@ -1455,15 +1490,16 @@ public class MainActivity extends AppCompatActivity
                             s = hint;
                         }
                         int color = selectedColor;
-                        boolean[] possible_colors = new boolean[settings.selected_categories.length];
-                        for (int i = 1; i < settings.selected_categories.length; i++) {
-                            if (settings.selected_categories[i] || !todolist.doesCategoryContainEvents(i)) {
+                        boolean[] possible_colors
+                                = new boolean[((boolean[]) settings.get("selected_categories")).length];
+                        for (int i = 1; i < possible_colors.length; i++) {
+                            if (settings.getCategory(i) || !todolist.doesCategoryContainEvents(i)) {
                                 possible_colors[i] = true;
                             }
                         }
                         Event e = new Event(s, 0, color, 0, 0, possible_colors);
                         todolist.addEvent(mAdapter, e);
-                        settings.selected_categories[e.getColor()] = true;
+                        settings.setCategory(e.getColor(), true);
                         closeAllOpenCards(mAdapter.getItemCount());
                         todolist.addOrRemoveEventFromAdapter(mAdapter);
                         mRecyclerView.scrollToPosition(mAdapter.getList().indexOf(e));
@@ -1532,12 +1568,13 @@ public class MainActivity extends AppCompatActivity
                 string = getString(R.string.do_laundry);
                 break;
         }
-        return string;
+        //return string;
+        return "test";
     }
 
     public void showAlarmInfoDialog(final Event e) {
         Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(e.getAlarm().time);
+        calendar.setTimeInMillis((long) e.getAlarm().get("time"));
 
         android.text.format.DateFormat dateFormat = new android.text.format.DateFormat();
         boolean timeFormat = dateFormat.is24HourFormat(this);
@@ -1590,15 +1627,15 @@ public class MainActivity extends AppCompatActivity
         final AppCompatCheckBox checkbox = (AppCompatCheckBox) alarm_info_dialog.findViewById(R.id.checkbox);
         checkbox.setSupportButtonTintList(getColorStateListForCheckbox());
         checkbox.setTextColor(getDialogTextColor());
-        checkbox.setChecked(e.getAlarm().repeating);
+        checkbox.setChecked((boolean) e.getAlarm().get("repeating"));
 
         final ScrollView certain_days = (ScrollView) alarm_info_dialog.findViewById(R.id.certain_days);
-        if (e.getAlarm().repeatMode != 3) {
+        if ((int) e.getAlarm().get("repeatMode") != 3) {
             certain_days.setVisibility(View.GONE);
         }
 
         final LinearLayout numberPickers = (LinearLayout) alarm_info_dialog.findViewById(R.id.numberPickers);
-        if (e.getAlarm().repeatMode != 4) {
+        if ((int) e.getAlarm().get("repeatMode") != 4) {
             numberPickers.setVisibility(View.GONE);
         }
 
@@ -1656,9 +1693,9 @@ public class MainActivity extends AppCompatActivity
         numberPickers.addView(numberPicker1);
         numberPickers.addView(numberPicker2);
 
-        if (e.getAlarm().repeatMode == 4) {
-            numberPicker1.setValue(e.getAlarm().numberPicker1_value);
-            numberPicker2.setValue(e.getAlarm().numberPicker2_value);
+        if ((int) e.getAlarm().get("repeatMode") == 4) {
+            numberPicker1.setValue((int) e.getAlarm().get("numberPicker1_value"));
+            numberPicker2.setValue((int) e.getAlarm().get("numberPicker2_value"));
         }
 
         final String[] state = {getString(R.string.daily),
@@ -1668,7 +1705,7 @@ public class MainActivity extends AppCompatActivity
                 getString(R.string.custom)};
 
         final AppCompatSpinner spinner = (AppCompatSpinner) alarm_info_dialog.findViewById(R.id.spinner);
-        spinner.setEnabled(e.getAlarm().repeating);
+        spinner.setEnabled((boolean) e.getAlarm().get("repeating"));
 
         final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, state);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -1693,7 +1730,7 @@ public class MainActivity extends AppCompatActivity
             }
         };
         spinner.setOnItemSelectedListener(onItemSelectedListener);
-        spinner.setSelection(e.getAlarm().repeatMode);
+        spinner.setSelection((int) e.getAlarm().get("repeatMode"));
 
         checkbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -1706,14 +1743,14 @@ public class MainActivity extends AppCompatActivity
 
         final Button[] buttons = getWeekButtons(alarm_info_dialog);
         for (int i = 0; i < buttons.length; i++) {
-            int color = helper.fab_color;
-            int textcolor = helper.fab_textcolor;
-            if (helper.fab_color == ContextCompat.getColor(MainActivity.this, R.color.white)) {
+            int color = helper.get("fab_color");
+            int textcolor = helper.get("fab_textcolor");
+            if (helper.get("fab_color") == ContextCompat.getColor(MainActivity.this, R.color.white)) {
                 color = ContextCompat.getColor(MainActivity.this, R.color.grey);
                 textcolor = ContextCompat.getColor(MainActivity.this, R.color.white);
             }
 
-            if (e.getAlarm().certain_days[i]) {
+            if (e.getAlarm().getCertainDay(i)) {
                 buttons[i].setTextColor(textcolor);
                 buttons[i].getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
             } else {
@@ -1728,17 +1765,17 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View v) {
                 TextView clickedButton = (TextView) v;
                 boolean b;
-                if (clickedButton.getCurrentTextColor() == helper.fab_textcolor) {
+                if (clickedButton.getCurrentTextColor() == helper.get("fab_textcolor")) {
                     clickedButton.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.light_text_color));
                     clickedButton.getBackground().setColorFilter(
                             ContextCompat.getColor(MainActivity.this, R.color.white), PorterDuff.Mode.SRC_IN);
                     b = false;
                 } else {
-                    clickedButton.setTextColor(helper.fab_textcolor);
-                    clickedButton.getBackground().setColorFilter(helper.fab_color, PorterDuff.Mode.SRC_IN);
+                    clickedButton.setTextColor(helper.get("fab_textcolor"));
+                    clickedButton.getBackground().setColorFilter(helper.get("fab_color"), PorterDuff.Mode.SRC_IN);
                     b = true;
                 }
-                e.getAlarm().certain_days[getWeekButtonsIndexById(v)] = b;
+                e.getAlarm().setCertainDay(getWeekButtonsIndexById(v), b);
             }
         };
 
@@ -1773,32 +1810,32 @@ public class MainActivity extends AppCompatActivity
                                 switch (numberPicker2.getValue()) {
                                     case 1:
                                         multiplier = 60 * 60 * 1000;
-                                        e.getAlarm().numberPicker2_value = 1;
+                                        e.getAlarm().set("numberPicker2_value", 1);
                                         break;
                                     case 2:
                                         multiplier = 24 * 60 * 60 * 1000;
-                                        e.getAlarm().numberPicker2_value = 2;
+                                        e.getAlarm().set("numberPicker2_value", 2);
                                         break;
                                     case 3:
                                         multiplier = 7 * 24 * 60 * 60 * 1000;
-                                        e.getAlarm().numberPicker2_value = 3;
+                                        e.getAlarm().set("numberPicker2_value", 3);
                                         break;
                                     //needed for wheelwrapping
                                     case 4:
                                         multiplier = 60 * 60 * 1000;
-                                        e.getAlarm().numberPicker2_value = 1;
+                                        e.getAlarm().set("numberPicker2_value", 1);
                                         break;
                                     case 5:
                                         multiplier = 24 * 60 * 60 * 1000;
-                                        e.getAlarm().numberPicker2_value = 2;
+                                        e.getAlarm().set("numberPicker2_value", 2);
                                         break;
                                     case 6:
                                         multiplier = 7 * 24 * 60 * 60 * 1000;
-                                        e.getAlarm().numberPicker2_value = 3;
+                                        e.getAlarm().set("numberPicker2_value", 3);
                                         break;
                                 }
-                                e.getAlarm().custom_intervall = numberPicker1.getValue() * multiplier;
-                                e.getAlarm().numberPicker1_value = numberPicker1.getValue();
+                                e.getAlarm().set("custom_intervall", numberPicker1.getValue() * multiplier);
+                                e.getAlarm().set("numberPicker1_value", numberPicker1.getValue());
                             }
                         } else {
                             e.getAlarm().unRepeat();
@@ -1818,8 +1855,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     public ColorStateList getColorStateListForSpinner() {
-        int color = helper.fab_color;
-        if (helper.fab_color == ContextCompat.getColor(MainActivity.this, R.color.white)) {
+        int color = helper.get("fab_color");
+        if (helper.get("fab_color") == ContextCompat.getColor(MainActivity.this, R.color.white)) {
             color = ContextCompat.getColor(MainActivity.this, R.color.grey);
         }
 
@@ -1842,8 +1879,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     public ColorStateList getColorStateListForCheckbox() {
-        int color = helper.fab_color;
-        if (helper.fab_color == ContextCompat.getColor(MainActivity.this, R.color.white)) {
+        int color = helper.get("fab_color");
+        if (helper.get("fab_color") == ContextCompat.getColor(MainActivity.this, R.color.white)) {
             color = ContextCompat.getColor(MainActivity.this, R.color.grey);
         }
 
@@ -2026,14 +2063,14 @@ public class MainActivity extends AppCompatActivity
     public void ColorButtonClicked(View v) {
         int color_index = getColorIndexByButtonId(v.getId());
         if (categoryWasSelected) {
-            if (!settings.selected_categories[color_index]) {
+            if (!settings.getCategory(color_index)) {
                 ImageButton imageButton = (ImageButton) v;
                 imageButton.setImageDrawable(getButtonForegroundRes(color_index));
-                settings.selected_categories[color_index] = true;
+                settings.setCategory(color_index, true);
             } else {
                 ImageButton imageButton = (ImageButton) v;
                 imageButton.setImageResource(android.R.color.transparent);
-                settings.selected_categories[color_index] = false;
+                settings.setCategory(color_index, false);
             }
         } else {
             if (colorSelectorDialog != null) {
@@ -2042,7 +2079,7 @@ public class MainActivity extends AppCompatActivity
             if (color_index != eventToColorChange.getColor()) {
                 eventToColorChange.setColor(color_index);
                 mAdapter.itemChanged(mAdapter.getList().indexOf(eventToColorChange));
-                if (!settings.selected_categories[color_index]) {
+                if (!settings.getCategory(color_index)) {
                     int number_of_event_with_color_index = 0;
                     for (int i = 0; i < todolist.getTodolist().size(); i++) {
                         if (todolist.getTodolist().get(i).getColor() == color_index) {
@@ -2050,7 +2087,7 @@ public class MainActivity extends AppCompatActivity
                         }
                     }
                     if (number_of_event_with_color_index == 1) {
-                        settings.selected_categories[color_index] = true;
+                        settings.setCategory(color_index, true);
                     }
                 }
                 eventToColorChange = null;
@@ -2068,7 +2105,7 @@ public class MainActivity extends AppCompatActivity
             }
             removeNothingTodo();
             todolist.restoreLastRemovedEvent();
-            settings.selected_categories[e.getColor()] = true;
+            settings.setCategory(e.getColor(), true);
             todolist.addOrRemoveEventFromAdapter(mAdapter);
             mRecyclerView.scrollToPosition(mAdapter.getList().indexOf(e));
             checkForNotificationUpdate();
@@ -2084,9 +2121,9 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void SilenceAlarmsClicked() {
-        settings.vibrate = !settings.vibrate;
+        settings.toggle("vibrate");
 
-        if (!settings.vibrate) {
+        if (!(boolean) settings.get("vibrate")) {
             showSnackbar(getString(R.string.all_alarm_are_now_silent));
         } else {
             showSnackbar(getString(R.string.now_the_Phone_will_vibrate_when_alarms_are_fired));
@@ -2094,7 +2131,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void AutoSyncClicked(boolean isChecked) {
-        settings.autoSync = isChecked;
+        settings.set("autoSync", isChecked);
     }
 
     public void SelectCategoryClicked() {
@@ -2131,8 +2168,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     public AlertDialog changeDialogButtonColor(AlertDialog dialog) {
-        int color = helper.fab_color;
-        if (helper.fab_color == ContextCompat.getColor(MainActivity.this, R.color.white)) {
+        int color = helper.get("fab_color");
+        if (helper.get("fab_color") == ContextCompat.getColor(MainActivity.this, R.color.white)) {
             color = ContextCompat.getColor(MainActivity.this, R.color.grey);
         }
 
@@ -2152,9 +2189,9 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void ShowNotificationToggleClicked() {
-        settings.showNotification = !settings.showNotification;
+        settings.toggle("showNotification");
 
-        if (!settings.showNotification) {
+        if (!(boolean) settings.get("showNotification")) {
             showSnackbar(getString(R.string.general_notification_is_hidden));
             cancelNotification();
         } else {
@@ -2172,7 +2209,7 @@ public class MainActivity extends AppCompatActivity
     public void showNothingTodo(boolean withAnim) {
         final ImageView illustration = (ImageView) findViewById(R.id.nothing_todo);
         illustration.setImageDrawable(ContextCompat.getDrawable(MainActivity.this, R.drawable.ntd_illustration_summer));
-        illustration.setColorFilter(helper.cord_textcolor, PorterDuff.Mode.SRC_IN);
+        illustration.setColorFilter(helper.get("cord_textcolor"), PorterDuff.Mode.SRC_IN);
         illustration.setAlpha(0.5f);
         if (!withAnim) {
             illustration.setVisibility(View.VISIBLE);
@@ -2201,12 +2238,15 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void DoneSyncingData(ArrayList<Long> eventsToUpdate) {
-        //writeToGoogleDrive();
+        writeToGoogleDrive();
+
         mSwipeRefreshLayout.setRefreshing(false);
 
         checkForNotificationUpdate();
         if (todolist.getTodolist().size() != 0) {
             removeNothingTodo();
+        } else {
+            showNothingTodo(true);
         }
 
         for (int i = 0; i < mAdapter.getList().size(); i++) {
@@ -2223,8 +2263,21 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
-        for (int i = 0; i < settings.selected_categories.length; i++) {
-            settings.selected_categories[i] = true;
+        for (int i = 0; i < mAdapter.getList().size(); i++){
+            int newIndex = todolist.getAdapterListPosition(mAdapter, mAdapter.getList().get(i));
+            if(i != newIndex){
+                if(newIndex < mAdapter.getList().size()){
+                    mAdapter.itemMoved(i, newIndex);
+                } else {
+                    mAdapter.itemMoved(i, mAdapter.getList().size() - 1);
+                }
+                showToast("eventMoved()");
+            }
+        }
+
+        boolean[] selected_categories = (boolean[]) settings.get("selected_categories");
+        for (int i = 0; i < selected_categories.length; i++) {
+            selected_categories[i] = true;
         }
 
         todolist.addOrRemoveEventFromAdapter(mAdapter);
@@ -2238,8 +2291,8 @@ public class MainActivity extends AppCompatActivity
         }
 
         for (int i = 0; i < alarmsToSet.size(); i++) {
-            long time = alarmsToSet.get(i).time;
-            int id = (int) alarmsToSet.get(i).id;
+            long time = (long) alarmsToSet.get(i).get("time");
+            int id = (int) alarmsToSet.get(i).get("id");
             setAlarm(time, id);
             showToast("setAlarm");
         }
@@ -2248,7 +2301,7 @@ public class MainActivity extends AppCompatActivity
     public void CheckToolbarElevation() {
         int position = mLinearLayoutManager.findFirstCompletelyVisibleItemPosition();
 
-        if (helper.toolbar_color != helper.cord_color) {
+        if (helper.get("toolbar_color") != helper.get("cord_color")) {
             elevateToolbar();
             return;
         } else {
@@ -2347,13 +2400,14 @@ public class MainActivity extends AppCompatActivity
         View layout = layoutInflater.inflate(R.layout.color_selector, null);
         final ImageButton[] buttons = getColorButtons(layout);
 
-        for (int i = 1; i < settings.selected_categories.length; i++) {
+        boolean[] selected_categories
+                = (boolean[]) settings.get("selected_categories");
+        for (int i = 1; i < selected_categories.length; i++) {
             int colorIndex = getColorIndexByButtonId(buttons[i].getId());
             if (!todolist.doesCategoryContainEvents(colorIndex)) {
                 buttons[i].setEnabled(false);
-                //buttons[i].setElevation(0);
                 buttons[i].getBackground().setAlpha(60);
-            } else if (settings.selected_categories[colorIndex]) {
+            } else if (selected_categories[colorIndex]) {
                 buttons[i].setImageDrawable(getButtonForegroundRes(colorIndex));
             }
         }
@@ -2396,7 +2450,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     public Drawable getButtonForegroundRes(int color_index) {
-        Drawable d = ResourcesCompat.getDrawable(getResources(), R.drawable.ic_selected_light, null).getConstantState().newDrawable().mutate();
+        Drawable d = ResourcesCompat.getDrawable(getResources(),
+                R.drawable.ic_selected_light, null).getConstantState().newDrawable().mutate();
         d.setColorFilter(helper.getEventTextColor(color_index), PorterDuff.Mode.SRC_IN);
         return d;
     }
@@ -2407,8 +2462,9 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void EventRemovedSnackbar() {
-        snackbar = Snackbar.make(findViewById(R.id.coordinatorLayout), getString(R.string.event_removed), Snackbar.LENGTH_LONG);
-        snackbar.setActionTextColor(helper.fab_color)
+        snackbar = Snackbar.make(findViewById(R.id.coordinatorLayout),
+                getString(R.string.event_removed), Snackbar.LENGTH_LONG);
+        snackbar.setActionTextColor(helper.get("fab_color"))
                 .setAction(getString(R.string.undo), new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -2467,7 +2523,7 @@ public class MainActivity extends AppCompatActivity
             public void cancel() {
                 FabShareAnim(false);
 
-                if (settings.syncEnabled) {
+                if ((boolean) settings.get("syncEnabled")) {
                     mSwipeRefreshLayout.setEnabled(true);
                 }
 
@@ -2485,10 +2541,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void showImportDialog() {
-        if (settings.importTutorialDialogShown) {
+        if ((boolean) settings.get("importTutorialDialogShown")) {
             return;
         }
-        settings.importTutorialDialogShown = true;
+        settings.set("importTutorialDialogShown", true);
 
         String content = getString(R.string.import_dialog_content);
 
@@ -2527,8 +2583,10 @@ public class MainActivity extends AppCompatActivity
         }
         final int draw_res_final = draw_res;
 
-        final Animation anim1 = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fab_scale_down);
-        final Animation anim2 = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fab_scale_up);
+        final Animation anim1
+                = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fab_scale_down);
+        final Animation anim2
+                = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fab_scale_up);
 
         anim1.setDuration(300);
         anim2.setDuration(300);
@@ -2544,7 +2602,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onAnimationEnd(Animation animation) {
                 mFab.setImageResource(draw_res_final);
-                mFab.getDrawable().setTint(helper.fab_textcolor);
+                mFab.getDrawable().setTint(helper.get("fab_textcolor"));
                 mFab.startAnimation(anim2);
             }
 
@@ -2692,18 +2750,18 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) layout.findViewById(R.id.import_theme_toolbar);
         View statusBar = layout.findViewById(R.id.import_theme_statusbar);
 
-        fab.setBackgroundTintList(ColorStateList.valueOf(importHelper.fab_color));
-        fab.getDrawable().setTint(importHelper.fab_textcolor);
-        card.setCardBackgroundColor(importHelper.cord_color);
+        fab.setBackgroundTintList(ColorStateList.valueOf(importHelper.get("fab_color")));
+        fab.getDrawable().setTint(importHelper.get("fab_textcolor"));
+        card.setCardBackgroundColor(importHelper.get("cord_color"));
 
-        toolbar.setBackgroundColor(importHelper.toolbar_color);
-        toolbar.setTitleTextColor(importHelper.toolbar_textcolor);
+        toolbar.setBackgroundColor(importHelper.get("toolbar_color"));
+        toolbar.setTitleTextColor(importHelper.get("toolbar_textcolor"));
         toolbar.setNavigationIcon(null);
 
-        if (importHelper.cord_color != importHelper.toolbar_color) {
+        if (importHelper.get("cord_color") != importHelper.get("toolbar_color")) {
             toolbar.setElevation(DPCalc.dpIntoPx(getResources(), 4));
 
-            statusBar.setBackgroundColor(importHelper.toolbar_color);
+            statusBar.setBackgroundColor(importHelper.get("toolbar_color"));
         }
 
         importDialog = new AlertDialog.Builder(context, getDialogTheme())
@@ -2802,8 +2860,10 @@ public class MainActivity extends AppCompatActivity
                         }
                         todolist.importEvents(importEvents);
 
-                        for (int k = 1; k < settings.selected_categories.length; k++) {
-                            settings.selected_categories[k] = true;
+                        boolean[] selected_categories
+                                = (boolean[]) settings.get("selected_categories");
+                        for (int k = 1; k < selected_categories.length; k++) {
+                            selected_categories[k] = true;
                         }
 
                         todolist.addOrRemoveEventFromAdapter(mAdapter);
@@ -2827,7 +2887,8 @@ public class MainActivity extends AppCompatActivity
         for (int i = 0; i < mToolbar.getMenu().size(); i++) {
             if (mToolbar.getMenu().getItem(i).getItemId() == R.id.share_todos) {
                 shareIcon = mToolbar.getMenu().getItem(i);
-                shareIcon.getIcon().setColorFilter(helper.toolbar_textcolor, PorterDuff.Mode.SRC_IN);
+                //shareIcon.getIcon().setColorFilter(helper.get("toolbar_textcolor"), PorterDuff.Mode.SRC_IN);
+                shareIcon.getIcon().setColorFilter(helper.getToolbarIconColor(), PorterDuff.Mode.SRC_IN);
             }
         }
         return true;
@@ -2867,8 +2928,10 @@ public class MainActivity extends AppCompatActivity
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        //settings.saveSettings(MainActivity.this);
-        //settings.saveCategorySettings(MainActivity.this, selected_categories);
+
+        if((boolean) settings.get("autoSync")){
+            lookForSync();
+        }
         super.onStop();
     }
 
@@ -2902,15 +2965,26 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onConnected(Bundle connectionHint) {
         // GoogleApiClient connected
+
+        Log.d("MainActivity", "onConnected()");
+
+        if((boolean) settings.get("autoSync")){
+            lookForSync();
+        }
     }
 
     @Override
     public void onConnectionSuspended(int cause) {
         // GoogleApiClient connection suspended
+
+        Log.d("MainActivity", "onConnectionFailed()");
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult result) {
         // GoogleApiClient connection failed
+        Log.d("MainActivity", "onConnectionFailed(): "
+                + CommonStatusCodes.getStatusCodeString(result.getErrorCode())) ;
+        mGoogleApiClient.connect();
     }
 }

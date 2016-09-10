@@ -12,6 +12,7 @@ import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
+import android.widget.Toast;
 
 import com.koller.lukas.todolist.Activities.MainActivity;
 import com.koller.lukas.todolist.Todolist.Event;
@@ -40,13 +41,15 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         array = readFile(context);
-        MainActivityRunning = MainActivity.mThis != null;
+        MainActivityRunning = MainActivity.isRunning();
         switch (intent.getAction()) {
             case "ALARM":
+                Toast.makeText(context, "Alarm", Toast.LENGTH_SHORT).show();
+
                 SharedPreferences sharedpreferences
                         = context.getSharedPreferences("todolist", Context.MODE_PRIVATE);
                 long id1 = intent.getLongExtra("EventId", 0L);
-                event = lookForEvent(id1, context);
+                event = lookForEvent(id1);
                 if (event == null) {
                     return;
                 }
@@ -76,7 +79,7 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
 
     public void removeEvent(Context context, long event_id) {
         if (MainActivityRunning) {
-            MainActivity.mThis.removeEventNotifDoneButton(event_id);
+            MainActivity.getThis().removeEventNotifDoneButton(event_id);
         } else {
             try {
                 for (int i = 0; i < array.length(); i++) {
@@ -140,7 +143,7 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
         if (event.getAlarm() == null) {
             return;
         }
-        if (!event.getAlarm().repeating) {
+        if (!(boolean) event.getAlarm().get("repeating")) {
             event.removeAlarm();
             return;
         }
@@ -148,14 +151,15 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
         setAlarm(context, event.getId(), alarmTime);
 
         if (MainActivityRunning) {
-            MainActivity.mThis.todolist.getEventById(event.getId()).getAlarm().setTime(event.getAlarm().id, alarmTime);
+            MainActivity.getThis().getTodolist()
+                    .getEventById(event.getId()).getAlarm().setTime(alarmTime);
         } else {
             try {
                 for (int i = 0; i < array.length(); i++) {
                     Event e = new Event(array.getJSONObject(i));
                     if (event.getId() == e.getId()) {
                         array.remove(i);
-                        e.getAlarm().setTime(event.getAlarm().id, alarmTime);
+                        e.getAlarm().setTime(alarmTime);
                         array.put(i, e.saveData());
                     }
                 }
@@ -175,9 +179,9 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
         }
     }
 
-    private Event lookForEvent(long id, Context context) {
+    private Event lookForEvent(long id) {
         if (MainActivityRunning) {
-            return MainActivity.mThis.todolist.getEventById(id);
+            return MainActivity.getThis().getTodolist().getEventById(id);
         } else {
             try {
                 if (array == null) {
@@ -204,14 +208,16 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
             for (int i = 0; i < array.length(); i++) {
                 Event e = new Event(array.getJSONObject(i));
                 if(e.getAlarm() != null){
-                    long alarmTime = e.getAlarm().time;
+                    long alarmTime = (long) e.getAlarm().get("time");
                     if (alarmTime > System.currentTimeMillis()) {
-                        setAlarm(context, e.getAlarm().id, alarmTime);
-                    } else if (alarmTime > context.getSharedPreferences("todolist", Context.MODE_PRIVATE).getLong("shutdown_timestamp", System.currentTimeMillis())) {
+                        setAlarm(context, (long) e.getAlarm().get("id"), alarmTime);
+                    } else if (alarmTime > context.getSharedPreferences("todolist",
+                            Context.MODE_PRIVATE).getLong("shutdown_timestamp", System.currentTimeMillis())) {
                         sendNotification(context,
                                 e.getWhatToDo(),
                                 intent.getIntExtra("EventId", 0),
-                                context.getSharedPreferences("todolist", Context.MODE_PRIVATE).getBoolean("vibrate", true),
+                                context.getSharedPreferences("todolist",
+                                        Context.MODE_PRIVATE).getBoolean("vibrate", true),
                                 e.getColor());
                     }
                 }
@@ -223,7 +229,8 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
     }
 
     public void checkForShowingNotification(Context context) {
-        if (context.getSharedPreferences("todolist", Context.MODE_PRIVATE).getBoolean("showNotification", true)) {
+        if (context.getSharedPreferences("todolist",
+                Context.MODE_PRIVATE).getBoolean("showNotification", true)) {
             showNotification(context);
         }
     }
@@ -243,19 +250,26 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
             Intent add_event_intent = new Intent(context, MainActivity.class);
             add_event_intent.setAction("notification_add_todo");
             add_event_intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-            PendingIntent add_event_pendingIntent = PendingIntent.getActivity(context, 6, add_event_intent, 0); // PendingIntent.FLAG_IMMUTABLE
+            PendingIntent add_event_pendingIntent
+                    = PendingIntent.getActivity(context, 6, add_event_intent, 0); // PendingIntent.FLAG_IMMUTABLE
 
-            android.support.v7.app.NotificationCompat.Builder mBuilder = (android.support.v7.app.NotificationCompat.Builder) new android.support.v7.app.NotificationCompat.Builder(context)
+            android.support.v7.app.NotificationCompat.Builder mBuilder
+                    = (android.support.v7.app.NotificationCompat.Builder)
+                    new android.support.v7.app.NotificationCompat.Builder(context)
                     .setSmallIcon(R.drawable.ic_notif)
                     .setContentTitle(context.getString(R.string.app_name))
                     .addAction(R.drawable.ic_add, context.getString(R.string.add_event), add_event_pendingIntent)
                     .setColor(ContextCompat.getColor(context, R.color.button_color))
                     .setContentText(content);
-            NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            Intent resultIntent = new Intent(context, MainActivity.class);
-            PendingIntent resultPendingIntent = PendingIntent.getActivity(context, 666, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            NotificationManager mNotificationManager
+                    = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            Intent resultIntent
+                    = new Intent(context, MainActivity.class);
+            PendingIntent resultPendingIntent
+                    = PendingIntent.getActivity(context, 666, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             mBuilder.setContentIntent(resultPendingIntent);
-            android.support.v7.app.NotificationCompat.InboxStyle inboxStyle = new android.support.v7.app.NotificationCompat.InboxStyle();
+            android.support.v7.app.NotificationCompat.InboxStyle inboxStyle
+                    = new android.support.v7.app.NotificationCompat.InboxStyle();
             String[] events = new String[6];
             int todoSize;
             if (todolist_size > 5) {
@@ -316,7 +330,8 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
     public void updateWidget(Context context) {
         Intent intent = new Intent(context, WidgetProvider_List.class);
         intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-        int[] ids = AppWidgetManager.getInstance(context).getAppWidgetIds(new ComponentName(context, WidgetProvider_List.class));
+        int[] ids = AppWidgetManager.getInstance(context)
+                .getAppWidgetIds(new ComponentName(context, WidgetProvider_List.class));
         intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
         context.sendBroadcast(intent);
     }

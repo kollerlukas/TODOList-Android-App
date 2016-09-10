@@ -61,14 +61,14 @@ public class ThemeActivity extends AppCompatActivity {
     private ThemeHelper helper;
     private int[] colors;
     private int[] textcolors;
-    public int fab_color;
-    public int fab_textcolor;
+    private int fab_color;
+    private int fab_textcolor;
 
-    public int toolbar_color;
-    public int toolbar_textcolor;
+    private int toolbar_color;
+    private int toolbar_textcolor;
 
-    public int cord_color;
-    public int cord_textcolor;
+    private int cord_color;
+    private int cord_textcolor;
 
     private Toolbar toolbar;
     private Toolbar toolbar_card;
@@ -176,12 +176,12 @@ public class ThemeActivity extends AppCompatActivity {
         for (int i = 1; i < textcolors.length; i++) {
             textcolors[i] = helper.getEventTextColor(i);
         }
-        fab_color = helper.fab_color;
-        fab_textcolor = helper.fab_textcolor;
-        toolbar_color = helper.toolbar_color;
-        toolbar_textcolor = helper.toolbar_textcolor;
-        cord_color = helper.cord_color;
-        cord_textcolor = helper.cord_textcolor;
+        fab_color = helper.get("fab_color");
+        fab_textcolor = helper.get("fab_textcolor");
+        toolbar_color = helper.get("toolbar_color");
+        toolbar_textcolor = helper.get("toolbar_textcolor");
+        cord_color = helper.get("cord_color");
+        cord_textcolor = helper.get("cord_textcolor");
 
         if (cord_color != toolbar_color) {
             toolbarAndBackgroundSameColor = false;
@@ -519,13 +519,16 @@ public class ThemeActivity extends AppCompatActivity {
     }
 
     public void saveColorData() {
-        helper.fab_color = fab_color;
-        helper.fab_textcolor = fab_textcolor;
-        helper.toolbar_color = toolbar_color;
-        helper.toolbar_textcolor = toolbar_textcolor;
-        helper.cord_color = cord_color;
-        helper.cord_textcolor = cord_textcolor;
-        helper.color1 = colors[1];
+        helper.set("fab_color", fab_color);
+        helper.set("fab_textcolor", fab_textcolor);
+        helper.set("toolbar_color", toolbar_color);
+        helper.set("toolbar_textcolor", toolbar_textcolor);
+        helper.set("cord_color", cord_color);
+        helper.set("cord_textcolor", cord_textcolor);
+
+        helper.setColors(colors);
+        helper.setTextColors(textcolors);
+        /*helper.color1 = colors[1];
         helper.color2 = colors[2];
         helper.color3 = colors[3];
         helper.color4 = colors[4];
@@ -548,7 +551,7 @@ public class ThemeActivity extends AppCompatActivity {
         helper.textcolor9 = textcolors[9];
         helper.textcolor10 = textcolors[10];
         helper.textcolor11 = textcolors[11];
-        helper.textcolor12 = textcolors[12];
+        helper.textcolor12 = textcolors[12];*/
         helper.saveData();
     }
 

@@ -389,7 +389,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
         return events.size();
     }
 
-    public void ItemMoved(int fromPosition, int toPosition) {
+    public void itemMoved(int fromPosition, int toPosition) {
         if (fromPosition < toPosition) {
             for (int i = fromPosition; i < toPosition; i++) {
                 Collections.swap(events, i, i + 1);

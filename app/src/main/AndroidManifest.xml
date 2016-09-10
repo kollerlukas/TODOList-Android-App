@@ -27,6 +27,9 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
                 <action android:name="com.koller.lukas.WidgetProvider"/>
             </intent-filter>
+            <meta-data
+                    android:name="com.google.android.apps.drive.APP_ID"
+                    android:value="id=AIzaSyB_0c1bBI9DZ6QeAmLf6XBBdzV5SIBeWfg"/>
         </activity>
 
         <activity
@@ -38,7 +41,6 @@
             android:name=".Activities.ThemeActivity"
             android:label="@string/app_theme"
             android:theme="@style/ThemeActivityTheme"/>
-        <!--android:noHistory="true"-->
 
         <activity
             android:name=".Activities.ImportDataActivity"

@@ -47,7 +47,7 @@ public class Event {
             }*/
 
             this.alarm = new Alarm(json.getLong("AlarmId"), json.getLong("AlarmTime"));
-            this.alarm.lastChange_timeStamp = json.getLong("alarmTime_timeStamp");
+            this.alarm.set("lastChange_timeStamp", json.getLong("alarmTime_timeStamp"));
 
             if (json.getBoolean("repeating")) {
                 int repeatMode = json.getInt("repeatMode");
@@ -56,9 +56,9 @@ public class Event {
                     if (repeatMode == 3) {
                         this.alarm.restoreCertainDays(json.getString("certainDays"));
                     } else if (repeatMode == 4) {
-                        this.alarm.custom_intervall = json.getLong("customIntervall");
-                        this.alarm.numberPicker1_value = json.getInt("numberPicker1_value");
-                        this.alarm.numberPicker2_value = json.getInt("numberPicker2_value");
+                        this.alarm.set("custom_intervall", json.getLong("customIntervall"));
+                        this.alarm.set("numberPicker1_value", json.getInt("numberPicker1_value"));
+                        this.alarm.set("numberPicker2_value", json.getInt("numberPicker2_value"));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -193,22 +193,22 @@ public class Event {
         json.put("move_timeStamp", getMove_timeStamp());
         json.put("alarm_timeStamp", getAlarm_timeStamp());
         if (alarm != null) {
-            if (alarm.time > System.currentTimeMillis()) {
+            if ((long) alarm.get("time") > System.currentTimeMillis()) {
                 json.put("alarm", true);
 
-                json.put("AlarmId", alarm.id);
-                json.put("AlarmTime", alarm.time);
-                json.put("alarmTime_timeStamp", alarm.lastChange_timeStamp);
+                json.put("AlarmId", (long) alarm.get("id"));
+                json.put("AlarmTime", (long) alarm.get("time"));
+                json.put("alarmTime_timeStamp", (long) alarm.get("lastChange_timeStamp"));
 
-                json.put("repeating", alarm.repeating);
-                if (alarm.repeating) {
-                    json.put("repeatMode", alarm.repeatMode);
-                    if (alarm.repeatMode == 3) {
+                json.put("repeating", (boolean) alarm.get("repeating"));
+                if ((boolean) alarm.get("repeating")) {
+                    json.put("repeatMode", (int) alarm.get("repeatMode"));
+                    if ((int) alarm.get("repeatMode") == 3) {
                         json.put("certainDays", alarm.getCertainDaysString());
-                    } else if (alarm.repeatMode == 4) {
-                        json.put("customIntervall", alarm.custom_intervall);
-                        json.put("numberPicker1_value", alarm.numberPicker1_value);
-                        json.put("numberPicker2_value", alarm.numberPicker2_value);
+                    } else if ((int) alarm.get("repeatMode") == 4) {
+                        json.put("customIntervall", (long) alarm.get("custom_intervall"));
+                        json.put("numberPicker1_value", (int) alarm.get("numberPicker1_value"));
+                        json.put("numberPicker2_value", (int) alarm.get("numberPicker2_value"));
                     }
                 }
             } else {
