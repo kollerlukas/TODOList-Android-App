@@ -98,5 +98,6 @@
         <service
             android:name=".Widget.WidgetService_List"
             android:permission="android.permission.BIND_REMOTEVIEWS"/>
+
     </application>
 </manifest>

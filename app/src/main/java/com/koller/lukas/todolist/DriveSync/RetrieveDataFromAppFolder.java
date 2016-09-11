@@ -67,9 +67,8 @@ public class RetrieveDataFromAppFolder extends AsyncTask<DriveId, Boolean, Strin
         driveContents.discard(mGoogleApiClient);
 
         //Delete file
-        //com.google.android.gms.common.api.Status deleteStatus = file.delete(mGoogleApiClient).await();
-        //Log.d("RetrieveDataFromApp...", "deleteFile status: "
-        // + CommonStatusCodes.getStatusCodeString(deleteStatus.getStatusCode()));
+        com.google.android.gms.common.api.Status deleteStatus = file.delete(mGoogleApiClient).await();
+        Log.d("RetrieveDataFromApp...", "deleteFile status: " + CommonStatusCodes.getStatusCodeString(deleteStatus.getStatusCode()));
 
         return contents;
     }

@@ -291,7 +291,7 @@ public class Todolist {
         saveFile(context, "addedEvents", getAddedEventsString());
     }
 
-    public void clearRemovedAndAdddedEvents(Context context) {
+    public void clearRemovedAndAddedEvents(Context context) {
         removedEvents.clear();
         addedEvents.clear();
         try {

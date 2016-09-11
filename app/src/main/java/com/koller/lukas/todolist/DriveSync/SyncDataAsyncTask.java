@@ -11,7 +11,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 
 /**
  * Created by Lukas on 10.06.2016.
@@ -208,12 +207,19 @@ public class SyncDataAsyncTask extends AsyncTask<Void, Void, String> {
             }
 
             //remove Events from driveList
+            ArrayList<Integer> indexToRemove= new ArrayList<>();
+
             for (int i = 0; i < todolist_rE.size(); i++){
                 for (int k = 0; k < driveList.size(); k++){
-                    if(todolist_rE.get(i) == driveList.get(k).getId()){
-                        driveList.remove(k);
+                    if(todolist_rE.get(i)
+                            == driveList.get(k).getId()){
+                        indexToRemove.add(k);
                     }
                 }
+            }
+
+            for (int i = 0; i < indexToRemove.size(); i++) {
+                driveList.remove(indexToRemove.get(i));
             }
 
             //move Events
@@ -224,6 +230,9 @@ public class SyncDataAsyncTask extends AsyncTask<Void, Void, String> {
                         Log.d("SyncDataAsyncTask", "moving Event");
                         Event event_d = driveList.get(i);
                         Event event_t = Todolist.getEventById(event_d.getId());
+                        if(event_t != null){
+                            break;
+                        }
                         if(event_d.getMove_timeStamp() > event_t.getMove_timeStamp()){
                             Todolist.eventMoved(index, i);
                         }
@@ -246,6 +255,7 @@ public class SyncDataAsyncTask extends AsyncTask<Void, Void, String> {
             syncDataCallback.error(result);
             return;
         }
+        syncDataCallback.updateAlarms(alarmsToCancel, alarmsToSet);
         syncDataCallback.DoneSyncingData(eventsToUpdate);
     }
 }

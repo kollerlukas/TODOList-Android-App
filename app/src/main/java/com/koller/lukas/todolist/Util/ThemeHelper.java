@@ -55,6 +55,8 @@ public class ThemeHelper {
 
     private long timeStamp = 0;
 
+    private boolean toolbarIconsTranslucent = false;
+
     public ThemeHelper(Context context) {
         this.context = context;
         readData();
@@ -214,12 +216,12 @@ public class ThemeHelper {
         }
     }
 
-    public int rgbSum(){
+    public int coordColorRgbSum(){
         return Color.red(cord_color) + Color.green(cord_color) + Color.blue(cord_color);
     }
 
     public boolean lightCordColor(){
-        return Color.red(cord_color) + Color.green(cord_color) + Color.blue(cord_color) > 510;
+        return !(Color.red(cord_color) + Color.green(cord_color) + Color.blue(cord_color) < 128*3);
     }
 
     public void restoreDefaultTheme(String theme) {
@@ -305,6 +307,7 @@ public class ThemeHelper {
         editor.putInt("textcolor12", textcolor12);
 
         editor.putInt("defaultColorIndex", defaultColorIndex);
+        editor.putBoolean("toolbarIconsTranslucent", toolbarIconsTranslucent);
         editor.apply();
     }
 
@@ -346,6 +349,7 @@ public class ThemeHelper {
         textcolor12 = sharedPreferences.getInt("textcolor12", ContextCompat.getColor(context, R.color.dark_text_color));
 
         defaultColorIndex = sharedPreferences.getInt("defaultColorIndex", 0);
+        toolbarIconsTranslucent = sharedPreferences.getBoolean("toolbarIconsTranslucent", false);
     }
 
     public void setColors(int [] newColors){
@@ -437,17 +441,28 @@ public class ThemeHelper {
         this.timeStamp = timeStamp;
     }
 
+    public boolean isToolbarIconsTranslucent() {
+        return toolbarIconsTranslucent;
+    }
+
+    public void toggleToolbarIconsTranslucent() {
+        toolbarIconsTranslucent = !toolbarIconsTranslucent;
+    }
+
     public int getToolbarIconColor(){
-        int colorBrightness = Color.red(toolbar_color)
-                + Color.green(toolbar_color)
-                + Color.blue(toolbar_color);
-        if(colorBrightness < 128*3){
-            //dark
-            return Color.argb(95, 255, 255, 255);
+        if(toolbarIconsTranslucent){
+            int colorBrightness = Color.red(toolbar_color)
+                    + Color.green(toolbar_color)
+                    + Color.blue(toolbar_color);
+            if(colorBrightness < 128*3){
+                //dark
+                return Color.argb(95, 255, 255, 255);
+            } else {
+                //light
+                return Color.argb(95, 0, 0, 0);
+            }
         } else {
-            //light
-            return Color.argb(95, 0, 0, 0);
+            return toolbar_textcolor;
         }
-        //return toolbar_textcolor;
     }
 }

@@ -117,6 +117,19 @@ public class ThemeActivity extends AppCompatActivity {
 
         presetThemes = (Button) findViewById(R.id.preset_themes);
 
+        toolbar_card.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                helper.toggleToolbarIconsTranslucent();
+                if(helper.isToolbarIconsTranslucent()){
+                    Toast.makeText(ThemeActivity.this, "Toolbar icons translucent", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(ThemeActivity.this, "Toolbar icons not translucent", Toast.LENGTH_SHORT).show();
+                }
+                return true;
+            }
+        });
+
         deelevateToolbar();
 
         setupRecyclerView();
@@ -193,10 +206,11 @@ public class ThemeActivity extends AppCompatActivity {
         toolbar_card.setBackgroundColor(toolbar_color);
         toolbar_card.setTitleTextColor(toolbar_textcolor);
 
-        int black = ContextCompat.getColor(ThemeActivity.this, R.color.light_text_color);
-        ChangeColorOfToolbarDrawerIcon(black);
-        colorInfoIcon(black);
-        setOverflowButtonColor(black);
+        int color = ContextCompat.getColor(ThemeActivity.this, R.color.light_text_color);
+        int color_a = Color.argb(95, Color.red(color), Color.green(color), Color.blue(color));
+        ChangeColorOfToolbarDrawerIcon(color_a);
+        colorInfoIcon(color_a);
+        setOverflowButtonColor(color_a);
 
         fab.setBackgroundTintList(ColorStateList.valueOf(fab_color));
         fab.getDrawable().setTint(fab_textcolor);
@@ -217,7 +231,6 @@ public class ThemeActivity extends AppCompatActivity {
                 fab.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(red, green, blue)));
                 fab.getDrawable().setTint(textColor);
                 fab_color = Color.rgb(red, green, blue);
-                //fab_textcolor = Color.rgb(textColor, textColor, textColor);
                 fab_textcolor = textColor;
             }
         };
@@ -235,37 +248,6 @@ public class ThemeActivity extends AppCompatActivity {
             }
         };
         showColorPickerDialog(colorPickerDialogCallback, true, toolbar_color, toolbar_textcolor, true);
-    }
-
-    public void ChangeColorOfToolbarDrawerIcon(int color) {
-        if (drawerIcon != null) {
-            ((ImageView) drawerIcon).setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
-        } else {
-            for (int i = 0; i < toolbar.getChildCount(); i++) {
-                if (toolbar.getChildAt(i) instanceof ImageView) {
-                    drawerIcon = toolbar.getChildAt(i);
-                    ((ImageView) drawerIcon).setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
-                }
-            }
-        }
-    }
-
-    public void colorInfoIcon(int color) {
-        if (infoIcon != null) {
-            infoIcon.getIcon().setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
-            this.invalidateOptionsMenu();
-        }
-    }
-
-    public void setOverflowButtonColor(int color) {
-        if (overflowIcon == null) {
-            overflowIcon = toolbar.getOverflowIcon();
-            if (overflowIcon != null) {
-                overflowIcon.setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
-            }
-        } else {
-            overflowIcon.setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
-        }
     }
 
     public void CoordinatorLayoutClicked(View v) {
@@ -489,12 +471,44 @@ public class ThemeActivity extends AppCompatActivity {
                         } else {
                             textcolor = Color.argb(255 - seekBarGrey.getProgress(), 0, 0, 0);
                         }
-                        colorPickerDialogCallback.colorPicked(seekBarRed.getProgress(), seekBarGreen.getProgress(), seekBarBlue.getProgress(), textcolor);
+                        colorPickerDialogCallback.colorPicked(seekBarRed.getProgress(),
+                                seekBarGreen.getProgress(), seekBarBlue.getProgress(), textcolor);
                     }
                 });
         themePickerDialog = builder.create();
         themePickerDialog.show();
         changeDialogButtonColor(themePickerDialog);
+    }
+
+    public void ChangeColorOfToolbarDrawerIcon(int color) {
+        if (drawerIcon != null) {
+            ((ImageView) drawerIcon).setColorFilter(color, PorterDuff.Mode.SRC_IN);
+        } else {
+            for (int i = 0; i < toolbar.getChildCount(); i++) {
+                if (toolbar.getChildAt(i) instanceof ImageView) {
+                    drawerIcon = toolbar.getChildAt(i);
+                    ((ImageView) drawerIcon).setColorFilter(color, PorterDuff.Mode.SRC_IN);
+                }
+            }
+        }
+    }
+
+    public void colorInfoIcon(int color) {
+        if (infoIcon != null) {
+            infoIcon.getIcon().setColorFilter(color, PorterDuff.Mode.SRC_IN);
+            this.invalidateOptionsMenu();
+        }
+    }
+
+    public void setOverflowButtonColor(int color) {
+        if (overflowIcon == null) {
+            overflowIcon = toolbar.getOverflowIcon();
+            if (overflowIcon != null) {
+                overflowIcon.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+            }
+        } else {
+            overflowIcon.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+        }
     }
 
     public AlertDialog changeDialogButtonColor(AlertDialog dialog) {
@@ -528,30 +542,7 @@ public class ThemeActivity extends AppCompatActivity {
 
         helper.setColors(colors);
         helper.setTextColors(textcolors);
-        /*helper.color1 = colors[1];
-        helper.color2 = colors[2];
-        helper.color3 = colors[3];
-        helper.color4 = colors[4];
-        helper.color5 = colors[5];
-        helper.color6 = colors[6];
-        helper.color7 = colors[7];
-        helper.color8 = colors[8];
-        helper.color9 = colors[9];
-        helper.color10 = colors[10];
-        helper.color11 = colors[11];
-        helper.color12 = colors[12];
-        helper.textcolor1 = textcolors[1];
-        helper.textcolor2 = textcolors[2];
-        helper.textcolor3 = textcolors[3];
-        helper.textcolor4 = textcolors[4];
-        helper.textcolor5 = textcolors[5];
-        helper.textcolor6 = textcolors[6];
-        helper.textcolor7 = textcolors[7];
-        helper.textcolor8 = textcolors[8];
-        helper.textcolor9 = textcolors[9];
-        helper.textcolor10 = textcolors[10];
-        helper.textcolor11 = textcolors[11];
-        helper.textcolor12 = textcolors[12];*/
+
         helper.saveData();
     }
 
@@ -578,8 +569,10 @@ public class ThemeActivity extends AppCompatActivity {
         for (int i = 0; i < toolbar.getMenu().size(); i++) {
             if (toolbar.getMenu().getItem(i).getItemId() == R.id.info_theme) {
                 infoIcon = toolbar.getMenu().getItem(i);
-                //infoIcon.getIcon().setColorFilter(toolbar_textcolor, PorterDuff.Mode.SRC_ATOP);
-                infoIcon.getIcon().setColorFilter(ContextCompat.getColor(ThemeActivity.this, R.color.light_text_color), PorterDuff.Mode.SRC_ATOP);
+                //infoIcon.getIcon().setColorFilter(toolbar_textcolor, PorterDuff.Mode.SRC_IN);
+                int color = ContextCompat.getColor(ThemeActivity.this, R.color.light_text_color);
+                int color_a = Color.argb(95, Color.red(color), Color.green(color), Color.blue(color));
+                infoIcon.getIcon().setColorFilter(color_a, PorterDuff.Mode.SRC_IN);
             }
         }
         return true;
@@ -664,7 +657,7 @@ public class ThemeActivity extends AppCompatActivity {
     }
 
     public void shareTheme(){
-        String data = "";
+        String data;
         try {
             data = getShareData();
         } catch (JSONException e){

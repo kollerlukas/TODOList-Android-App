@@ -52,16 +52,16 @@ public class InfoActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
 
-        setupTheme(toolbar);
+        initTheme(toolbar);
     }
 
     public InfoActivity() {
     }
 
-    public void setupTheme(Toolbar toolbar) {
+    public void initTheme(Toolbar toolbar) {
         helper = new ThemeHelper(this);
         RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.info_activity_layout);
-        if (helper.rgbSum() == 0) {
+        if (helper.coordColorRgbSum() == 0) {
             CardView iconCard = (CardView) findViewById(R.id.icon_card);
             iconCard.setCardBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.dark));
             CardView infocard = (CardView) findViewById(R.id.infocard);
@@ -115,7 +115,6 @@ public class InfoActivity extends AppCompatActivity {
         for (int i = 0; i < toolbar.getChildCount(); i++) {
             if (toolbar.getChildAt(i) instanceof ImageView) {
                 drawerIcon = toolbar.getChildAt(i);
-                //((ImageView) drawerIcon).setColorFilter(helper.get("toolbar_textcolor"), PorterDuff.Mode.SRC_IN);
                 ((ImageView) drawerIcon).setColorFilter(helper.getToolbarIconColor(), PorterDuff.Mode.SRC_IN);
             }
         }

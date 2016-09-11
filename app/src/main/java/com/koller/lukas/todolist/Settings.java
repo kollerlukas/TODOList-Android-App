@@ -17,9 +17,11 @@ public class Settings {
 
     private boolean vibrate;
     private boolean showNotification;
-    private boolean syncEnabled = false;
+    private boolean syncEnabled; //if user signed in; App might not be signed in yet
     private boolean importTutorialDialogShown;
     private boolean[] selected_categories;
+
+    private boolean signedIn = false; //app successfully signed in
 
     private boolean autoSync;
     private long lastSyncTimeStamp;
@@ -32,17 +34,15 @@ public class Settings {
     }
 
     public void readSettings() {
-        vibrate
-                = sharedpreferences.getBoolean("vibrate", true);
-        showNotification
-                = sharedpreferences.getBoolean("showNotification", true);
+        vibrate = sharedpreferences.getBoolean("vibrate", true);
+        showNotification = sharedpreferences.getBoolean("showNotification", true);
         importTutorialDialogShown
                 = sharedpreferences.getBoolean("importTutorialDialogShown", false);
 
-        autoSync
-                = sharedpreferences.getBoolean("autoSync", false);
-        lastSyncTimeStamp
-                = sharedpreferences.getLong("lastSyncTimeStamp", 0);
+        syncEnabled = sharedpreferences.getBoolean("syncEnabled", false);
+        autoSync = sharedpreferences.getBoolean("autoSync", false);
+        lastSyncTimeStamp = sharedpreferences.getLong("lastSyncTimeStamp", 0);
+
         String driveIdString
                 = sharedpreferences.getString("DriveId driveId", "Error");
         if(!driveIdString.equals("Error")){
@@ -79,6 +79,7 @@ public class Settings {
         editor.putBoolean("showNotification", showNotification);
         editor.putBoolean("importTutorialDialogShown", importTutorialDialogShown);
 
+        editor.putBoolean("syncEnabled", syncEnabled);
         editor.putBoolean("autoSync", autoSync);
         editor.putLong("lastSyncTimeStamp", lastSyncTimeStamp);
 
@@ -131,6 +132,9 @@ public class Settings {
             case "selected_categories":
                 selected_categories = (boolean[]) o;
                 break;
+            case "signedIn":
+                signedIn = (boolean) o;
+                break;
             case "autoSync":
                 autoSync = (boolean) o;
                 break;
@@ -154,6 +158,8 @@ public class Settings {
                 return showNotification;
             case "syncEnabled":
                 return syncEnabled;
+            case "signedIn":
+                return signedIn;
             case "autoSync":
                 return autoSync;
             case "lastSyncTimeStamp":

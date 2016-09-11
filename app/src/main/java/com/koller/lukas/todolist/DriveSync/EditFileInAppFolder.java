@@ -9,6 +9,7 @@ import com.google.android.gms.drive.DriveApi;
 import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.DriveResource;
+import com.google.android.gms.drive.ExecutionOptions;
 import com.google.android.gms.drive.Metadata;
 
 import java.io.IOException;
@@ -37,9 +38,11 @@ public class EditFileInAppFolder extends AsyncTask<DriveFile, Void, Integer> {
             if (!driveContentsResult.getStatus().isSuccess()) {
                 return CommonStatusCodes.ERROR;
             }
+
             DriveContents driveContents = driveContentsResult.getDriveContents();
             OutputStream outputStream = driveContents.getOutputStream();
             outputStream.write(data.getBytes());
+
             com.google.android.gms.common.api.Status status
                     = driveContents.commit(mGoogleApiClient, null).await();
 
@@ -47,8 +50,7 @@ public class EditFileInAppFolder extends AsyncTask<DriveFile, Void, Integer> {
             DriveResource.MetadataResult metadataResult
                     = file.getMetadata(mGoogleApiClient).await();
 
-            Metadata metadata = metadataResult.getMetadata();
-
+            Metadata metadata = metadataResult.getMetadata()
             Log.d("EditFileInAppFolder", "modifiedDate: "
                     + String.valueOf(metadata.getModifiedDate()));*/
 

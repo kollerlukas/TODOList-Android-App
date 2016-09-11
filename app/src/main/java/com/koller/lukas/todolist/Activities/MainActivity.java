@@ -206,7 +206,6 @@ public class MainActivity extends AppCompatActivity
 
     private boolean tablet;
 
-    private boolean signedIn;
     private GoogleApiClient mGoogleApiClient;
     private SignInButton signInButton;
     private TextView personName;
@@ -489,9 +488,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void initSignInWithGoogle() {
-        SharedPreferences sharedpreferences = getSharedPreferences("todolist", MODE_PRIVATE);
-        signedIn = sharedpreferences.getBoolean("SignedIn", false);
-        mSwipeRefreshLayout.setEnabled(signedIn);
+        mSwipeRefreshLayout.setEnabled(false);
 
         signInButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -513,11 +510,12 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        if (!signedIn) {
+        if (!(boolean) settings.get("syncEnabled")) {
             personData.setVisibility(View.GONE);
             signInButton.setVisibility(View.VISIBLE);
         } else {
             personData.setVisibility(View.VISIBLE);
+            personEmail.setText("...");
             signInButton.setVisibility(View.GONE);
             OptionalPendingResult<GoogleSignInResult> opr
                     = Auth.GoogleSignInApi.silentSignIn(mGoogleApiClient);
@@ -543,7 +541,6 @@ public class MainActivity extends AppCompatActivity
 
         mToolbar.setBackgroundColor(helper.get("toolbar_color"));
         mToolbar.setTitleTextColor(helper.get("toolbar_textcolor"));
-        //ChangeColorOfToolbarDrawerIcon(helper.get("toolbar_textcolor"));
         ChangeColorOfToolbarDrawerIcon(helper.getToolbarIconColor());
 
         mFab = (FloatingActionButton) findViewById(R.id.fab);
@@ -596,7 +593,6 @@ public class MainActivity extends AppCompatActivity
         DrawableCompat.setTintList(DrawableCompat.wrap(((SwitchCompat)
                 generalNotif.getActionView()).getTrackDrawable()), new ColorStateList(states, trackColors));
 
-        //setOverflowButtonColor(helper.get("toolbar_textcolor"));
         setOverflowButtonColor(helper.getToolbarIconColor());
 
         for (int i = 0; i < navigationHeaders.size(); i++) {
@@ -626,13 +622,6 @@ public class MainActivity extends AppCompatActivity
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
-    public void saveSignedIn() {
-        SharedPreferences sharedpreferences = getSharedPreferences("todolist", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedpreferences.edit();
-        editor.putBoolean("SignedIn", signedIn);
-        editor.apply();
-    }
-
     public void signIn() {
         //show loading
         signInButton.setVisibility(View.GONE);
@@ -648,12 +637,12 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onResult(Status status) {
                         // signed out!
-                        signedIn = false;
+                        settings.set("signedIn", false);
                         settings.set("syncEnabled", false);
+                        settings.set("lastSyncTimeStamp", (long) 0);
+
                         mSwipeRefreshLayout.setEnabled(false);
                         syncData.setVisible(false);
-                        settings.set("lastSyncTimeStamp", (long) 0);
-                        saveSignedIn();
                         initSignInWithGoogle();
                     }
                 });
@@ -694,7 +683,7 @@ public class MainActivity extends AppCompatActivity
             personData.setVisibility(View.VISIBLE);
             this.personName.setText(personName);
             this.personEmail.setText(personEmail);
-            settings.set("syncEnabled", true);
+
             personData.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -720,33 +709,39 @@ public class MainActivity extends AppCompatActivity
                 }
             });
             syncData.setVisible(true);
-            signedIn = true;
+            settings.set("syncEnabled", true);
+            settings.set("signedIn", true);
+
             mSwipeRefreshLayout.setEnabled(true);
 
             if ((boolean) settings.get("autoSync")) {
-                lookForSync();
+                //lookForSync();
             }
         } else {
             showToast("SignIn not successful!");
-            // Signed out
+            // not Signed in
             personData.setOnClickListener(null);
             personData.setVisibility(View.GONE);
             signInButton.setVisibility(View.VISIBLE);
             syncData.setVisible(false);
-            signedIn = false;
             settings.set("syncEnabled", false);
+            settings.set("signedIn", false);
+
             mSwipeRefreshLayout.setEnabled(false);
         }
-        saveSignedIn();
     }
 
     public void lookForSync() {
         mSwipeRefreshLayout.setRefreshing(true);
 
-        if (!signedIn && !mGoogleApiClient.isConnected()) {
+        if (!(boolean) settings.get("signedIn") && !mGoogleApiClient.isConnected()) {
             showToast("Api Client not connected");
             mSwipeRefreshLayout.setRefreshing(false);
             return;
+        }
+
+        if(!isNetworkAvailable()){
+            showSnackbar("no Internet Connection");
         }
 
         Drive.DriveApi.requestSync(mGoogleApiClient)
@@ -768,7 +763,7 @@ public class MainActivity extends AppCompatActivity
                         new RetrieveDriveId(mGoogleApiClient, new ModifiedDateCallback() {
                             @Override
                             public void noFilesFound(){
-                                showToast("MainActivity: modifiedDateCallback, no Files found");
+                                showToast("no Files found -> creating new file");
 
                                 createNewFile();
                             }
@@ -817,7 +812,7 @@ public class MainActivity extends AppCompatActivity
         new RetrieveDriveId(mGoogleApiClient, new DriveIdCallback() {
             @Override
             public void noFilesFound(){
-                showToast("MainActivity: driveIdCallback, no Files found");
+                showToast("no Files found -> creating new file");
 
                 createNewFile();
             }
@@ -841,7 +836,7 @@ public class MainActivity extends AppCompatActivity
             public void error(String error){
                 switch(error){
                     case "no data":
-                        showToast("No data -> creating new File");
+                        showToast("no Files found -> creating new file");
 
                         createNewFile();
                         break;
@@ -892,6 +887,11 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void error(String error) {
                 showToast("SyncDataAsyncTask: " + error);
+
+                if(error.equals("JSONException")){
+                    writeToGoogleDrive();
+                    return;
+                }
                 mSwipeRefreshLayout.setRefreshing(false);
             }
 
@@ -915,7 +915,7 @@ public class MainActivity extends AppCompatActivity
                 new RetrieveDriveId(mGoogleApiClient, new DriveIdCallback() {
                     @Override
                     public void noFilesFound(){
-                        showToast("MainActivity: driveIdCallback, no Files found");
+                        //showToast("no Files found -> creating new file");
 
                         createNewFile();
                     }
@@ -960,11 +960,11 @@ public class MainActivity extends AppCompatActivity
         if(statusCode == CommonStatusCodes.SUCCESS){
             settings.set("lastReceivedDataTimeStamp", modifiedDateTemp);
             settings.set("lastSyncTimeStamp", System.currentTimeMillis());
+
+            todolist.clearRemovedAndAddedEvents(MainActivity.this);
         }
 
         mSwipeRefreshLayout.setRefreshing(false);
-
-        todolist.clearRemovedAndAdddedEvents(MainActivity.this);
     }
 
     public void createNewFile() {
@@ -2240,8 +2240,6 @@ public class MainActivity extends AppCompatActivity
     public void DoneSyncingData(ArrayList<Long> eventsToUpdate) {
         writeToGoogleDrive();
 
-        mSwipeRefreshLayout.setRefreshing(false);
-
         checkForNotificationUpdate();
         if (todolist.getTodolist().size() != 0) {
             removeNothingTodo();
@@ -2281,6 +2279,12 @@ public class MainActivity extends AppCompatActivity
         }
 
         todolist.addOrRemoveEventFromAdapter(mAdapter);
+
+        try {
+            todolist.saveData(MainActivity.this);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     public void updateAlarms(ArrayList<Long> alarmsToCancel, ArrayList<Alarm> alarmsToSet) {
@@ -2292,7 +2296,9 @@ public class MainActivity extends AppCompatActivity
 
         for (int i = 0; i < alarmsToSet.size(); i++) {
             long time = (long) alarmsToSet.get(i).get("time");
-            int id = (int) alarmsToSet.get(i).get("id");
+            long alarmId = (long) alarmsToSet.get(i).get("id");
+            Log.d("MainActivity", "alarmId: " + String.valueOf(alarmId));
+            int id = (int) alarmId;
             setAlarm(time, id);
             showToast("setAlarm");
         }
@@ -2523,7 +2529,7 @@ public class MainActivity extends AppCompatActivity
             public void cancel() {
                 FabShareAnim(false);
 
-                if ((boolean) settings.get("syncEnabled")) {
+                if ((boolean) settings.get("signedIn")) {
                     mSwipeRefreshLayout.setEnabled(true);
                 }
 
@@ -2930,7 +2936,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         if((boolean) settings.get("autoSync")){
-            lookForSync();
+            //lookForSync();
         }
         super.onStop();
     }
@@ -2969,7 +2975,7 @@ public class MainActivity extends AppCompatActivity
         Log.d("MainActivity", "onConnected()");
 
         if((boolean) settings.get("autoSync")){
-            lookForSync();
+            //lookForSync();
         }
     }
 
@@ -2977,7 +2983,7 @@ public class MainActivity extends AppCompatActivity
     public void onConnectionSuspended(int cause) {
         // GoogleApiClient connection suspended
 
-        Log.d("MainActivity", "onConnectionFailed()");
+        Log.d("MainActivity", "onConnectionSuspended()");
     }
 
     @Override
@@ -2985,6 +2991,17 @@ public class MainActivity extends AppCompatActivity
         // GoogleApiClient connection failed
         Log.d("MainActivity", "onConnectionFailed(): "
                 + CommonStatusCodes.getStatusCodeString(result.getErrorCode())) ;
+
         mGoogleApiClient.connect();
+
+        if(mGoogleApiClient.isConnecting()){
+            Log.d("MainActivity", "connecting");
+        }
+
+        if(mGoogleApiClient.isConnected()){
+            Log.d("MainActivity", "connected");
+        } else {
+            Log.d("MainActivity", "not connected");
+        }
     }
 }
