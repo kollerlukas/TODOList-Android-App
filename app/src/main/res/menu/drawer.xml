@@ -21,7 +21,7 @@
         </menu>
     </item>
 
-    <group android:visible="false">
+    <!--<group android:visible="false">
         <item
             android:id="@+id/restore_last_removed_event"
             android:icon="@drawable/ic_restore_grey_500_24dp"
@@ -31,8 +31,8 @@
             android:title="@string/restore_last_removed_event1"
             app:paddingStart="72dp"
             android:visible="false"/>
-        <!--android:visible="@bool/turkish"-->
-    </group>
+        android:visible="@bool/turkish"
+    </group>-->
 
     <item
         android:id="@+id/navigation_header1"

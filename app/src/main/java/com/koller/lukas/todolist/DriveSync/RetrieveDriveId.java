@@ -68,23 +68,25 @@ public class RetrieveDriveId extends AsyncTask<Void, Void, DriveId> {
                 .setSortOrder(sortOrder)
                 .build();
 
-        //Drive.DriveApi.query(mGoogleApiClient, query)
-
         Drive.DriveApi.getAppFolder(mGoogleApiClient).queryChildren(mGoogleApiClient, query)
                 .setResultCallback(new ResultCallback<DriveApi.MetadataBufferResult>() {
             @Override
             public void onResult(DriveApi.MetadataBufferResult result) {
                 statusCode = result.getStatus().getStatusCode();
 
+                if(!result.getStatus().isSuccess()){
+                    //Log.d("RetrieveDriveId", "result not successful");
+                    s.release();
+                    return;
+                }
+
                 if (result.getStatus().isSuccess() && result.getMetadataBuffer().getCount() > 0) {
                     if (result.getMetadataBuffer().get(0).getDriveId() != null) {
                         driveId = result.getMetadataBuffer().get(0).getDriveId();
                     }
                 } else if(result.getMetadataBuffer().getCount() == 0){
-                    Log.d("RetrieveDriveId", "no items found");
+                    //Log.d("RetrieveDriveId", "no items found");
                     noFilesFound = true;
-                } else {
-                    Log.d("RetrieveDriveId", "result not successful");
                 }
                 result.getMetadataBuffer().release();
                 s.release();
@@ -101,8 +103,9 @@ public class RetrieveDriveId extends AsyncTask<Void, Void, DriveId> {
             return null;
         }
 
+        DriveFile file = driveId.asDriveFile();
+
         if (modifiedDateCallback != null) {
-            /*DriveFile file = driveId.asDriveFile();
 
             DriveApi.DriveContentsResult driveContentsResult
                     = file.open(mGoogleApiClient, DriveFile.MODE_READ_ONLY, null).await();
@@ -113,7 +116,7 @@ public class RetrieveDriveId extends AsyncTask<Void, Void, DriveId> {
 
             modifiedTime = metadata.getModifiedDate().getTime();
 
-            driveContentsResult.getDriveContents().discard(mGoogleApiClient);*/
+            driveContentsResult.getDriveContents().discard(mGoogleApiClient);
         }
 
         return driveId;
@@ -136,8 +139,7 @@ public class RetrieveDriveId extends AsyncTask<Void, Void, DriveId> {
                 }
             } else if (modifiedDateCallback != null) {
                 if (driveId != null && statusCode == CommonStatusCodes.SUCCESS) {
-                    //modifiedDateCallback.getModifiedDate(modifiedTime, driveId);
-                    modifiedDateCallback.getModifiedDate(System.currentTimeMillis(), driveId);
+                    modifiedDateCallback.getModifiedDate(modifiedTime, driveId);
                 } else {
                     modifiedDateCallback.error(statusCode);
                 }

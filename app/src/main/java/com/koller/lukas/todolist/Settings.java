@@ -40,7 +40,7 @@ public class Settings {
                 = sharedpreferences.getBoolean("importTutorialDialogShown", false);
 
         syncEnabled = sharedpreferences.getBoolean("syncEnabled", false);
-        autoSync = sharedpreferences.getBoolean("autoSync", false);
+        autoSync = sharedpreferences.getBoolean("autoSync", true);
         lastSyncTimeStamp = sharedpreferences.getLong("lastSyncTimeStamp", 0);
 
         String driveIdString
@@ -207,5 +207,9 @@ public class Settings {
     public boolean driveIdStored(){
         //return driveId != null;
         return false;
+    }
+
+    public void preventDriveChangeListener(){
+        sharedpreferences.edit().putBoolean("preventDriveChangeListener", true).apply();
     }
 }

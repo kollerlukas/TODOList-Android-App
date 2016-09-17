@@ -92,7 +92,7 @@
             app:cardBackgroundColor="@color/white"
             app:cardCornerRadius="2dp"
             app:cardElevation="2dp"
-            app:cardPreventCornerOverlap="true">
+            app:cardPreventCornerOverlap="false">
 
             <WebView
                 android:id="@+id/web_view_3"

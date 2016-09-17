@@ -20,6 +20,8 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -288,7 +290,7 @@ public class InfoActivity extends AppCompatActivity {
     }
 
     public void elevateToolbar(Toolbar toolbar) {
-        AnimatorSet set = (AnimatorSet) AnimatorInflater.loadAnimator(InfoActivity.this, R.anim.toolbar_raise);
+        AnimatorSet set = (AnimatorSet) AnimatorInflater.loadAnimator(InfoActivity.this, R.animator.toolbar_raise);
         set.setTarget(toolbar);
         set.start();
     }

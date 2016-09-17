@@ -86,7 +86,7 @@ public class SyncDataAsyncTask extends AsyncTask<Void, Void, String> {
             }
         } catch (JSONException e) {
             e.printStackTrace();
-            Log.d("SyncDataAsyncTask", "JSONException, data: " + data);
+            //Log.d("SyncDataAsyncTask", "JSONException, data: " + data);
             return "JSONException";
         }
 
@@ -227,10 +227,10 @@ public class SyncDataAsyncTask extends AsyncTask<Void, Void, String> {
                 for (int i = 0; i < driveList.size(); i++){
                     int index = Todolist.getEventIndexById(driveList.get(i).getId());
                     if(i != index && index != -1){
-                        Log.d("SyncDataAsyncTask", "moving Event");
+                        //Log.d("SyncDataAsyncTask", "moving Event");
                         Event event_d = driveList.get(i);
                         Event event_t = Todolist.getEventById(event_d.getId());
-                        if(event_t != null){
+                        if(event_t == null){
                             break;
                         }
                         if(event_d.getMove_timeStamp() > event_t.getMove_timeStamp()){

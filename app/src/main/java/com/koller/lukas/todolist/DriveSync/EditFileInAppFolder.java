@@ -1,6 +1,7 @@
 package com.koller.lukas.todolist.DriveSync;
 
 import android.os.AsyncTask;
+import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
 import com.google.android.gms.common.api.CommonStatusCodes;
@@ -8,12 +9,14 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.DriveApi;
 import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
-import com.google.android.gms.drive.DriveResource;
-import com.google.android.gms.drive.ExecutionOptions;
-import com.google.android.gms.drive.Metadata;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 
 /**
  * Created by Lukas on 29.03.2016.
@@ -27,6 +30,8 @@ public class EditFileInAppFolder extends AsyncTask<DriveFile, Void, Integer> {
     public EditFileInAppFolder(GoogleApiClient mGoogleApiClient, String data) {
         this.mGoogleApiClient = mGoogleApiClient;
         this.data = data;
+
+        //Log.d("EditFileInAppFolder", "data to write: " + data);
     }
 
     @Override
@@ -34,26 +39,52 @@ public class EditFileInAppFolder extends AsyncTask<DriveFile, Void, Integer> {
         DriveFile file = params[0];
         try {
             DriveApi.DriveContentsResult driveContentsResult
-                    = file.open(mGoogleApiClient, DriveFile.MODE_WRITE_ONLY, null).await();
+                   // = file.open(mGoogleApiClient, DriveFile.MODE_WRITE_ONLY, null).await();
+            = file.open(mGoogleApiClient, DriveFile.MODE_READ_WRITE, null).await();
+
             if (!driveContentsResult.getStatus().isSuccess()) {
                 return CommonStatusCodes.ERROR;
             }
 
             DriveContents driveContents = driveContentsResult.getDriveContents();
-            OutputStream outputStream = driveContents.getOutputStream();
-            outputStream.write(data.getBytes());
+            //OutputStream outputStream = driveContents.getOutputStream();
+            //outputStream.write(data.getBytes());
+
+            //com.google.android.gms.common.api.Status status = driveContents.commit(mGoogleApiClient, null).await();
+
+            //return status.getStatus().getStatusCode();
+
+
+            ParcelFileDescriptor parcelFileDescriptor = driveContents.getParcelFileDescriptor();
+
+            // write to the file.
+            FileOutputStream fileOutputStream = new FileOutputStream(parcelFileDescriptor
+                    .getFileDescriptor());
+            Writer writer = new OutputStreamWriter(fileOutputStream);
+            writer.write(data);
+            writer.flush();
+            writer.close();
+
+            // Read to the end of the file.
+            /*FileInputStream fileInputStream = new FileInputStream(parcelFileDescriptor
+                    .getFileDescriptor());
+
+            StringBuilder fileContent = new StringBuilder();
+            fileInputStream.read(new byte[fileInputStream.available()]);
+            InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream) ;
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader) ;
+
+            String readString = bufferedReader.readLine();
+            while (readString != null) {
+                fileContent.append(readString);
+                readString = bufferedReader.readLine();
+            }
+            inputStreamReader.close();
+
+            Log.d("EditFileInAppFolder", "written data: " + fileContent.toString());*/
 
             com.google.android.gms.common.api.Status status
                     = driveContents.commit(mGoogleApiClient, null).await();
-
-            /*file.open(mGoogleApiClient, DriveFile.MODE_READ_ONLY, null).await();
-            DriveResource.MetadataResult metadataResult
-                    = file.getMetadata(mGoogleApiClient).await();
-
-            Metadata metadata = metadataResult.getMetadata()
-            Log.d("EditFileInAppFolder", "modifiedDate: "
-                    + String.valueOf(metadata.getModifiedDate()));*/
-
             return status.getStatus().getStatusCode();
 
         } catch (IOException e) {

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:drawable="@drawable/ic_ntd_illustration_vector">
+    <!--<target
+            android:name="water1"
+            android:animation="@anim/ic_ntd_water1_anim"/>-->
+    <target
+            android:name="water2"
+            android:animation="@anim/ic_ntd_water2_anim"/>
+
+    <!--<target
+            android:name="leaf_bl"
+            android:animation="@anim/ic_edit_anim_rotation"/>
+    <target
+            android:name="leaf_tl"
+            android:animation="@anim/ic_edit_anim_rotation"/>
+    <target
+            android:name="leaf_tr"
+            android:animation="@anim/ic_edit_anim_rotation"/>
+    <target
+            android:name="leaf_br"
+            android:animation="@anim/ic_edit_anim_rotation"/>
+
+    <target
+            android:name="stem"
+            android:animation="@anim/ic_edit_anim_rotation"/>-->
+</animated-vector>

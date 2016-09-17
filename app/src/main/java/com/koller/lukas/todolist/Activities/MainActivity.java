@@ -30,8 +30,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentSender;
-import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
@@ -52,6 +50,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
+import android.support.graphics.drawable.AnimatedVectorDrawableCompat;
 import android.support.v4.app.ShareCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
@@ -76,13 +75,13 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.Html;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
-import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -150,6 +149,7 @@ import biz.kasual.materialnumberpicker.MaterialNumberPicker;
 public class MainActivity extends AppCompatActivity
         implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
+
     private Context context = this;
     private Todolist todolist;
     private static MainActivity mThis = null;
@@ -188,8 +188,7 @@ public class MainActivity extends AppCompatActivity
 
     private Handler handler = new Handler();
     private boolean actionButtonAlreadyClicked = false;
-    private DialogInterface.OnDismissListener
-            dismisslistener;
+    private DialogInterface.OnDismissListener dismisslistener;
 
     private Event eventToColorChange;
     private int selectedColor; //For Color selecting at the add Dialog
@@ -200,6 +199,8 @@ public class MainActivity extends AppCompatActivity
     private Settings settings;
 
     private boolean isEventDraged = false;
+
+    private AnimatedVectorDrawableCompat ntd_anim;
 
     private ShareEventCallback shareEventCallback;
     private boolean shareEvents = false;
@@ -214,6 +215,7 @@ public class MainActivity extends AppCompatActivity
     private static final int RC_SIGN_IN = 9001;
     private MenuItem syncData;
     private long modifiedDateTemp = 0;
+    private boolean completeSync = false; // should directly write after done syncing
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -264,16 +266,6 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onStart() {
-        /*if((boolean) settings.get("autoSync")){
-            lookForSync();
-        }*/
-
-        SharedPreferences.Editor editor
-                = context.getSharedPreferences("todolist",
-                Context.MODE_PRIVATE).edit();
-        editor.putBoolean("wasEventRemoved", false);
-        editor.apply();
-
         super.onStart();
     }
 
@@ -302,7 +294,7 @@ public class MainActivity extends AppCompatActivity
         super.onResume();
     }
 
-    public void buildGoogleApiClient(){
+    public void buildGoogleApiClient() {
         // For Google Drive Api
         GoogleSignInOptions gso
                 = new GoogleSignInOptions.Builder(
@@ -352,6 +344,7 @@ public class MainActivity extends AppCompatActivity
         mRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+                completeSync = true;
                 lookForSync();
             }
         };
@@ -469,9 +462,9 @@ public class MainActivity extends AppCompatActivity
                             case android.R.id.home:
                                 mDrawerLayout.openDrawer(GravityCompat.START);
                                 break;
-                            case R.id.restore_last_removed_event:
+                            /*case R.id.restore_last_removed_event:
                                 RestoreLastDoneEventClicked();
-                                break;
+                                break;*/
                             case R.id.select_theme:
                                 SelectThemeClicked();
                                 break;
@@ -501,7 +494,6 @@ public class MainActivity extends AppCompatActivity
                 }
 
                 if (mGoogleApiClient.isConnected()) {
-
                     showSyncExperimentalFeatureDialog();
                 } else {
                     showToast("Client not connected!");
@@ -579,9 +571,10 @@ public class MainActivity extends AppCompatActivity
         trackColors[k] = color_dark;
         k++;
 
+        ((SwitchCompat) mSilenceAllAlarms.getActionView()).setHighlightColor(helper.get("fab_color"));
+
         DrawableCompat.setTintList(DrawableCompat.wrap(((SwitchCompat)
                 mSilenceAllAlarms.getActionView()).getThumbDrawable()), new ColorStateList(states, thumbColors));
-        ((SwitchCompat) mSilenceAllAlarms.getActionView()).setHighlightColor(helper.get("fab_color"));
         DrawableCompat.setTintList(DrawableCompat.wrap(((SwitchCompat)
                 mSilenceAllAlarms.getActionView()).getTrackDrawable()), new ColorStateList(states, trackColors));
         DrawableCompat.setTintList(DrawableCompat.wrap(((SwitchCompat)
@@ -697,7 +690,7 @@ public class MainActivity extends AppCompatActivity
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     if (mGoogleApiClient.isConnected()) {
-                                        revokeAccess();
+                                        //revokeAccess();
                                         signOut();
                                     }
                                 }
@@ -708,15 +701,11 @@ public class MainActivity extends AppCompatActivity
                     changeDialogButtonColor(dialog);
                 }
             });
-            syncData.setVisible(true);
+            //syncData.setVisible(true);
             settings.set("syncEnabled", true);
             settings.set("signedIn", true);
 
             mSwipeRefreshLayout.setEnabled(true);
-
-            if ((boolean) settings.get("autoSync")) {
-                //lookForSync();
-            }
         } else {
             showToast("SignIn not successful!");
             // not Signed in
@@ -734,13 +723,15 @@ public class MainActivity extends AppCompatActivity
     public void lookForSync() {
         mSwipeRefreshLayout.setRefreshing(true);
 
+        settings.preventDriveChangeListener();
+
         if (!(boolean) settings.get("signedIn") && !mGoogleApiClient.isConnected()) {
             showToast("Api Client not connected");
             mSwipeRefreshLayout.setRefreshing(false);
             return;
         }
 
-        if(!isNetworkAvailable()){
+        if (!isNetworkAvailable()) {
             showSnackbar("no Internet Connection");
         }
 
@@ -762,7 +753,7 @@ public class MainActivity extends AppCompatActivity
 
                         new RetrieveDriveId(mGoogleApiClient, new ModifiedDateCallback() {
                             @Override
-                            public void noFilesFound(){
+                            public void noFilesFound() {
                                 showToast("no Files found -> creating new file");
 
                                 createNewFile();
@@ -773,7 +764,7 @@ public class MainActivity extends AppCompatActivity
                                 Calendar cal = Calendar.getInstance();
                                 cal.setTimeInMillis(timeStamp);
 
-                                Log.d("MainActivity", "getModifiedDate: " + cal.getTime().toString());
+                                //Log.d("MainActivity", "getModifiedDate: " + cal.getTime().toString());
 
                                 if (timeStamp > (long) MainActivity.this.settings.get("lastReceivedDataTimeStamp")) {
                                     if (mGoogleApiClient.isConnected()) {
@@ -788,18 +779,18 @@ public class MainActivity extends AppCompatActivity
                                         showToast("Api Client not connected");
                                     }
                                 } else {
-                                    //mSwipeRefreshLayout.setRefreshing(false);
+                                    mSwipeRefreshLayout.setRefreshing(false);
                                     showToast("MainActivity: modifiedDate old!");
 
                                     settings.set("lastReceivedDataTimeStamp", timeStamp);
                                     settings.set("driveId", driveId);
 
-                                    writeToGoogleDrive();
+                                    //writeToGoogleDrive();
                                 }
                             }
 
                             @Override
-                            public void error(int statusCode){
+                            public void error(int statusCode) {
                                 mSwipeRefreshLayout.setRefreshing(false);
                                 showToast("MainActivity: modifiedDateCallback, error");
                             }
@@ -811,7 +802,7 @@ public class MainActivity extends AppCompatActivity
     public void tryToRetrieveDriveId() {
         new RetrieveDriveId(mGoogleApiClient, new DriveIdCallback() {
             @Override
-            public void noFilesFound(){
+            public void noFilesFound() {
                 showToast("no Files found -> creating new file");
 
                 createNewFile();
@@ -831,10 +822,12 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void tryToRetrieveData(DriveId driveId) {
+        mSwipeRefreshLayout.setRefreshing(true);
+
         new RetrieveDataFromAppFolder(mGoogleApiClient, new RetrievedDataFromAppFolderCallback() {
             @Override
-            public void error(String error){
-                switch(error){
+            public void error(String error) {
+                switch (error) {
                     case "no data":
                         showToast("no Files found -> creating new file");
 
@@ -850,8 +843,7 @@ public class MainActivity extends AppCompatActivity
                         break;
                     case "driveId Error":
                         showToast(error);
-
-                        tryToRetrieveDriveId();
+                        mSwipeRefreshLayout.setRefreshing(false);
                         break;
                     case "empty file":
                         showToast(error);
@@ -869,14 +861,21 @@ public class MainActivity extends AppCompatActivity
         }).execute(driveId);
     }
 
-    public void syncData(String data){
-        Log.d("MainActivity", "received data: " + data);
+    public void syncData(String data) {
+        //Log.d("MainActivity", "received data: " + data);
 
         new SyncDataAsyncTask(todolist, data,
                 (long) settings.get("lastSyncTimeStamp"), new SyncDataCallback() {
             @Override
             public void DoneSyncingData(ArrayList<Long> eventsToUpdate) {
                 MainActivity.this.DoneSyncingData(eventsToUpdate);
+
+                if (completeSync) {
+                    writeToGoogleDrive();
+                    completeSync = false;
+                }
+
+                mSwipeRefreshLayout.setRefreshing(false);
             }
 
             @Override
@@ -888,10 +887,12 @@ public class MainActivity extends AppCompatActivity
             public void error(String error) {
                 showToast("SyncDataAsyncTask: " + error);
 
-                if(error.equals("JSONException")){
+                if (error.equals("JSONException") && completeSync) {
                     writeToGoogleDrive();
+                    completeSync = false;
                     return;
                 }
+
                 mSwipeRefreshLayout.setRefreshing(false);
             }
 
@@ -914,7 +915,7 @@ public class MainActivity extends AppCompatActivity
             } else {
                 new RetrieveDriveId(mGoogleApiClient, new DriveIdCallback() {
                     @Override
-                    public void noFilesFound(){
+                    public void noFilesFound() {
                         //showToast("no Files found -> creating new file");
 
                         createNewFile();
@@ -942,7 +943,7 @@ public class MainActivity extends AppCompatActivity
 
         String data = todolist.getSyncData();
 
-        Log.d("MainActivity", "send data: " + data);
+        //Log.d("MainActivity", "send data: " + data);
 
         int statusCode = 0;
         try {
@@ -957,7 +958,7 @@ public class MainActivity extends AppCompatActivity
         showToast("EditFileInAppFolder, StatusCode: "
                 + CommonStatusCodes.getStatusCodeString(statusCode));
 
-        if(statusCode == CommonStatusCodes.SUCCESS){
+        if (statusCode == CommonStatusCodes.SUCCESS) {
             settings.set("lastReceivedDataTimeStamp", modifiedDateTemp);
             settings.set("lastSyncTimeStamp", System.currentTimeMillis());
 
@@ -1251,7 +1252,7 @@ public class MainActivity extends AppCompatActivity
             RVAdapter.EventViewHolder holder
                     = (RVAdapter.EventViewHolder) mRecyclerView.findViewHolderForAdapterPosition(i);
             if (holder != null) {
-                if (holder.is_expanding_or_collapsing) {
+                if (holder.isExpandingOrCollapsing()) {
                     return true;
                 }
             }
@@ -1396,15 +1397,24 @@ public class MainActivity extends AppCompatActivity
         final HorizontalScrollView horizontalScrollView
                 = (HorizontalScrollView) inputDialog.findViewById(R.id.color_scroll_view);
         horizontalScrollView.setVisibility(View.GONE);
-        final ImageButton[] buttons = getColorButtons(inputDialog);
 
+        final ImageButton[] buttons = getColorButtons(inputDialog);
+        final int[] sortedColors = helper.getSortedColors();
         for (int i = 1; i < buttons.length; i++) {
-            buttons[i].getBackground().setColorFilter(getColorByIndex(i), PorterDuff.Mode.SRC_IN);
+            buttons[i].getBackground().setColorFilter(helper.getEventColor(sortedColors[i]), PorterDuff.Mode.SRC_IN);
         }
 
         if (helper.getDefaultColorIndex() != 0) {
-            buttons[helper.getDefaultColorIndex()].setImageDrawable(getButtonForegroundRes(helper.getDefaultColorIndex()));
-            selectedColor = helper.getDefaultColorIndex();
+            int index = 0;
+            int defaultColor = helper.getDefaultColorIndex();
+            for (int i = 1; i < sortedColors.length; i++) {
+                if (defaultColor == sortedColors[i]) {
+                    index = i;
+                    break;
+                }
+            }
+            buttons[index].setImageDrawable(getButtonForegroundRes(defaultColor));
+            selectedColor = index;
         } else {
             selectedColor = 0;
         }
@@ -1412,12 +1422,13 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 int index = getColorIndexByButtonId(v.getId());
+                int colorIndex = sortedColors[index];
                 if (selectedColor != 0 || index == selectedColor) {
                     buttons[selectedColor].setImageResource(android.R.color.transparent);
                 }
                 if (index != selectedColor) {
                     ImageButton imageButton = (ImageButton) v;
-                    imageButton.setImageDrawable(getButtonForegroundRes(index));
+                    imageButton.setImageDrawable(getButtonForegroundRes(colorIndex));
                     selectedColor = index;
                 } else {
                     selectedColor = 0;
@@ -1429,16 +1440,16 @@ public class MainActivity extends AppCompatActivity
             @Override
             public boolean onLongClick(View v) {
                 int index = getColorIndexByButtonId(v.getId());
+                int colorIndex = sortedColors[index];
                 int default_color = helper.getDefaultColorIndex();
-                if (default_color != index) {
-                    default_color = index;
+                if (default_color != colorIndex) {
                     ImageButton imageButton = (ImageButton) v;
-                    imageButton.setImageDrawable(getButtonForegroundRes(index));
-                    if (selectedColor != 0 && selectedColor != default_color) {
+                    imageButton.setImageDrawable(getButtonForegroundRes(colorIndex));
+                    if (selectedColor != 0 && selectedColor != index) {
                         buttons[selectedColor].setImageResource(android.R.color.transparent);
                     }
                     selectedColor = index;
-                    helper.setDefaultColorIndex(index);
+                    helper.setDefaultColorIndex(colorIndex);
                     showToast("Default Color set");
                 } else {
                     buttons[index].setImageResource(android.R.color.transparent);
@@ -1489,7 +1500,8 @@ public class MainActivity extends AppCompatActivity
                         if (s.length() == 0) {
                             s = hint;
                         }
-                        int color = selectedColor;
+                        //int color = selectedColor;
+                        int color = sortedColors[selectedColor];
                         boolean[] possible_colors
                                 = new boolean[((boolean[]) settings.get("selected_categories")).length];
                         for (int i = 1; i < possible_colors.length; i++) {
@@ -1568,8 +1580,8 @@ public class MainActivity extends AppCompatActivity
                 string = getString(R.string.do_laundry);
                 break;
         }
-        //return string;
-        return "test";
+        return string;
+        //return "test";
     }
 
     public void showAlarmInfoDialog(final Event e) {
@@ -2061,7 +2073,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void ColorButtonClicked(View v) {
-        int color_index = getColorIndexByButtonId(v.getId());
+        int[] sortedColors = helper.getSortedColorsColorSelector();
+        int color_index = sortedColors[getColorIndexByButtonId(v.getId())];
         if (categoryWasSelected) {
             if (!settings.getCategory(color_index)) {
                 ImageButton imageButton = (ImageButton) v;
@@ -2078,7 +2091,10 @@ public class MainActivity extends AppCompatActivity
             }
             if (color_index != eventToColorChange.getColor()) {
                 eventToColorChange.setColor(color_index);
-                mAdapter.itemChanged(mAdapter.getList().indexOf(eventToColorChange));
+                //mAdapter.itemChanged(mAdapter.getList().indexOf(eventToColorChange));
+                int index = todolist.getAdapterListPosition(mAdapter, eventToColorChange);
+                ((RVAdapter.EventViewHolder) mRecyclerView.findViewHolderForAdapterPosition(index))
+                        .changeCardColorAnim(MainActivity.this, helper.getEventColor(color_index), helper.getEventTextColor(color_index));
                 if (!settings.getCategory(color_index)) {
                     int number_of_event_with_color_index = 0;
                     for (int i = 0; i < todolist.getTodolist().size(); i++) {
@@ -2207,17 +2223,22 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void showNothingTodo(boolean withAnim) {
+        /*if(ntd_anim == null){
+            ntd_anim = AnimatedVectorDrawableCompat.create(context,
+                    R.drawable.ic_ntd_illustration_animatable);
+        }*/
+
         final ImageView illustration = (ImageView) findViewById(R.id.nothing_todo);
-        illustration.setImageDrawable(ContextCompat.getDrawable(MainActivity.this, R.drawable.ntd_illustration_summer));
+        illustration.setImageDrawable(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_ntd_illustration_vector));
         illustration.setColorFilter(helper.get("cord_textcolor"), PorterDuff.Mode.SRC_IN);
+        //illustration.setImageDrawable(ntd_anim);
+        //ntd_anim.setTint(helper.get("cord_textcolor"));
         illustration.setAlpha(0.5f);
         if (!withAnim) {
             illustration.setVisibility(View.VISIBLE);
             return;
         }
-        if (illustration.getVisibility() == View.VISIBLE) {
-            return;
-        } else {
+        if (illustration.getVisibility() != View.VISIBLE) {
             Animation anim = AnimationUtils.loadAnimation(this, R.anim.abc_fade_in);
             anim.setStartOffset(300);
             anim.setDuration(500);
@@ -2237,8 +2258,14 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    public void ntdClicked(View v){
+        if(ntd_anim != null){
+            ntd_anim.start();
+            showToast("Anim start");
+        }
+    }
+
     public void DoneSyncingData(ArrayList<Long> eventsToUpdate) {
-        writeToGoogleDrive();
 
         checkForNotificationUpdate();
         if (todolist.getTodolist().size() != 0) {
@@ -2261,10 +2288,10 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
-        for (int i = 0; i < mAdapter.getList().size(); i++){
+        for (int i = 0; i < mAdapter.getList().size(); i++) {
             int newIndex = todolist.getAdapterListPosition(mAdapter, mAdapter.getList().get(i));
-            if(i != newIndex){
-                if(newIndex < mAdapter.getList().size()){
+            if (i != newIndex) {
+                if (newIndex < mAdapter.getList().size()) {
                     mAdapter.itemMoved(i, newIndex);
                 } else {
                     mAdapter.itemMoved(i, mAdapter.getList().size() - 1);
@@ -2285,6 +2312,8 @@ public class MainActivity extends AppCompatActivity
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
+        showToast("DoneSyncingData");
     }
 
     public void updateAlarms(ArrayList<Long> alarmsToCancel, ArrayList<Alarm> alarmsToSet) {
@@ -2297,7 +2326,7 @@ public class MainActivity extends AppCompatActivity
         for (int i = 0; i < alarmsToSet.size(); i++) {
             long time = (long) alarmsToSet.get(i).get("time");
             long alarmId = (long) alarmsToSet.get(i).get("id");
-            Log.d("MainActivity", "alarmId: " + String.valueOf(alarmId));
+            //Log.d("MainActivity", "alarmId: " + String.valueOf(alarmId));
             int id = (int) alarmId;
             setAlarm(time, id);
             showToast("setAlarm");
@@ -2328,7 +2357,7 @@ public class MainActivity extends AppCompatActivity
         if (toolbarElevated) {
             return;
         }
-        AnimatorSet set = (AnimatorSet) AnimatorInflater.loadAnimator(MainActivity.this, R.anim.toolbar_raise);
+        AnimatorSet set = (AnimatorSet) AnimatorInflater.loadAnimator(MainActivity.this, R.animator.toolbar_raise);
         set.setTarget(mToolbar);
         set.start();
         toolbarElevated = true;
@@ -2338,7 +2367,7 @@ public class MainActivity extends AppCompatActivity
         if (!toolbarElevated) {
             return;
         }
-        AnimatorSet set = (AnimatorSet) AnimatorInflater.loadAnimator(MainActivity.this, R.anim.toolbar_lower);
+        AnimatorSet set = (AnimatorSet) AnimatorInflater.loadAnimator(MainActivity.this, R.animator.toolbar_lower);
         set.setTarget(mToolbar);
         set.start();
         toolbarElevated = false;
@@ -2408,8 +2437,9 @@ public class MainActivity extends AppCompatActivity
 
         boolean[] selected_categories
                 = (boolean[]) settings.get("selected_categories");
+        int[] sortedColors = helper.getSortedColorsColorSelector();
         for (int i = 1; i < selected_categories.length; i++) {
-            int colorIndex = getColorIndexByButtonId(buttons[i].getId());
+            int colorIndex = sortedColors[getColorIndexByButtonId(buttons[i].getId())];
             if (!todolist.doesCategoryContainEvents(colorIndex)) {
                 buttons[i].setEnabled(false);
                 buttons[i].getBackground().setAlpha(60);
@@ -2424,14 +2454,12 @@ public class MainActivity extends AppCompatActivity
         LayoutInflater layoutInflater = this.getLayoutInflater();
         View layout = layoutInflater.inflate(R.layout.color_selector, null);
         final ImageButton[] buttons = getColorButtons(layout);
+        /*int [] sortedColors = helper.getSortedColorsColorSelector();
         for (int i = 1; i < buttons.length; i++) {
-            buttons[i].getBackground().setColorFilter(getColorByIndex(i), PorterDuff.Mode.SRC_IN);
-        }
+            //buttons[i].getBackground().setColorFilter(helper.getEventColor(i), PorterDuff.Mode.SRC_IN);
+            buttons[i].getBackground().setColorFilter(helper.getEventColor(sortedColors[i]), PorterDuff.Mode.SRC_IN);
+        }*/
         return layout;
-    }
-
-    public int getColorByIndex(int index) {
-        return helper.getEventColor(index);
     }
 
     public ImageButton[] getColorButtons(View layout) {
@@ -2449,8 +2477,10 @@ public class MainActivity extends AppCompatActivity
         buttons[11] = (ImageButton) layout.findViewById(R.id.color11_button);
         buttons[12] = (ImageButton) layout.findViewById(R.id.color12_button);
 
+        int[] sortedColors = helper.getSortedColorsColorSelector();
         for (int i = 1; i < buttons.length; i++) {
-            buttons[i].getBackground().setColorFilter(getColorByIndex(i), PorterDuff.Mode.SRC_IN);
+            //buttons[i].getBackground().setColorFilter(helper.getEventColor(i), PorterDuff.Mode.SRC_IN);
+            buttons[i].getBackground().setColorFilter(helper.getEventColor(sortedColors[i]), PorterDuff.Mode.SRC_IN);
         }
         return buttons;
     }
@@ -2463,12 +2493,21 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void showSnackbar(String content) {
-        snackbar = Snackbar.make(findViewById(R.id.coordinatorLayout), content, Snackbar.LENGTH_LONG);
+        snackbar = Snackbar.make(mCoordinatorLayout, content, Snackbar.LENGTH_LONG);
+        //disabe swipeToDissmiss
+        snackbar.getView().getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            @Override
+            public boolean onPreDraw() {
+                snackbar.getView().getViewTreeObserver().removeOnPreDrawListener(this);
+                ((CoordinatorLayout.LayoutParams) snackbar.getView().getLayoutParams()).setBehavior(null);
+                return true;
+            }
+        });
         snackbar.show();
     }
 
     public void EventRemovedSnackbar() {
-        snackbar = Snackbar.make(findViewById(R.id.coordinatorLayout),
+        snackbar = Snackbar.make(mCoordinatorLayout,
                 getString(R.string.event_removed), Snackbar.LENGTH_LONG);
         snackbar.setActionTextColor(helper.get("fab_color"))
                 .setAction(getString(R.string.undo), new View.OnClickListener() {
@@ -2477,6 +2516,15 @@ public class MainActivity extends AppCompatActivity
                         RestoreLastDoneEventClicked();
                     }
                 });
+        //disabe swipeToDissmiss
+        snackbar.getView().getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            @Override
+            public boolean onPreDraw() {
+                snackbar.getView().getViewTreeObserver().removeOnPreDrawListener(this);
+                ((CoordinatorLayout.LayoutParams) snackbar.getView().getLayoutParams()).setBehavior(null);
+                return true;
+            }
+        });
         snackbar.show();
     }
 
@@ -2505,7 +2553,7 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void shareEvents() {
-                mFab.setImageResource(R.drawable.ic_add);
+                FabShareAnim(false);
 
                 shareEvents = false;
                 shareEventCallback = null;
@@ -2670,7 +2718,7 @@ public class MainActivity extends AppCompatActivity
 
     public void colorShareIcon(int color) {
         if (shareIcon != null) {
-            shareIcon.getIcon().setColorFilter(color, PorterDuff.Mode.SRC_IN);
+            //shareIcon.getIcon().setColorFilter(color, PorterDuff.Mode.SRC_IN);
             this.invalidateOptionsMenu();
         }
     }
@@ -2684,23 +2732,16 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void checkEventRemoved() {
-        SharedPreferences sharedpreferences = context.getSharedPreferences("todolist", Context.MODE_PRIVATE);
-        boolean eventRemoved = sharedpreferences.getBoolean("wasEventRemoved", false);
-        if (eventRemoved) {
-            ArrayList<Long> eventsToRemove;
-            try {
-                eventsToRemove = todolist.EventRemoved(this);
-                for (int i = 0; i < eventsToRemove.size(); i++) {
-                    removeEventNotifDoneButton(eventsToRemove.get(i));
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
+        ArrayList<Long> eventsToRemove;
+        try {
+            eventsToRemove = todolist.EventRemoved(this);
+            for (int i = 0; i < eventsToRemove.size(); i++) {
+                removeEventNotifDoneButton(eventsToRemove.get(i));
             }
-            SharedPreferences.Editor editor = sharedpreferences.edit();
-            editor.putBoolean("wasEventRemoved", false);
-            editor.apply();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
         }
     }
 
@@ -2894,7 +2935,7 @@ public class MainActivity extends AppCompatActivity
             if (mToolbar.getMenu().getItem(i).getItemId() == R.id.share_todos) {
                 shareIcon = mToolbar.getMenu().getItem(i);
                 //shareIcon.getIcon().setColorFilter(helper.get("toolbar_textcolor"), PorterDuff.Mode.SRC_IN);
-                shareIcon.getIcon().setColorFilter(helper.getToolbarIconColor(), PorterDuff.Mode.SRC_IN);
+                //shareIcon.getIcon().setColorFilter(helper.getToolbarIconColor(), PorterDuff.Mode.SRC_IN);
             }
         }
         return true;
@@ -2935,9 +2976,6 @@ public class MainActivity extends AppCompatActivity
             e.printStackTrace();
         }
 
-        if((boolean) settings.get("autoSync")){
-            //lookForSync();
-        }
         super.onStop();
     }
 
@@ -2972,36 +3010,31 @@ public class MainActivity extends AppCompatActivity
     public void onConnected(Bundle connectionHint) {
         // GoogleApiClient connected
 
-        Log.d("MainActivity", "onConnected()");
-
-        if((boolean) settings.get("autoSync")){
-            //lookForSync();
-        }
+        //Log.d("MainActivity", "onConnected()");
     }
 
     @Override
     public void onConnectionSuspended(int cause) {
         // GoogleApiClient connection suspended
 
-        Log.d("MainActivity", "onConnectionSuspended()");
+        //Log.d("MainActivity", "onConnectionSuspended()");
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult result) {
         // GoogleApiClient connection failed
-        Log.d("MainActivity", "onConnectionFailed(): "
-                + CommonStatusCodes.getStatusCodeString(result.getErrorCode())) ;
+        //Log.d("MainActivity", "onConnectionFailed(): " + CommonStatusCodes.getStatusCodeString(result.getErrorCode()));
 
-        mGoogleApiClient.connect();
+        /*mGoogleApiClient.connect();
 
-        if(mGoogleApiClient.isConnecting()){
+        if (mGoogleApiClient.isConnecting()) {
             Log.d("MainActivity", "connecting");
         }
 
-        if(mGoogleApiClient.isConnected()){
+        if (mGoogleApiClient.isConnected()) {
             Log.d("MainActivity", "connected");
         } else {
             Log.d("MainActivity", "not connected");
-        }
+        }*/
     }
 }

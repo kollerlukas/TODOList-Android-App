@@ -2,7 +2,6 @@
     <string name="app_name">TODOList</string>
     <string name="app_version">1.2.6</string>
     <string name="icon">Simge</string>
-    <string name="licences_text1">Android Destek Kütüphaneleri:</string>
 
     <string name="edit">Düzenle</string>
     <string name="add_event">Yapılacak ekle</string>
@@ -88,7 +87,6 @@
     <string name="share_app">Paylaş</string>
     <string name="no_category_selected"> Kategori seçilemedi</string>
     <string name="no_events">Yapılacak bir şey yok!</string>
-    <string name="licences_text2">Copyright © 2011 The Android Open Source Project \n \nLicensed under the Apache License, Version 2.0 (the "License"); \nyou may not use this file except in compliance with the License. \nYou may obtain a copy of the License at \n \n      http://www.apache.org/licenses/LICENSE-2.0 \n \nUnless required by applicable law or agreed to in writing, software \ndistributed under the License is distributed on an "AS IS" BASIS, \nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. \nSee the License for the specific language governing permissions and \nlimitations under the License.</string>
 
     <string name="signOut">Oturumu Kapat</string>
     <string name="signOutDialog_content">Oturumu kapatmak istediğinizden emin misiniz?</string>
@@ -96,8 +94,6 @@
     <string name="no">Hayır</string>
     <string name="syncData">Senkronize et</string>
     <string name="navigation_header0">Senkronize et</string>
-    <string name="licences_text"></string>
-    <string name="licences_text3">Google Play Servisleri İlişkileri:</string>
 
     <string name="restore_last_removed_event1"></string>
     <string name="silence_all_alarms2"></string>
@@ -115,4 +111,72 @@
     <string name="themeActivityInfoDialogTitle">Click any element to style its color!</string>
     <string name="themeActivityInfoDialogContent">(even the Toolbar and FloatingActionButton)</string>
     <string name="restore_from_default_themes">Restore from default themes</string>
+
+
+    <!--translate-->
+    <string name="licences_text1">Android Support Libraries:</string>
+    <string name="licences_text2">
+        Copyright © 2011 The Android Open Source Project
+        \n
+        \nLicensed under the Apache License, Version 2.0 (the "License");
+        \nyou may not use this file except in compliance with the License.
+        \nYou may obtain a copy of the License at
+        \n
+        \n      http://www.apache.org/licenses/LICENSE-2.0
+        \n
+        \nUnless required by applicable law or agreed to in writing, software
+        \ndistributed under the License is distributed on an "AS IS" BASIS,
+        \nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        \nSee the License for the specific language governing permissions and
+        \nlimitations under the License.</string>
+    <string name="licences_text3">MaterialNumberPicker: </string>
+    <string name="licences_text4">Copyright 2015 Kasual Business.
+        \n
+        \nLicensed under the Apache License, Version 2.0 (the "License");
+        \nyou may not use this file except in compliance with the License.
+        \nYou may obtain a copy of the License at
+        \n
+        \n   http://www.apache.org/licenses/LICENSE-2.0
+        \n
+        \nUnless required by applicable law or agreed to in writing, software
+        \ndistributed under the License is distributed on an "AS IS" BASIS,
+        \nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        \nSee the License for the specific language governing permissions and
+        \nlimitations under the License.</string>
+    <string name="licences_text5">Google Play Services Attribution:</string>
+
+    <string name="repeat">repeat: </string>
+
+    <string name="daily">Every Day</string>
+    <string name="weekly">Every Week</string>
+    <string name="monthly">Every Month</string>
+    <string name="certain_days">Certain Days</string>
+    <string name="custom">Custom</string>
+
+    <string name="monday">MON</string>
+    <string name="tuesday">TUE</string>
+    <string name="wednesday">WED</string>
+    <string name="thursday">THU</string>
+    <string name="friday">FRI</string>
+    <string name="saturday">SAT</string>
+    <string name="sunday">SUN</string>
+
+    <string name="hours">Hours</string>
+    <string name="days">Days</string>
+    <string name="weeks">Weeks</string>
+    <string name="months">Months</string>
+
+    <string name="toolbarAndBackgroundSameColor">Toolbar and Background same Color</string>
+
+    <string name="share_todos">share TODOs</string>
+    <string name="import_todos">Import TODOs</string>
+    <string name="import_">Import</string>
+    <string name="import_dialog_content">Select TODOs by tapping them.</string>
+
+    <string name="preset_themes">Preset Themes</string>
+    <string name="share_theme">share Theme</string>
+
+    <string name="experimental_feature">Experimental Feature</string>
+    <string name="signin_dialog_experimental_feature">Please note that feature is still (very) experimental.
+        \nThe developer does not take any responsibility for the loss of any TODOs.</string>
 </resources>

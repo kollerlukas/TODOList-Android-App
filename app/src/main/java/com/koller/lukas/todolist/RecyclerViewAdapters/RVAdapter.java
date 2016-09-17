@@ -4,24 +4,24 @@ import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.PorterDuff;
-import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
-import android.support.v4.content.res.ResourcesCompat;
+import android.support.graphics.drawable.AnimatedVectorDrawableCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
-import android.view.animation.RotateAnimation;
 import android.view.animation.ScaleAnimation;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -41,41 +41,57 @@ import java.util.Collections;
 public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
 
     public static class EventViewHolder extends RecyclerView.ViewHolder implements OnClickListener {
-        public CardView card;
+        private CardView card;
+        private RelativeLayout reveal_bg;
         private CardView card_action_view;
         private RelativeLayout relative_layout;
         private TextView textview;
-        private Button color_button;
-        private Button edit_button;
-        private ImageView edit_imageView;
-        private Button alarm_button;
-        private ImageView alarm_imageView;
-        public boolean is_expanding_or_collapsing = false;
-        public boolean is_animation_running = false;
-        private Context context;
-        public Event event;
-        private CardButtonOnClickInterface mCardButtonOnClickInterface;
-        public boolean intro_card = false;
 
-        EventViewHolder(CardButtonOnClickInterface mCardButtonOnClickInterface, Context context, View v) {
+        private ImageView color_button;
+        private AnimatedVectorDrawableCompat color_anim;
+
+        private ImageView edit_button;
+        private AnimatedVectorDrawableCompat edit_anim;
+
+
+        private ImageView alarm_button;
+        private AnimatedVectorDrawableCompat alarm_anim;
+
+        private boolean isExpandingOrCollapsing = false;
+        private boolean isAnimationRunning = false;
+
+        public Event event;
+
+        private CardButtonOnClickInterface cardButtonOnClickInterface;
+
+        EventViewHolder(CardButtonOnClickInterface cardButtonOnClickInterface, Context context, View v) {
             super(v);
+
+            this.cardButtonOnClickInterface = cardButtonOnClickInterface;
+
             card = (CardView) v.findViewById(R.id.card);
+            reveal_bg = (RelativeLayout) v.findViewById(R.id.rl_card);
             card_action_view = (CardView) v.findViewById(R.id.card_action_buttons);
             relative_layout = (RelativeLayout) v.findViewById(R.id.relative_layout);
             textview = (TextView) v.findViewById(R.id.event_name);
-            color_button = (Button) v.findViewById(R.id.color_button);
-            Drawable d_color = ResourcesCompat.getDrawable(context.getResources(), R.drawable.color_button_background, null).getConstantState().newDrawable().mutate();
-            color_button.setBackground(d_color);
-            edit_button = (Button) v.findViewById(R.id.edit_button);
-            Drawable d_edit = ResourcesCompat.getDrawable(context.getResources(), R.drawable.edit_button_background, null).getConstantState().newDrawable().mutate();
-            edit_button.setBackground(d_edit);
-            edit_imageView = (ImageView) v.findViewById(R.id.edit_imageView);
-            alarm_button = (Button) v.findViewById(R.id.alarm_button);
-            Drawable d_alarm = ResourcesCompat.getDrawable(context.getResources(), R.drawable.alarm_button_background, null).getConstantState().newDrawable().mutate();
-            alarm_button.setBackground(d_alarm);
-            alarm_imageView = (ImageView) v.findViewById(R.id.alarm_imageView);
-            this.context = context;
-            this.mCardButtonOnClickInterface = mCardButtonOnClickInterface;
+
+            color_button = (ImageView) v.findViewById(R.id.color_button);
+            color_anim = AnimatedVectorDrawableCompat.create(context,
+                    R.drawable.ic_color_animatable);
+            color_button.setBackground(null);
+            color_button.setImageDrawable(color_anim);
+
+            edit_button = (ImageView) v.findViewById(R.id.edit_button);
+            edit_anim = AnimatedVectorDrawableCompat.create(context,
+                    R.drawable.ic_edit_animatable);
+            edit_button.setBackground(null);
+            edit_button.setImageDrawable(edit_anim);
+
+            alarm_button = (ImageView) v.findViewById(R.id.alarm_button);
+            alarm_anim = AnimatedVectorDrawableCompat.create(context,
+                    R.drawable.ic_alarm_animatable);
+            alarm_button.setBackground(null);
+            alarm_button.setImageDrawable(alarm_anim);
 
             color_button.setOnClickListener(this);
             edit_button.setOnClickListener(this);
@@ -84,23 +100,36 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             card_action_view.setVisibility(View.GONE);
         }
 
-        public void colorButtonClicked() {
-            is_animation_running = true;
-            RotateAnimation r = new RotateAnimation(0.0f, 360.0f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
-            r.setDuration(425);
-            color_button.startAnimation(r);
+        public void initCard(Context context) {
+            ThemeHelper helper = new ThemeHelper(context, event.getColor());
+            textview.setText(event.getWhatToDo());
+            setColor(helper.getEventColor(event.getColor()),
+                    helper.getEventTextColor(event.getColor()));
+            if (!event.semiTransparent) {
+                card.setElevation(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                        2, context.getResources().getDisplayMetrics()));
+            } else {
+                setColor(helper.getEventColor_semitransparent(event.getColor()),
+                        helper.getEventTextColor_semitransparent(event.getColor()));
+            }
+            if ((event.isExpanded && card_action_view.getVisibility() == View.GONE)
+                    || (!event.isExpanded && card_action_view.getVisibility() == View.VISIBLE)) {
+                relative_layout.setVisibility(View.INVISIBLE);
+                card_action_view.setVisibility(View.GONE);
+                event.setExpanded(false);
+            }
+        }
 
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    is_animation_running = false;
-                    mCardButtonOnClickInterface.actionButtonClicked(color_button, event);
-                }
-            }, 425);
+        private void setColor(int color, int textColor) {
+            card.setCardBackgroundColor(color);
+            textview.setTextColor(textColor);
+            color_anim.setTint(textColor);
+            edit_anim.setTint(textColor);
+            alarm_anim.setTint(textColor);
         }
 
         public void cardClicked() {
-            if (event.semiTransparent || is_expanding_or_collapsing) {
+            if (event.semiTransparent || isExpandingOrCollapsing) {
                 return;
             }
             if (event.isExpanded) {
@@ -110,59 +139,92 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             }
         }
 
-        public void editButtonClicked() {
-            is_animation_running = true;
-            final ThemeHelper helper = new ThemeHelper(context);
-            edit_button.setBackgroundResource(R.drawable.transparent_ripple);
-            edit_imageView.setVisibility(View.VISIBLE);
-            edit_imageView.setBackgroundResource(R.drawable.edit_anim);
-            AnimationDrawable edit_anim = (AnimationDrawable) edit_imageView.getBackground();
-            edit_anim.setColorFilter(helper.getEventTextColor(event.getColor()), PorterDuff.Mode.SRC_IN);
+        @Override
+        public void onClick(View v) {
+            switch (v.getId()) {
+                case R.id.color_button:
+                    colorButtonClicked();
+                    break;
+                case R.id.edit_button:
+                    editButtonClicked();
+                    break;
+                case R.id.alarm_button:
+                    alarmButtonClicked();
+                    break;
+            }
+        }
+
+        private void colorButtonClicked() {
+            isAnimationRunning = true;
+
+            color_anim.start();
+            new Handler().postDelayed(new Runnable() {
+                public void run() {
+                    isAnimationRunning = false;
+                    cardButtonOnClickInterface.actionButtonClicked(color_button, event);
+                }
+            }, 350);
+        }
+
+        private void editButtonClicked() {
+            isAnimationRunning = true;
+
             edit_anim.start();
-
             new Handler().postDelayed(new Runnable() {
-                @Override
                 public void run() {
-                    Drawable d = ResourcesCompat.getDrawable(context.getResources(), R.drawable.edit_button_background, null).getConstantState().newDrawable().mutate();
-                    edit_button.setBackground(d);
-                    edit_button.getBackground().setColorFilter(helper.getEventTextColor(event.getColor()), PorterDuff.Mode.SRC_IN);
-                    edit_imageView.setVisibility(View.INVISIBLE);
-                    is_animation_running = false;
-                    mCardButtonOnClickInterface.actionButtonClicked(edit_button, event);
+                    isAnimationRunning = false;
+                    cardButtonOnClickInterface.actionButtonClicked(edit_button, event);
                 }
-            }, 425);
+            }, 550);
         }
 
-        public void alarmButtonClicked() {
-            is_animation_running = true;
-            final ThemeHelper helper = new ThemeHelper(context);
-            alarm_button.setBackgroundResource(R.drawable.transparent_ripple);
-            alarm_imageView.setVisibility(View.VISIBLE);
-            alarm_imageView.setBackgroundResource(R.drawable.alarm_anim);
-            AnimationDrawable alarm_anim = (AnimationDrawable) alarm_imageView.getBackground();
-            alarm_anim.setColorFilter(helper.getEventTextColor(event.getColor()), PorterDuff.Mode.SRC_IN);
+        private void alarmButtonClicked() {
+            isAnimationRunning = true;
             alarm_anim.start();
-
             new Handler().postDelayed(new Runnable() {
                 public void run() {
-                    Drawable d = ResourcesCompat.getDrawable(context.getResources(), R.drawable.alarm_button_background, null).getConstantState().newDrawable().mutate();
-                    alarm_button.setBackground(d);
-                    alarm_button.getBackground().setColorFilter(helper.getEventTextColor(event.getColor()), PorterDuff.Mode.SRC_IN);
-                    alarm_imageView.setVisibility(View.INVISIBLE);
-                    is_animation_running = false;
-                    mCardButtonOnClickInterface.actionButtonClicked(alarm_button, event);
+                    isAnimationRunning = false;
+                    cardButtonOnClickInterface.actionButtonClicked(alarm_button, event);
                 }
-            }, 425);
+            }, 350);
         }
 
-        public void collapse_noAnimation() {
-            relative_layout.setVisibility(View.INVISIBLE);
-            card_action_view.setVisibility(View.GONE);
-            event.setExpanded(false);
+        public void changeCardColorAnim(final Context context, final int color, final int textColor){
+            final Drawable reveal_bg_d = ContextCompat.getDrawable(context, R.drawable.card_reveal_bg);
+            reveal_bg_d.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+
+            Animator animator = ViewAnimationUtils.createCircularReveal(reveal_bg,
+                    color_button.getWidth()/2 + color_button.getLeft() + relative_layout.getLeft() + card_action_view.getLeft(),
+                    color_button.getHeight()/2 + color_button.getTop() + relative_layout.getTop() + card_action_view.getTop()
+                    , 0, reveal_bg.getWidth());
+            animator.setDuration(1000);
+            animator.addListener(new Animator.AnimatorListener() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+                    reveal_bg.setBackground(reveal_bg_d);
+                    textview.setTextColor(textColor);
+                    color_anim.setTint(textColor);
+                    edit_anim.setTint(textColor);
+                    alarm_anim.setTint(textColor);
+                }
+
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    card.setCardBackgroundColor(color);
+                    reveal_bg.setBackground(null);
+                }
+
+                @Override
+                public void onAnimationCancel(Animator animation) {/*nothing*/}
+
+                @Override
+                public void onAnimationRepeat(Animator animation) {/*nothing*/}
+            });
+            animator.start();
         }
 
         private void collapse() {
-            is_expanding_or_collapsing = true;
+            isExpandingOrCollapsing = true;
             Animation fadeOut = new AlphaAnimation(1, 0);
             fadeOut.setInterpolator(new AccelerateInterpolator());
             fadeOut.setDuration(150);
@@ -182,7 +244,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
                 public void onAnimationEnd(Animator animation) {
                     relative_layout.setVisibility(View.INVISIBLE);
                     card_action_view.setVisibility(View.GONE);
-                    is_expanding_or_collapsing = false;
+                    isExpandingOrCollapsing = false;
                     event.setExpanded(false);
                 }
 
@@ -192,8 +254,8 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
                 @Override
                 public void onAnimationRepeat(Animator animation) {/*nothing*/}
             });
-            //mAnimator.setStartDelay(100);
             mAnimator.setDuration(200);
+
             relative_layout.startAnimation(fadeOut);
             color_button.startAnimation(scale);
             edit_button.startAnimation(scale);
@@ -202,7 +264,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
         }
 
         private void expand() {
-            is_expanding_or_collapsing = true;
+            isExpandingOrCollapsing = true;
             final Animation fadeIn = new AlphaAnimation(0, 1);
             fadeIn.setInterpolator(new DecelerateInterpolator());
             fadeIn.setDuration(150);
@@ -227,12 +289,12 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
 
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    setColorFilterToActionButtons();
+                    //setColorFilterToActionButtons();
                     //relative_layout.setVisibility(View.VISIBLE);
                     //relative_layout.startAnimation(fadeIn);
-                    is_expanding_or_collapsing = false;
+                    isExpandingOrCollapsing = false;
                     event.setExpanded(true);
-                    mCardButtonOnClickInterface.scrollToCard(getAdapterPosition());
+                    cardButtonOnClickInterface.scrollToCard(getAdapterPosition());
                 }
 
                 @Override
@@ -245,8 +307,10 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             });
             mAnimator.setDuration(200);
             mAnimator.start();
+
             relative_layout.setVisibility(View.VISIBLE);
             relative_layout.startAnimation(fadeIn);
+
             color_button.startAnimation(scale);
             edit_button.startAnimation(scale);
             alarm_button.startAnimation(scale);
@@ -266,66 +330,12 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             return animator;
         }
 
-        public void colorCard(int color_index) {
-            ThemeHelper helper = new ThemeHelper(context);
-            setColor(helper.getEventColor(color_index), helper.getEventTextColor(color_index));
-        }
-
-        public void setCardSemiTransparent(int color_index) {
-            ThemeHelper helper = new ThemeHelper(context);
-            setColor(helper.getEventColor_semitransparent(color_index), helper.getEventTextColor_semitransparent(color_index));
-
-        }
-
-        private void setColor(int color, int textColor) {
-            card.setCardBackgroundColor(color);
-            textview.setTextColor(textColor);
-            color_button.getBackground().setColorFilter(textColor, PorterDuff.Mode.SRC_IN);
-            edit_button.getBackground().setColorFilter(textColor, PorterDuff.Mode.SRC_IN);
-            alarm_button.getBackground().setColorFilter(textColor, PorterDuff.Mode.SRC_IN);
-        }
-
-        public void setColorFilterToActionButtons() {
-            int textColor = new ThemeHelper(context).getEventTextColor(event.getColor());
-            color_button.getBackground().setColorFilter(textColor, PorterDuff.Mode.SRC_IN);
-            edit_button.getBackground().setColorFilter(textColor, PorterDuff.Mode.SRC_IN);
-            alarm_button.getBackground().setColorFilter(textColor, PorterDuff.Mode.SRC_IN);
-        }
-
-        public void setCardText(String text) {
-            textview.setText(text);
+        public boolean isExpandingOrCollapsing(){
+            return isExpandingOrCollapsing;
         }
 
         public void setEvent(Event event) {
             this.event = event;
-        }
-
-        @Override
-        public void onClick(View v) {
-            switch (v.getId()) {
-                case R.id.color_button:
-                    colorButtonClicked();
-                    break;
-                case R.id.edit_button:
-                    editButtonClicked();
-                    break;
-                case R.id.alarm_button:
-                    alarmButtonClicked();
-                    break;
-            }
-        }
-
-        public void updateCard() {
-            setCardText(event.getWhatToDo());
-            colorCard(event.getColor());
-            if (!event.semiTransparent) {
-                card.setElevation(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2, context.getResources().getDisplayMetrics()));
-            } else {
-                setCardSemiTransparent(event.getColor());
-            }
-            if ((event.isExpanded && card_action_view.getVisibility() == View.GONE) || (!event.isExpanded && card_action_view.getVisibility() == View.VISIBLE)) {
-                collapse_noAnimation();
-            }
         }
     }
 
@@ -333,7 +343,8 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
     private CardButtonOnClickHelper onClickHelper;
     private Context context;
 
-    public RVAdapter(ArrayList<Event> events, CardButtonOnClickHelper onClickHelper, Context context) {
+    public RVAdapter(ArrayList<Event> events,
+                     CardButtonOnClickHelper onClickHelper, Context context) {
         this.events = events;
         this.onClickHelper = onClickHelper;
         this.context = context;
@@ -342,7 +353,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
     @Override
     public void onBindViewHolder(EventViewHolder eventViewHolder, int i) {
         eventViewHolder.setEvent(events.get(i));
-        eventViewHolder.updateCard();
+        eventViewHolder.initCard(context);
     }
 
     @Override
@@ -352,7 +363,8 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
 
     @Override
     public EventViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-        View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.one_event, viewGroup, false);
+        View v = LayoutInflater.from(viewGroup.getContext())
+                .inflate(R.layout.one_event, viewGroup, false);
         return new EventViewHolder(onClickHelper, context, v);
     }
 

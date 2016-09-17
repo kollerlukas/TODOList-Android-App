@@ -206,4 +206,13 @@ public class Alarm {
         }
         return false;
     }
+
+    public boolean noDaySelected(){
+        for (int i = 0; i < certain_days.length; i++){
+            if(certain_days[i]){
+                return false;
+            }
+        }
+        return true;
+    }
 }

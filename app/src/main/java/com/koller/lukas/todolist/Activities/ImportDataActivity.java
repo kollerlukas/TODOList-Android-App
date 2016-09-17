@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
+import com.koller.lukas.todolist.R;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -21,6 +23,8 @@ public class ImportDataActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Uri data = getIntent().getData();
+
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
 
         ContentResolver cR = ImportDataActivity.this.getContentResolver();
         //Toast.makeText(ImportDataActivity.this, String.valueOf(cR.getType(data)), Toast.LENGTH_SHORT).show();
@@ -48,6 +52,7 @@ public class ImportDataActivity extends AppCompatActivity {
 
         if (cR.getType(data).equals("application/octet-stream")) {
             //intent.putExtra("events", eventsToImport);
+            Toast.makeText(this, "contentTypeError", Toast.LENGTH_SHORT).show();
             this.finish();
             return;
         } else if (cR.getType(data).equals("text/plain")) {

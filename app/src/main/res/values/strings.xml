@@ -175,6 +175,8 @@
     <string name="share_theme">share Theme</string>
 
     <string name="experimental_feature">Experimental Feature</string>
-    <string name="signin_dialog_experimental_feature">Please note that feature is still (very) experimental.
+    <string name="signin_dialog_experimental_feature">
+        The signIn allows you to sync your TODOs across devices!\n\n
+        Please note that feature is still (very) experimental.
         \nThe developer does not take any responsibility for the loss of any TODOs.</string>
 </resources>

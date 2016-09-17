@@ -7,11 +7,13 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.ColorStateList;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ShareCompat;
@@ -24,12 +26,15 @@ import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -38,20 +43,22 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.koller.lukas.todolist.Util.ClickHelper.OnItemClickHelper;
 import com.koller.lukas.todolist.R;
-import com.koller.lukas.todolist.Util.ThemeHelper;
+import com.koller.lukas.todolist.RecyclerViewAdapters.RVAdapter;
 import com.koller.lukas.todolist.RecyclerViewAdapters.Theme_RVAdapter;
 import com.koller.lukas.todolist.Util.Callbacks.ColorPickerDialogCallback;
 import com.koller.lukas.todolist.Util.Callbacks.OnItemClickInterface;
+import com.koller.lukas.todolist.Util.ClickHelper.OnItemClickHelper;
+import com.koller.lukas.todolist.Util.ThemeHelper;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Created by Lukas on 13.06.2016.
@@ -121,7 +128,7 @@ public class ThemeActivity extends AppCompatActivity {
             @Override
             public boolean onLongClick(View view) {
                 helper.toggleToolbarIconsTranslucent();
-                if(helper.isToolbarIconsTranslucent()){
+                if (helper.isToolbarIconsTranslucent()) {
                     Toast.makeText(ThemeActivity.this, "Toolbar icons translucent", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(ThemeActivity.this, "Toolbar icons not translucent", Toast.LENGTH_SHORT).show();
@@ -148,11 +155,8 @@ public class ThemeActivity extends AppCompatActivity {
 
         mLinearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         mRecyclerView.setLayoutManager(mLinearLayoutManager);
-        int[] colors = new int[12];
-        for (int i = 0; i < colors.length; i++) {
-            colors[i] = i + 1;
-        }
-        mAdapter = new Theme_RVAdapter(colors, this);
+
+        mAdapter = new Theme_RVAdapter(this);
         mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -172,12 +176,60 @@ public class ThemeActivity extends AppCompatActivity {
                     public void colorPicked(int red, int green, int blue, int textColor) {
                         colors[position + 1] = Color.rgb(red, green, blue);
                         textcolors[position + 1] = textColor;
-                        ((Theme_RVAdapter.EventViewHolder) holder).colorCard(colors[position + 1], textcolors[position + 1]);
+                        ((Theme_RVAdapter.ColorViewHolder) holder).colorCard(colors[position + 1], textcolors[position + 1]);
                     }
                 };
                 showColorPickerDialog(colorPickerDialogCallback, true, colors[position + 1], textcolors[position + 1], false);
             }
         });
+
+        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP |
+                ItemTouchHelper.DOWN | ItemTouchHelper.LEFT |
+                ItemTouchHelper.RIGHT, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+
+            @Override
+            public boolean onMove(RecyclerView recyclerView,
+                                  RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                int fromPosition = viewHolder.getAdapterPosition();
+                int toPosition = target.getAdapterPosition();
+                ThemeActivity.this.onItemMove(fromPosition, toPosition);
+                return mAdapter.onItemMove(fromPosition, toPosition);
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {/*nothing*/}
+
+            @Override
+            public boolean isLongPressDragEnabled() {
+                return false;
+            }
+
+            @Override
+            public boolean isItemViewSwipeEnabled() {
+                return false;
+            }
+
+            @Override
+            public void onChildDraw(Canvas c, RecyclerView recyclerView, final RecyclerView.ViewHolder viewHolder,
+                                    float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+                if (isCurrentlyActive && actionState == ItemTouchHelper.ACTION_STATE_DRAG) {
+                    elevateToolbar();
+                    viewHolder.itemView.setPressed(true);
+                } else {
+                    viewHolder.itemView.setPressed(false);
+                    CheckToolbarElevation();
+
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            mAdapter.notifyDataSetChanged();
+                        }
+                    }, 500);
+                }
+            }
+
+        }).attachToRecyclerView(mRecyclerView);
     }
 
     public void setupTheme() {
@@ -206,11 +258,16 @@ public class ThemeActivity extends AppCompatActivity {
         toolbar_card.setBackgroundColor(toolbar_color);
         toolbar_card.setTitleTextColor(toolbar_textcolor);
 
-        int color = ContextCompat.getColor(ThemeActivity.this, R.color.light_text_color);
-        int color_a = Color.argb(95, Color.red(color), Color.green(color), Color.blue(color));
-        ChangeColorOfToolbarDrawerIcon(color_a);
-        colorInfoIcon(color_a);
-        setOverflowButtonColor(color_a);
+        int color;
+        if (helper.isToolbarIconsTranslucent()) {
+            int color_base = ContextCompat.getColor(ThemeActivity.this, R.color.light_text_color);
+            color = Color.argb(95, Color.red(color_base), Color.green(color_base), Color.blue(color_base));
+        } else {
+            color = ContextCompat.getColor(ThemeActivity.this, R.color.light_text_color);
+        }
+        ChangeColorOfToolbarDrawerIcon(color);
+        colorInfoIcon(color);
+        setOverflowButtonColor(color);
 
         fab.setBackgroundTintList(ColorStateList.valueOf(fab_color));
         fab.getDrawable().setTint(fab_textcolor);
@@ -320,7 +377,7 @@ public class ThemeActivity extends AppCompatActivity {
 
         final SeekBar seekBarGrey = (SeekBar) layout.findViewById(R.id.seekbar_grey);
         final TextView grey_text = (TextView) layout.findViewById(R.id.grey_text);
-        if(Color.red(oldTextColor) == 255){
+        if (Color.red(oldTextColor) == 255) {
             seekBarGrey.setProgress(Color.alpha(oldTextColor) + 256);
             grey_text.setText(String.format(format, Color.alpha(oldTextColor)));
         } else {
@@ -330,7 +387,7 @@ public class ThemeActivity extends AppCompatActivity {
 
         colorCard.setCardBackgroundColor(Color.rgb(seekBarRed.getProgress(), seekBarGreen.getProgress(), seekBarBlue.getProgress()));
         int color;
-        if(seekBarGrey.getProgress() > 255){
+        if (seekBarGrey.getProgress() > 255) {
             color = Color.argb(seekBarGrey.getProgress() - 256, 255, 255, 255);
             grey_text.setText(String.format(format, seekBarGrey.getProgress() - 256));
         } else {
@@ -345,7 +402,7 @@ public class ThemeActivity extends AppCompatActivity {
             checkbox.setVisibility(View.GONE);
         } else {
             int color_checkbox = fab_color;
-            if(fab_color == ContextCompat.getColor(ThemeActivity.this, R.color.white)){
+            if (fab_color == ContextCompat.getColor(ThemeActivity.this, R.color.white)) {
                 color_checkbox = ContextCompat.getColor(ThemeActivity.this, R.color.grey);
             }
 
@@ -411,7 +468,7 @@ public class ThemeActivity extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 int color;
-                if(progress > 255){
+                if (progress > 255) {
                     color = Color.argb(seekBarGrey.getProgress() - 256, 255, 255, 255);
                     grey_text.setText(String.format(format, seekBarGrey.getProgress() - 256));
                 } else {
@@ -466,7 +523,7 @@ public class ThemeActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         int textcolor;
-                        if(seekBarGrey.getProgress() > 255){
+                        if (seekBarGrey.getProgress() > 255) {
                             textcolor = Color.argb(seekBarGrey.getProgress(), 255, 255, 255);
                         } else {
                             textcolor = Color.argb(255 - seekBarGrey.getProgress(), 0, 0, 0);
@@ -513,7 +570,7 @@ public class ThemeActivity extends AppCompatActivity {
 
     public AlertDialog changeDialogButtonColor(AlertDialog dialog) {
         int color = fab_color;
-        if(fab_color == ContextCompat.getColor(ThemeActivity.this, R.color.white)){
+        if (fab_color == ContextCompat.getColor(ThemeActivity.this, R.color.white)) {
             color = ContextCompat.getColor(ThemeActivity.this, R.color.grey);
         }
 
@@ -570,9 +627,14 @@ public class ThemeActivity extends AppCompatActivity {
             if (toolbar.getMenu().getItem(i).getItemId() == R.id.info_theme) {
                 infoIcon = toolbar.getMenu().getItem(i);
                 //infoIcon.getIcon().setColorFilter(toolbar_textcolor, PorterDuff.Mode.SRC_IN);
-                int color = ContextCompat.getColor(ThemeActivity.this, R.color.light_text_color);
-                int color_a = Color.argb(95, Color.red(color), Color.green(color), Color.blue(color));
-                infoIcon.getIcon().setColorFilter(color_a, PorterDuff.Mode.SRC_IN);
+                int color;
+                if (helper.isToolbarIconsTranslucent()) {
+                    int color_base = ContextCompat.getColor(ThemeActivity.this, R.color.light_text_color);
+                    color = Color.argb(95, Color.red(color_base), Color.green(color_base), Color.blue(color_base));
+                } else {
+                    color = ContextCompat.getColor(ThemeActivity.this, R.color.light_text_color);
+                }
+                infoIcon.getIcon().setColorFilter(color, PorterDuff.Mode.SRC_IN);
             }
         }
         return true;
@@ -604,11 +666,11 @@ public class ThemeActivity extends AppCompatActivity {
         overridePendingTransition(R.anim.fade_in_long, R.anim.fade_out_long);
     }
 
-    public void presetThemesClicked(View v){
+    public void presetThemesClicked(View v) {
         restoreDefaultColors();
     }
 
-    public void restoreDefaultColors(){
+    public void restoreDefaultColors() {
         LayoutInflater layoutInflater = this.getLayoutInflater();
         View layout = layoutInflater.inflate(R.layout.theme_restore, null);
         CardView light = (CardView) layout.findViewById(R.id.light_cardview);
@@ -653,14 +715,15 @@ public class ThemeActivity extends AppCompatActivity {
         helper.saveData();
         setupTheme();
 
-        deelevateToolbar();
+        //deelevateToolbar();
+        CheckToolbarElevation();
     }
 
-    public void shareTheme(){
+    public void shareTheme() {
         String data;
         try {
             data = getShareData();
-        } catch (JSONException e){
+        } catch (JSONException e) {
             e.printStackTrace();
             return;
         }
@@ -695,7 +758,7 @@ public class ThemeActivity extends AppCompatActivity {
         }
     }
 
-    public String getShareData() throws JSONException{
+    public String getShareData() throws JSONException {
         JSONObject json = new JSONObject();
 
         json.put("fab_color", fab_color);
@@ -705,11 +768,11 @@ public class ThemeActivity extends AppCompatActivity {
         json.put("cord_color", cord_color);
         json.put("cord_textcolor", cord_textcolor);
 
-        for(int i = 1; i < colors.length; i++){
+        for (int i = 1; i < colors.length; i++) {
             json.put("color" + i, colors[i]);
         }
 
-        for (int i = 1; i < textcolors.length; i++){
+        for (int i = 1; i < textcolors.length; i++) {
             json.put("textcolor" + i, textcolors[i]);
         }
 
@@ -745,7 +808,7 @@ public class ThemeActivity extends AppCompatActivity {
         if (toolbar_elevated) {
             return;
         }
-        AnimatorSet set = (AnimatorSet) AnimatorInflater.loadAnimator(ThemeActivity.this, R.anim.toolbar_raise);
+        AnimatorSet set = (AnimatorSet) AnimatorInflater.loadAnimator(ThemeActivity.this, R.animator.toolbar_raise);
         set.setTarget(toolbar_card);
         set.start();
         toolbar_elevated = true;
@@ -755,7 +818,7 @@ public class ThemeActivity extends AppCompatActivity {
         if (!toolbar_elevated) {
             return;
         }
-        AnimatorSet set = (AnimatorSet) AnimatorInflater.loadAnimator(ThemeActivity.this, R.anim.toolbar_lower);
+        AnimatorSet set = (AnimatorSet) AnimatorInflater.loadAnimator(ThemeActivity.this, R.animator.toolbar_lower);
         set.setTarget(toolbar_card);
         set.start();
         toolbar_elevated = false;
@@ -767,6 +830,19 @@ public class ThemeActivity extends AppCompatActivity {
 
     public int getEventColor(int index) {
         return colors[index];
+    }
+
+    public void onItemMove(int fromPosition, int toPosition) {
+        ArrayList<Integer> colors_temp = new ArrayList<>();
+        for (int i = 1; i < colors.length; i++){
+            colors_temp.add(colors[i]);
+        }
+
+        Collections.swap(colors_temp, fromPosition, toPosition);
+
+        for (int i = 1; i < colors.length; i++){
+            colors[i] = colors_temp.get(i -1);
+        }
     }
 }
 

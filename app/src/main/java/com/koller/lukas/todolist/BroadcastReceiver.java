@@ -12,7 +12,6 @@ import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
-import android.widget.Toast;
 
 import com.koller.lukas.todolist.Activities.MainActivity;
 import com.koller.lukas.todolist.Todolist.Event;
@@ -44,8 +43,6 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
         MainActivityRunning = MainActivity.isRunning();
         switch (intent.getAction()) {
             case "ALARM":
-                Toast.makeText(context, "Alarm", Toast.LENGTH_SHORT).show();
-
                 SharedPreferences sharedpreferences
                         = context.getSharedPreferences("todolist", Context.MODE_PRIVATE);
                 long id1 = intent.getLongExtra("EventId", 0L);
@@ -143,7 +140,7 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
         if (event.getAlarm() == null) {
             return;
         }
-        if (!(boolean) event.getAlarm().get("repeating")) {
+        if (event.getAlarm().noDaySelected() || !(boolean) event.getAlarm().get("repeating")) {
             event.removeAlarm();
             return;
         }
@@ -238,6 +235,10 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
     public void showNotification(Context context) {
         try {
             String content;
+            if (array == null) {
+                ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE)).cancel(0);
+                return;
+            }
             int todolist_size = array.length();
             if (todolist_size == 0) {
                 return;
