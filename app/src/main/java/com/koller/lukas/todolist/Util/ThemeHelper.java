@@ -121,7 +121,7 @@ public class ThemeHelper {
         fab_textcolor = ContextCompat.getColor(context, R.color.white);
 
         colors[1] = ContextCompat.getColor(context, R.color.color1);
-        colors[2] = ContextCompat.getColor(context, color2);
+        colors[2] = ContextCompat.getColor(context, R.color.color2);
         colors[3] = ContextCompat.getColor(context, R.color.color3);
         colors[4] = ContextCompat.getColor(context, R.color.color4);
         colors[5] = ContextCompat.getColor(context, R.color.color5);
@@ -173,7 +173,7 @@ public class ThemeHelper {
         editor.apply();
     }
 
-    public void readData() {
+    private void readData() {
         SharedPreferences sharedPreferences = context.getSharedPreferences("todolist", Context.MODE_PRIVATE);
         timeStamp = sharedPreferences.getLong("colortimeStamp", System.currentTimeMillis());
 
@@ -196,7 +196,7 @@ public class ThemeHelper {
         toolbarIconsTranslucent = sharedPreferences.getBoolean("toolbarIconsTranslucent", false);
     }
 
-    public void readColor(int colorIndex){
+    private void readColor(int colorIndex){
         SharedPreferences sharedPreferences = context.getSharedPreferences("todolist", Context.MODE_PRIVATE);
 
         cord_color = sharedPreferences.getInt("cord_color", ContextCompat.getColor(context, R.color.white));
@@ -205,7 +205,7 @@ public class ThemeHelper {
         textColors[colorIndex] = sharedPreferences.getInt("textcolor" +colorIndex, getDefaultTextColors(colorIndex));
     }
 
-    public int getDefaultColors(int index){
+    private int getDefaultColors(int index){
         switch (index) {
             case 1:
                 return ContextCompat.getColor(context, R.color.color1);
@@ -234,7 +234,7 @@ public class ThemeHelper {
         }
     }
 
-    public int getDefaultTextColors(int index){
+    private int getDefaultTextColors(int index){
         switch (index) {
             case 1:
                 return ContextCompat.getColor(context, R.color.dark_text_color);
@@ -275,7 +275,7 @@ public class ThemeHelper {
         }
     }
 
-    public int semiTransparentColor(int color, float transparency) {
+    private int semiTransparentColor(int color, float transparency) {
         int red, green, blue;
         red = (int) (transparency * Color.red(color) + (1 - transparency) * Color.red(cord_color));
         green = (int) (transparency * Color.green(color) + (1 - transparency) * Color.green(cord_color));
