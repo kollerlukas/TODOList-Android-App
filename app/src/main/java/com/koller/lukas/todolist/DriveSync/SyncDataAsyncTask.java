@@ -86,7 +86,7 @@ public class SyncDataAsyncTask extends AsyncTask<Void, Void, String> {
             }
         } catch (JSONException e) {
             e.printStackTrace();
-            //Log.d("SyncDataAsyncTask", "JSONException, data: " + data);
+            Log.d("SyncDataAsyncTask", "JSONException, data: " + data);
             return "JSONException";
         }
 
@@ -207,19 +207,8 @@ public class SyncDataAsyncTask extends AsyncTask<Void, Void, String> {
             }
 
             //remove Events from driveList
-            ArrayList<Integer> indexToRemove= new ArrayList<>();
-
             for (int i = 0; i < todolist_rE.size(); i++){
-                for (int k = 0; k < driveList.size(); k++){
-                    if(todolist_rE.get(i)
-                            == driveList.get(k).getId()){
-                        indexToRemove.add(k);
-                    }
-                }
-            }
-
-            for (int i = 0; i < indexToRemove.size(); i++) {
-                driveList.remove(indexToRemove.get(i));
+                driveList.remove(todolist_rE.get(i));
             }
 
             //move Events

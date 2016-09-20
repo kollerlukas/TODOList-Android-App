@@ -375,6 +375,9 @@ public class ThemeActivity extends AppCompatActivity {
         blue_text.setText(String.format(format, Color.blue(oldColor)));
         colorSeekbars[2] = seekBarBlue;
 
+        colorCard.setCardBackgroundColor(Color.rgb(seekBarRed.getProgress(),
+                seekBarGreen.getProgress(), seekBarBlue.getProgress()));
+
         final SeekBar seekBarGrey = (SeekBar) layout.findViewById(R.id.seekbar_grey);
         final TextView grey_text = (TextView) layout.findViewById(R.id.grey_text);
         if (Color.red(oldTextColor) == 255) {
@@ -385,7 +388,6 @@ public class ThemeActivity extends AppCompatActivity {
             grey_text.setText(String.format(format, Color.alpha(oldTextColor)));
         }
 
-        colorCard.setCardBackgroundColor(Color.rgb(seekBarRed.getProgress(), seekBarGreen.getProgress(), seekBarBlue.getProgress()));
         int color;
         if (seekBarGrey.getProgress() > 255) {
             color = Color.argb(seekBarGrey.getProgress() - 256, 255, 255, 255);
@@ -412,7 +414,8 @@ public class ThemeActivity extends AppCompatActivity {
             int k = 0;
             // Disabled state
             states[k] = new int[]{-android.R.attr.state_enabled};
-            colors[k] = Color.argb(72, Color.red(color_grey), Color.green(color_grey), Color.blue(color_grey));
+            colors[k] = Color.argb(72, Color.red(color_grey),
+                    Color.green(color_grey), Color.blue(color_grey));
             k++;
             states[k] = new int[]{android.R.attr.state_checked};
             colors[k] = color_checkbox;
@@ -442,12 +445,16 @@ public class ThemeActivity extends AppCompatActivity {
             colorSeekbars[i].setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    colorCard.setCardBackgroundColor(Color.rgb(seekBarRed.getProgress(), seekBarGreen.getProgress(), seekBarBlue.getProgress()));
+                    colorCard.setCardBackgroundColor(Color.rgb(seekBarRed.getProgress(),
+                            seekBarGreen.getProgress(), seekBarBlue.getProgress()));
                     red_text.setText(String.format(format, seekBarRed.getProgress()));
                     green_text.setText(String.format(format, seekBarGreen.getProgress()));
                     blue_text.setText(String.format(format, seekBarBlue.getProgress()));
-                    CharSequence hexColor_argb = Integer.toHexString(Color.rgb(seekBarRed.getProgress(), seekBarGreen.getProgress(), seekBarBlue.getProgress()));
-                    String hexColor = "#" + hexColor_argb.charAt(2) + hexColor_argb.charAt(3) + hexColor_argb.charAt(4) + hexColor_argb.charAt(5) + hexColor_argb.charAt(6) + hexColor_argb.charAt(7);
+                    CharSequence hexColor_argb = Integer.toHexString(Color.rgb(seekBarRed.getProgress(),
+                            seekBarGreen.getProgress(), seekBarBlue.getProgress()));
+                    String hexColor = "#" + hexColor_argb.charAt(2) + hexColor_argb.charAt(3)
+                            + hexColor_argb.charAt(4) + hexColor_argb.charAt(5)
+                            + hexColor_argb.charAt(6) + hexColor_argb.charAt(7);
                     hexEditText.setText(hexColor);
                 }
 

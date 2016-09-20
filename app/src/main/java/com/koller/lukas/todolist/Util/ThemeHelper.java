@@ -160,11 +160,11 @@ public class ThemeHelper {
         editor.putInt("cord_color", cord_color);
         editor.putInt("cord_textcolor", cord_textcolor);
 
-        for (int i = 0; i < colors.length; i++){
+        for (int i = 1; i < colors.length; i++){
             editor.putInt("color" +i, colors[i]);
         }
 
-        for (int i = 0; i < textColors.length; i++){
+        for (int i = 1; i < textColors.length; i++){
             editor.putInt("textcolor" +i, textColors[i]);
         }
 

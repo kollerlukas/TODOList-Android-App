@@ -1,6 +1,6 @@
 ﻿<resources>
     <string name="app_name">TODOList</string>
-    <string name="app_version">1.2.6</string>
+    <string name="app_version">2.0</string>
     <string name="icon">Ícone</string>
 
     <string name="edit">Editar</string>

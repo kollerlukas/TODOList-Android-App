@@ -46,13 +46,17 @@ public class ImportDataActivity extends AppCompatActivity {
         }
 
         if(cR.getType(data) == null){
-            Toast.makeText(this, "null Data", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Sorry! This file can't be imported." + '\n'
+                    + " Please only import files shared through the app.", Toast.LENGTH_SHORT).show();
+            this.finish();
             return;
         }
 
         if (cR.getType(data).equals("application/octet-stream")) {
             //intent.putExtra("events", eventsToImport);
-            Toast.makeText(this, "contentTypeError", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Sorry! This file can't be imported." + '\n'
+                    + " Please only import files shared through the app.", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "contentTypeError", Toast.LENGTH_SHORT).show();
             this.finish();
             return;
         } else if (cR.getType(data).equals("text/plain")) {

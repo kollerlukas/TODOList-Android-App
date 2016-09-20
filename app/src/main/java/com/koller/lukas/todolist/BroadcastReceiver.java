@@ -96,7 +96,8 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
                     e.printStackTrace();
                 }
 
-                SharedPreferences.Editor editor = context.getSharedPreferences("todolist", Context.MODE_PRIVATE).edit();
+                SharedPreferences.Editor editor
+                        = context.getSharedPreferences("todolist", Context.MODE_PRIVATE).edit();
                 editor.putBoolean("wasEventRemoved", true);
                 editor.apply();
 
@@ -116,7 +117,8 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
         int id = (int) System.currentTimeMillis();
         NotificationManager alarmNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         //Clicking on the notification
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, id, new Intent(context, MainActivity.class).setAction("START_MAIN_ACTIVITY"), PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, id, new Intent(context,
+                MainActivity.class).setAction("START_MAIN_ACTIVITY"), PendingIntent.FLAG_UPDATE_CURRENT);
         //Clicking the notification actionButton
         Intent remove_event_intent = new Intent(context, BroadcastReceiver.class);
         remove_event_intent.putExtra("NotificationId", id);
@@ -207,7 +209,7 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
                 if(e.getAlarm() != null){
                     long alarmTime = (long) e.getAlarm().get("time");
                     if (alarmTime > System.currentTimeMillis()) {
-                        setAlarm(context, (long) e.getAlarm().get("id"), alarmTime);
+                        setAlarm(context, e.getId(), alarmTime);
                     } else if (alarmTime > context.getSharedPreferences("todolist",
                             Context.MODE_PRIVATE).getLong("shutdown_timestamp", System.currentTimeMillis())) {
                         sendNotification(context,
@@ -222,7 +224,7 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return "Error102";
+        return "";
     }
 
     public void checkForShowingNotification(Context context) {
@@ -235,12 +237,9 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
     public void showNotification(Context context) {
         try {
             String content;
-            if (array == null) {
-                ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE)).cancel(0);
-                return;
-            }
             int todolist_size = array.length();
-            if (todolist_size == 0) {
+            if (array == null || todolist_size == 0) {
+                ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE)).cancel(0);
                 return;
             }
             if (todolist_size == 1) {

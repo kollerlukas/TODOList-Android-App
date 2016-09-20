@@ -291,6 +291,8 @@ public class MainActivity extends AppCompatActivity
                 == 0 && todolist.getTodolist().size() > 0) {
             showSnackbar(getString(R.string.no_category_selected));
         }
+
+        mGoogleApiClient.connect();
         super.onResume();
     }
 
@@ -339,8 +341,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        mSwipeRefreshLayout
-                = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
+        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
         mRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -754,7 +755,7 @@ public class MainActivity extends AppCompatActivity
                         new RetrieveDriveId(mGoogleApiClient, new ModifiedDateCallback() {
                             @Override
                             public void noFilesFound() {
-                                showToast("no Files found -> creating new file");
+                                //showToast("no Files found -> creating new file");
 
                                 createNewFile();
                             }
@@ -779,13 +780,13 @@ public class MainActivity extends AppCompatActivity
                                         showToast("Api Client not connected");
                                     }
                                 } else {
-                                    mSwipeRefreshLayout.setRefreshing(false);
-                                    showToast("MainActivity: modifiedDate old!");
+                                    //mSwipeRefreshLayout.setRefreshing(false);
+                                    //showToast("MainActivity: modifiedDate old!");
 
                                     settings.set("lastReceivedDataTimeStamp", timeStamp);
                                     settings.set("driveId", driveId);
 
-                                    //writeToGoogleDrive();
+                                    writeToGoogleDrive();
                                 }
                             }
 
@@ -803,7 +804,7 @@ public class MainActivity extends AppCompatActivity
         new RetrieveDriveId(mGoogleApiClient, new DriveIdCallback() {
             @Override
             public void noFilesFound() {
-                showToast("no Files found -> creating new file");
+                //showToast("no Files found -> creating new file");
 
                 createNewFile();
             }
@@ -829,7 +830,7 @@ public class MainActivity extends AppCompatActivity
             public void error(String error) {
                 switch (error) {
                     case "no data":
-                        showToast("no Files found -> creating new file");
+                        //showToast("no Files found -> creating new file");
 
                         createNewFile();
                         break;
@@ -873,6 +874,7 @@ public class MainActivity extends AppCompatActivity
                 if (completeSync) {
                     writeToGoogleDrive();
                     completeSync = false;
+                    return;
                 }
 
                 mSwipeRefreshLayout.setRefreshing(false);
@@ -888,7 +890,8 @@ public class MainActivity extends AppCompatActivity
                 showToast("SyncDataAsyncTask: " + error);
 
                 if (error.equals("JSONException") && completeSync) {
-                    writeToGoogleDrive();
+                    //writeToGoogleDrive();
+                    mSwipeRefreshLayout.setRefreshing(false);
                     completeSync = false;
                     return;
                 }
@@ -910,14 +913,12 @@ public class MainActivity extends AppCompatActivity
         mDrawerLayout.closeDrawers();
         if (mGoogleApiClient.isConnected()) {
             if (settings.driveIdStored()) {
-                showToast("reusing driveId");
+                //showToast("reusing driveId");
                 writeToFile((DriveId) settings.get("driveId"));
             } else {
                 new RetrieveDriveId(mGoogleApiClient, new DriveIdCallback() {
                     @Override
                     public void noFilesFound() {
-                        //showToast("no Files found -> creating new file");
-
                         createNewFile();
                     }
 
@@ -955,8 +956,8 @@ public class MainActivity extends AppCompatActivity
             e.printStackTrace();
         }
 
-        showToast("EditFileInAppFolder, StatusCode: "
-                + CommonStatusCodes.getStatusCodeString(statusCode));
+        mSwipeRefreshLayout.setRefreshing(false);
+        showToast("Sync: " + CommonStatusCodes.getStatusCodeString(statusCode));
 
         if (statusCode == CommonStatusCodes.SUCCESS) {
             settings.set("lastReceivedDataTimeStamp", modifiedDateTemp);
@@ -964,12 +965,10 @@ public class MainActivity extends AppCompatActivity
 
             todolist.clearRemovedAndAddedEvents(MainActivity.this);
         }
-
-        mSwipeRefreshLayout.setRefreshing(false);
     }
 
     public void createNewFile() {
-        showToast("creating File");
+        //showToast("creating File");
 
         mDrawerLayout.closeDrawers();
         if (mGoogleApiClient.isConnected()) {
@@ -2258,15 +2257,13 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void ntdClicked(View v){
-        if(ntd_anim != null){
+    public void ntdClicked(View v) {
+        if (ntd_anim != null) {
             ntd_anim.start();
-            showToast("Anim start");
         }
     }
 
     public void DoneSyncingData(ArrayList<Long> eventsToUpdate) {
-
         checkForNotificationUpdate();
         if (todolist.getTodolist().size() != 0) {
             removeNothingTodo();
@@ -2296,7 +2293,6 @@ public class MainActivity extends AppCompatActivity
                 } else {
                     mAdapter.itemMoved(i, mAdapter.getList().size() - 1);
                 }
-                showToast("eventMoved()");
             }
         }
 
@@ -2312,15 +2308,12 @@ public class MainActivity extends AppCompatActivity
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-        showToast("DoneSyncingData");
     }
 
     public void updateAlarms(ArrayList<Long> alarmsToCancel, ArrayList<Alarm> alarmsToSet) {
         for (int i = 0; i < alarmsToCancel.size(); i++) {
             long id = alarmsToCancel.get(i);
             removeAlarm((int) id);
-            showToast("removeAlarm");
         }
 
         for (int i = 0; i < alarmsToSet.size(); i++) {
@@ -2329,7 +2322,6 @@ public class MainActivity extends AppCompatActivity
             //Log.d("MainActivity", "alarmId: " + String.valueOf(alarmId));
             int id = (int) alarmId;
             setAlarm(time, id);
-            showToast("setAlarm");
         }
     }
 
@@ -2752,6 +2744,7 @@ public class MainActivity extends AppCompatActivity
                 removeEvent(todolist.getIndexOfEventInAdapterListById(mAdapter, id));
             } else {
                 todolist.removeEvent(e);
+                checkForNotificationUpdate();
             }
         }
     }
@@ -2760,6 +2753,13 @@ public class MainActivity extends AppCompatActivity
         try {
             new JSONObject(data);
         } catch (JSONException e) {
+            try {
+                new JSONArray(data);
+            } catch (JSONException e1) {
+                showToast("Sorry! This file can't be imported." + '\n'
+                        + "Please only import files shared through the app.");
+                return;
+            }
             showImportEvents(data, true);
             return;
         }

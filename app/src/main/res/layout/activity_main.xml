@@ -11,6 +11,14 @@
         android:layout_height="match_parent">
         <!--android:paddingBottom="48dp"-->
 
+        <ImageView
+                android:id="@+id/nothing_todo"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:onClick="ntdClicked"
+                android:visibility="gone"/>
+
         <android.support.v4.widget.SwipeRefreshLayout
             android:id="@+id/swipeRefreshLayout"
             android:layout_width="match_parent"
@@ -31,14 +39,6 @@
             android:paddingTop="24dp"
             android:elevation="0dp"
             android:text="@string/app_name"/>
-
-        <ImageView
-            android:id="@+id/nothing_todo"
-            android:layout_width="250dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:onClick="ntdClicked"
-            android:visibility="gone"/>
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/fab"

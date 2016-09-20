@@ -3,6 +3,7 @@ package com.koller.lukas.todolist.RecyclerViewAdapters;
 import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
@@ -25,6 +26,7 @@ import android.view.animation.ScaleAnimation;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.koller.lukas.todolist.R;
 import com.koller.lukas.todolist.Todolist.Event;
@@ -193,19 +195,54 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             final Drawable reveal_bg_d = ContextCompat.getDrawable(context, R.drawable.card_reveal_bg);
             reveal_bg_d.setColorFilter(color, PorterDuff.Mode.SRC_IN);
 
+            int color_progress_oldTextColor;
+            if(Color.red(textview.getCurrentTextColor()) == 255){
+                color_progress_oldTextColor = Color.alpha(textview.getCurrentTextColor()) + 256;
+            } else {
+                color_progress_oldTextColor = 255 - Color.alpha(textview.getCurrentTextColor());
+            }
+
+            int color_progress_newTextColor;
+            if(Color.red(textColor) == 255){
+                color_progress_newTextColor = Color.alpha(textColor) + 256;
+            } else {
+                color_progress_newTextColor = 255 - Color.alpha(textColor);
+            }
+
+            ValueAnimator textColor_fade = ValueAnimator.ofInt(color_progress_oldTextColor, color_progress_newTextColor);
+            textColor_fade.setDuration(1000);
+            textColor_fade.setStartDelay(250);
+            textColor_fade.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    int color_progress = (int) animation.getAnimatedValue();
+                    int textColor;
+                    if (color_progress > 255) {
+                        textColor = Color.argb(color_progress - 256, 255, 255, 255);
+                    } else {
+                        textColor = Color.argb(255 - color_progress, 0, 0, 0);
+                    }
+                    textview.setTextColor(textColor);
+                    color_anim.setTint(textColor);
+                    edit_anim.setTint(textColor);
+                    alarm_anim.setTint(textColor);
+                }
+            });
+
             Animator animator = ViewAnimationUtils.createCircularReveal(reveal_bg,
                     color_button.getWidth()/2 + color_button.getLeft() + relative_layout.getLeft() + card_action_view.getLeft(),
                     color_button.getHeight()/2 + color_button.getTop() + relative_layout.getTop() + card_action_view.getTop()
                     , 0, reveal_bg.getWidth());
             animator.setDuration(1000);
+            animator.setStartDelay(250);
             animator.addListener(new Animator.AnimatorListener() {
                 @Override
                 public void onAnimationStart(Animator animation) {
                     reveal_bg.setBackground(reveal_bg_d);
-                    textview.setTextColor(textColor);
+                    /*textview.setTextColor(textColor);
                     color_anim.setTint(textColor);
                     edit_anim.setTint(textColor);
-                    alarm_anim.setTint(textColor);
+                    alarm_anim.setTint(textColor);*/
                 }
 
                 @Override
@@ -221,6 +258,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
                 public void onAnimationRepeat(Animator animation) {/*nothing*/}
             });
             animator.start();
+            textColor_fade.start();
         }
 
         private void collapse() {
