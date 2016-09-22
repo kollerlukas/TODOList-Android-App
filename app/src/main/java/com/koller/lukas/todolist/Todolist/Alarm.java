@@ -208,6 +208,9 @@ public class Alarm {
     }
 
     public boolean noDaySelected(){
+        if(certain_days == null){
+            return true;
+        }
         for (int i = 0; i < certain_days.length; i++){
             if(certain_days[i]){
                 return false;

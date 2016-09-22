@@ -174,39 +174,14 @@ public class Todolist {
         }
     }
 
-    public void addAllEventToAdapterList(RVAdapter mAdapter) {
+    /*public void addAllEventToAdapterList(RVAdapter mAdapter) {
         for (int i = 0; i < todolist.size(); i++) {
             if (!isEventInAdapterList(mAdapter, todolist.get(i))) {
                 int index = todolist.indexOf(todolist.get(i));
                 mAdapter.addItem(index, todolist.get(i));
             }
         }
-    }
-
-    public void resetAllSemiTransparentEvents(RVAdapter mAdapter) {
-        Event[] tempAdapterList = new Event[mAdapter.getList().size()];
-        //Needed for running through the whole mAdapterlist
-        for (int i = 0; i < mAdapter.getList().size(); i++) {
-            tempAdapterList[i] = mAdapter.getList().get(i);
-        }
-        for (int i = 0; i < tempAdapterList.length; i++) {
-            if (tempAdapterList[i].semiTransparent) {
-                mAdapter.removeItem(mAdapter.getList().indexOf(tempAdapterList[i]));
-            }
-        }
-        //resetting all Events
-        for (int i = 0; i < todolist.size(); i++) {
-            todolist.get(i).semiTransparent = false;
-        }
-    }
-
-    public void setEventsSemiTransparent(RVAdapter mAdapter) {
-        for (int i = 0; i < todolist.size(); i++) {
-            if (!isEventInAdapterList(mAdapter, todolist.get(i))) {
-                todolist.get(i).semiTransparent = true;
-            }
-        }
-    }
+    }*/
 
     public boolean isEventInAdapterList(RVAdapter mAdapter, Event e) {
         for (int i = 0; i < mAdapter.getList().size(); i++) {
@@ -397,12 +372,12 @@ public class Todolist {
         }
     }
 
-    public void setAllEventsSemitransparent(RVAdapter mAdapter) {
+    /*public void setAllEventsSemitransparent(RVAdapter mAdapter) {
         for (int i = 0; i < mAdapter.getList().size(); i++) {
             mAdapter.getList().get(i).semiTransparent = true;
             mAdapter.itemChanged(i);
         }
-    }
+    }*/
 
     public String getShareFileData(ArrayList<Event> eventsToShare)
             throws JSONException {

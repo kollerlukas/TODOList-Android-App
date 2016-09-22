@@ -142,10 +142,17 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
         if (event.getAlarm() == null) {
             return;
         }
-        if (event.getAlarm().noDaySelected() || !(boolean) event.getAlarm().get("repeating")) {
+        if (!(boolean) event.getAlarm().get("repeating")) {
             event.removeAlarm();
             return;
         }
+        if(((int) event.getAlarm().get("repeatMode")) == 3){
+            if((boolean) event.getAlarm().noDaySelected()){
+                event.removeAlarm();
+                return;
+            }
+        }
+
         long alarmTime = event.getAlarm().nextAlarmTime();
         setAlarm(context, event.getId(), alarmTime);
 
@@ -237,8 +244,12 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
     public void showNotification(Context context) {
         try {
             String content;
+            if (array == null) {
+                ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE)).cancel(0);
+                return;
+            }
             int todolist_size = array.length();
-            if (array == null || todolist_size == 0) {
+            if(todolist_size == 0){
                 ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE)).cancel(0);
                 return;
             }

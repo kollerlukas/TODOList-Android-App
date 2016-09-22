@@ -146,38 +146,39 @@
         \nlimitations under the License.</string>
     <string name="licences_text5">Google Play Services Attribution:</string>
 
-    <string name="repeat">repeat: </string>
+    <string name="repeat">wiederhole: </string>
 
-    <string name="daily">Every Day</string>
-    <string name="weekly">Every Week</string>
-    <string name="monthly">Every Month</string>
-    <string name="certain_days">Certain Days</string>
-    <string name="custom">Custom</string>
+    <string name="daily">jeden Tag</string>
+    <string name="weekly">jede Woche</string>
+    <string name="monthly">jeden Monat</string>
+    <string name="certain_days">Bestimmte Tage</string>
+    <string name="custom">Benutzerdefiniert</string>
 
-    <string name="monday">MON</string>
-    <string name="tuesday">TUE</string>
-    <string name="wednesday">WED</string>
-    <string name="thursday">THU</string>
-    <string name="friday">FRI</string>
-    <string name="saturday">SAT</string>
-    <string name="sunday">SUN</string>
+    <string name="monday">MO</string>
+    <string name="tuesday">DI</string>
+    <string name="wednesday">MI</string>
+    <string name="thursday">DO</string>
+    <string name="friday">FR</string>
+    <string name="saturday">SA</string>
+    <string name="sunday">SO</string>
 
-    <string name="hours">Hours</string>
-    <string name="days">Days</string>
-    <string name="weeks">Weeks</string>
-    <string name="months">Months</string>
+    <string name="hours">Stunden</string>
+    <string name="days">Tage</string>
+    <string name="weeks">Wochen</string>
+    <string name="months">Monate</string>
 
-    <string name="toolbarAndBackgroundSameColor">Toolbar and Background same Color</string>
+    <string name="toolbarAndBackgroundSameColor">Toolbar und Hintergrund gleiche Farbe</string>
 
-    <string name="share_todos">share TODOs</string>
-    <string name="import_todos">Import TODOs</string>
-    <string name="import_">Import</string>
-    <string name="import_dialog_content">Select TODOs by tapping them.</string>
+    <string name="share_todos">TODOs teilen</string>
+    <string name="import_todos">TODOs importieren</string>
+    <string name="import_">Importieren</string>
+    <string name="import_dialog_content">Wähle TODOs durch antippen aus.</string>
 
-    <string name="preset_themes">Preset Themes</string>
-    <string name="share_theme">share Theme</string>
+    <string name="preset_themes">Standard Themes</string>
+    <string name="share_theme">Theme teilen</string>
 
-    <string name="experimental_feature">Experimental Feature</string>
-    <string name="signin_dialog_experimental_feature">Please note that feature is still (very) experimental.
-        \nThe developer does not take any responsibility for the loss of any TODOs.</string>
+    <string name="experimental_feature">Experimentelles Feature</string>
+    <string name="signin_dialog_experimental_feature">
+        Bitte nehmen Sie zur Kenntnis, dass dieses Feature noch (sehr) experiementell ist.
+        \nDer Entwickler nimmt keine Haftung für den Verlust von TODOs, und somit auch nicht für das eventuelle Verpassen von Terminen.</string>
 </resources>

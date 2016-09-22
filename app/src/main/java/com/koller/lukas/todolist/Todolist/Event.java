@@ -21,9 +21,6 @@ public class Event {
 
     private long move_timeStamp = 0;
 
-    public boolean semiTransparent = false;
-    public boolean isExpanded = false;
-
     private Alarm alarm;
     private long alarm_timeStamp = 0;
 
@@ -42,9 +39,6 @@ public class Event {
         }
 
         if (json.getBoolean("alarm")) {
-            /*if(json.getLong("AlarmTime") < System.currentTimeMillis()){
-                return;
-            }*/
 
             this.alarm = new Alarm(json.getLong("AlarmId"), json.getLong("AlarmTime"));
             this.alarm.set("lastChange_timeStamp", json.getLong("alarmTime_timeStamp"));
@@ -148,10 +142,6 @@ public class Event {
 
     public boolean hasAlarm() {
         return alarm != null;
-    }
-
-    public void setExpanded(boolean b) {
-        isExpanded = b;
     }
 
     public void update(String whatToDo, long whatToDo_timeStamp,

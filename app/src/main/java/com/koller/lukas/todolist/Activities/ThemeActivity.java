@@ -722,6 +722,9 @@ public class ThemeActivity extends AppCompatActivity {
         helper.saveData();
         setupTheme();
 
+        if(toolbar_color == cord_color){
+            toolbarAndBackgroundSameColor = true;
+        }
         //deelevateToolbar();
         CheckToolbarElevation();
     }

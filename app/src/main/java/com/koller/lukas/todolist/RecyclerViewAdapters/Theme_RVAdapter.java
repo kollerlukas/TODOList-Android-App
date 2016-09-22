@@ -44,10 +44,6 @@ public class Theme_RVAdapter extends RecyclerView.Adapter {
             s = "Color" + color_index;
             textview.setText(s);
         }
-
-        public int getBackgroundColor(){
-            return card.getCardBackgroundColor().getDefaultColor();
-        }
     }
 
     private ThemeActivity themeActivity;
