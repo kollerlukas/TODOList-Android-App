@@ -36,7 +36,7 @@ import java.util.Collections;
  */
 public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
 
-    public /*static*/ class EventViewHolder extends RecyclerView.ViewHolder implements OnClickListener {
+    public class EventViewHolder extends RecyclerView.ViewHolder implements OnClickListener {
         public CardView card;
         public CardView card_action_view;
 
