@@ -16,42 +16,35 @@ public class Settings {
     private SharedPreferences sharedpreferences;
 
     private boolean vibrate;
-    private boolean showNotification;
-    private boolean syncEnabled; //if user signed in; App might not be signed in yet
-    private boolean importTutorialDialogShown;
+    private boolean notificationToggle;
     private boolean[] selected_categories;
 
+    private boolean syncEnabled; //if user signed in; App might not be signed in yet
     private boolean signedIn = false; //app successfully signed in
-
     private boolean autoSync;
     private long lastSyncTimeStamp;
     private DriveId driveId;
     private long lastReceivedDataTimeStamp;
 
     public Settings(Context context){
-        sharedpreferences
-                = context.getSharedPreferences("todolist", Context.MODE_PRIVATE);
+        sharedpreferences = context.getSharedPreferences("todolist", Context.MODE_PRIVATE);
     }
 
     public void readSettings() {
         vibrate = sharedpreferences.getBoolean("vibrate", true);
-        showNotification = sharedpreferences.getBoolean("showNotification", true);
-        importTutorialDialogShown
-                = sharedpreferences.getBoolean("importTutorialDialogShown", false);
+        notificationToggle = sharedpreferences.getBoolean("notificationToggle", true);
 
         syncEnabled = sharedpreferences.getBoolean("syncEnabled", false);
         autoSync = sharedpreferences.getBoolean("autoSync", true);
         lastSyncTimeStamp = sharedpreferences.getLong("lastSyncTimeStamp", 0);
 
-        String driveIdString
-                = sharedpreferences.getString("DriveId driveId", "Error");
+        String driveIdString = sharedpreferences.getString("DriveId driveId", "Error");
         if(!driveIdString.equals("Error")){
             driveId = DriveId.decodeFromString(driveIdString);
         } else {
             driveId = null;
         }
-        lastReceivedDataTimeStamp
-                = sharedpreferences.getLong("lastReceivedDataTimeStamp", 0);
+        lastReceivedDataTimeStamp = sharedpreferences.getLong("lastReceivedDataTimeStamp", 0);
 
         readSelectedCategories();
     }
@@ -68,7 +61,6 @@ public class Settings {
             }
         } catch (JSONException e) {
             e.printStackTrace();
-            readSelectedCategoreies_old();
         }
     }
 
@@ -76,8 +68,7 @@ public class Settings {
         SharedPreferences.Editor editor
                 = sharedpreferences.edit();
         editor.putBoolean("vibrate", vibrate);
-        editor.putBoolean("showNotification", showNotification);
-        editor.putBoolean("importTutorialDialogShown", importTutorialDialogShown);
+        editor.putBoolean("notificationToggle", notificationToggle);
 
         editor.putBoolean("syncEnabled", syncEnabled);
         editor.putBoolean("autoSync", autoSync);
@@ -107,27 +98,16 @@ public class Settings {
         editor.apply();
     }
 
-    //old; that the update correctly imports old data
-    public void readSelectedCategoreies_old(){
-        selected_categories = new boolean[13];
-        for (int i = 0; i < sharedpreferences.getInt("selected_categories.length", 0); i++) {
-            selected_categories[i] = sharedpreferences.getBoolean("category" + i + "selected", true);
-        }
-    }
-
     public void set(String key, Object o){
         switch (key){
             case "vibrate":
                 vibrate = (boolean) o;
                 break;
-            case "showNotification":
-                showNotification = (boolean) o;
+            case "notificationToggle":
+                notificationToggle = (boolean) o;
                 break;
             case "syncEnabled":
                 syncEnabled = (boolean) o;
-                break;
-            case "importTutorialDialogShown":
-                importTutorialDialogShown = (boolean) o;
                 break;
             case "selected_categories":
                 selected_categories = (boolean[]) o;
@@ -154,8 +134,8 @@ public class Settings {
         switch (key){
             case "vibrate":
                 return vibrate;
-            case "showNotification":
-                return showNotification;
+            case "notificationToggle":
+                return notificationToggle;
             case "syncEnabled":
                 return syncEnabled;
             case "signedIn":
@@ -164,8 +144,6 @@ public class Settings {
                 return autoSync;
             case "lastSyncTimeStamp":
                 return lastSyncTimeStamp;
-            case "importTutorialDialogShown":
-                return importTutorialDialogShown;
             case "selected_categories":
                 return selected_categories;
             case "driveId":
@@ -181,17 +159,14 @@ public class Settings {
             case "vibrate":
                 vibrate = !vibrate;
                 break;
-            case "showNotification":
-                showNotification = !showNotification;
+            case "notificationToggle":
+                notificationToggle = !notificationToggle;
                 break;
             case "syncEnabled":
                 syncEnabled = !syncEnabled;
                 break;
             case "autoSync":
                 autoSync = !autoSync;
-                break;
-            case "importTutorialDialogShown":
-                importTutorialDialogShown = !importTutorialDialogShown;
                 break;
         }
     }

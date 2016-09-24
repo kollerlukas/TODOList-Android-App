@@ -21,19 +21,6 @@
         </menu>
     </item>
 
-    <!--<group android:visible="false">
-        <item
-            android:id="@+id/restore_last_removed_event"
-            android:icon="@drawable/ic_restore_grey_500_24dp"
-            android:title="@string/restore_last_removed_event"/>
-        <item
-            android:id="@+id/restore_last_removed_event2"
-            android:title="@string/restore_last_removed_event1"
-            app:paddingStart="72dp"
-            android:visible="false"/>
-        android:visible="@bool/turkish"
-    </group>-->
-
     <item
         android:id="@+id/navigation_header1"
         android:title="@string/navigation_header1">
@@ -65,7 +52,7 @@
             <item
                 android:id="@+id/select_theme"
                 android:icon="@drawable/ic_invert_colors_on_grey_500_24dp"
-                android:title="@string/select_theme"/>
+                android:title="@string/app_theme"/>
         </menu>
     </item>
 

@@ -43,8 +43,11 @@ public class ImportListViewAdapter extends ArrayAdapter<Event> {
 
         text.setText(e.getWhatToDo());
         if(eventsImport){
-            text.getBackground().setColorFilter(helper.getEventColor_semitransparent(color_index), PorterDuff.Mode.SRC_IN);
-            text.setTextColor(helper.getEventTextColor_semitransparent(color_index));
+            /*text.getBackground().setColorFilter(helper.getEventColor_semitransparent(color_index), PorterDuff.Mode.SRC_IN);
+            text.setTextColor(helper.getEventTextColor_semitransparent(color_index));*/
+
+            text.getBackground().setColorFilter(helper.getEventColor(color_index), PorterDuff.Mode.SRC_IN);
+            text.setTextColor(helper.getEventTextColor(color_index));
         } else {
             text.getBackground().setColorFilter(helper.getEventColor(color_index), PorterDuff.Mode.SRC_IN);
             text.setTextColor(helper.getEventTextColor(color_index));

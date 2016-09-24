@@ -61,17 +61,6 @@ public class Todolist {
         try {
             readData(context);
         } catch (JSONException e) {
-
-            //old; that the update correctly imports old data
-            try {
-                readData_old(context);
-            } catch (JSONException e1) {
-                e1.printStackTrace();
-            } catch (FileNotFoundException e1) {
-                e1.printStackTrace();
-            }
-
-
             e.printStackTrace();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -173,15 +162,6 @@ public class Todolist {
             }
         }
     }
-
-    /*public void addAllEventToAdapterList(RVAdapter mAdapter) {
-        for (int i = 0; i < todolist.size(); i++) {
-            if (!isEventInAdapterList(mAdapter, todolist.get(i))) {
-                int index = todolist.indexOf(todolist.get(i));
-                mAdapter.addItem(index, todolist.get(i));
-            }
-        }
-    }*/
 
     public boolean isEventInAdapterList(RVAdapter mAdapter, Event e) {
         for (int i = 0; i < mAdapter.getList().size(); i++) {
@@ -323,7 +303,7 @@ public class Todolist {
         }
     }
 
-    public ArrayList<Long> EventRemoved(Context context)
+    public ArrayList<Long> eventRemovedThroughNotificationButton(Context context)
             throws JSONException, FileNotFoundException {
         String data = readFile(context, "events");
         JSONArray array = new JSONArray(data);
@@ -371,13 +351,6 @@ public class Todolist {
             e.printStackTrace();
         }
     }
-
-    /*public void setAllEventsSemitransparent(RVAdapter mAdapter) {
-        for (int i = 0; i < mAdapter.getList().size(); i++) {
-            mAdapter.getList().get(i).semiTransparent = true;
-            mAdapter.itemChanged(i);
-        }
-    }*/
 
     public String getShareFileData(ArrayList<Event> eventsToShare)
             throws JSONException {
@@ -428,48 +401,7 @@ public class Todolist {
         return lastRemovedEvent;
     }
 
-    public ArrayList<Event> getTodolist() {
+    public ArrayList<Event> getTodolistArray() {
         return todolist;
     }
-
-
-
-    //old; that the update correctly imports old data
-    public void readData_old(Context context)
-            throws JSONException, FileNotFoundException {
-        StringBuilder sb = new StringBuilder();
-        try {
-            FileInputStream fis = context.openFileInput("events");
-            BufferedReader reader
-                    = new BufferedReader(new InputStreamReader(fis));
-            String line;
-            if (fis != null) {
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line + "\n");
-                }
-            }
-            fis.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        JSONObject json = new JSONObject(sb.toString());
-        for (int i = 0; i < json.getInt("todolist.size()"); i++) {
-            long timeStamp;
-            try {
-                timeStamp = json.getLong(i + "timeStamp");
-            } catch (JSONException exception) {
-                timeStamp = 0;
-            }
-            Event e = new Event(
-                    json.getString(i + "WhatToDo"), 0,
-                    json.getInt(i + "Color"), 0,
-                    json.getLong(i + "Id"), null);
-            if (json.getLong(i + "AlarmTime") > System.currentTimeMillis()) {
-                e.setAlarm(json.getLong(i + "AlarmId"),
-                        json.getLong(i + "AlarmTime"));
-            }
-            todolist.add(e);
-        }
-    }
-
 }

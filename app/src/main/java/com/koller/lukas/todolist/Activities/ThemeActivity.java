@@ -260,10 +260,10 @@ public class ThemeActivity extends AppCompatActivity {
 
         int color;
         if (helper.isToolbarIconsTranslucent()) {
-            int color_base = ContextCompat.getColor(ThemeActivity.this, R.color.light_text_color);
+            int color_base = ContextCompat.getColor(ThemeActivity.this, R.color.black);
             color = Color.argb(95, Color.red(color_base), Color.green(color_base), Color.blue(color_base));
         } else {
-            color = ContextCompat.getColor(ThemeActivity.this, R.color.light_text_color);
+            color = ContextCompat.getColor(ThemeActivity.this, R.color.black);
         }
         ChangeColorOfToolbarDrawerIcon(color);
         colorInfoIcon(color);
@@ -281,7 +281,7 @@ public class ThemeActivity extends AppCompatActivity {
         presetThemes.setTextColor(ContextCompat.getColor(ThemeActivity.this, R.color.black));
     }
 
-    public void FabClicked(final View v) {
+    public void fabClicked(final View v) {
         ColorPickerDialogCallback colorPickerDialogCallback = new ColorPickerDialogCallback() {
             @Override
             public void colorPicked(int red, int green, int blue, int textColor) {
@@ -351,7 +351,7 @@ public class ThemeActivity extends AppCompatActivity {
         final CardView colorCard = (CardView) layout.findViewById(R.id.colorCard);
         final TextView colorTextView = (TextView) layout.findViewById(R.id.colorTextView);
         final EditText hexEditText = (EditText) layout.findViewById(R.id.edit_text);
-        hexEditText.setTextColor(ContextCompat.getColor(this, R.color.light_text_color));
+        hexEditText.setTextColor(ContextCompat.getColor(this, R.color.black));
         CharSequence hexColor_argb = Integer.toHexString(oldColor);
         String hexColor = "#" + hexColor_argb.charAt(2) + hexColor_argb.charAt(3) + hexColor_argb.charAt(4) + hexColor_argb.charAt(5) + hexColor_argb.charAt(6) + hexColor_argb.charAt(7);
         hexEditText.setText(hexColor);
@@ -425,7 +425,7 @@ public class ThemeActivity extends AppCompatActivity {
             colors[k] = color_grey;
 
             checkbox.setSupportButtonTintList(new ColorStateList(states, colors));
-            checkbox.setTextColor(ContextCompat.getColor(ThemeActivity.this, R.color.light_text_color));
+            checkbox.setTextColor(ContextCompat.getColor(ThemeActivity.this, R.color.black));
 
             checkbox.setChecked(toolbarAndBackgroundSameColor);
             checkbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -524,7 +524,7 @@ public class ThemeActivity extends AppCompatActivity {
         });
 
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DialogTheme_light_theme);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DialogTheme_light_noKeyboard);
         builder.setView(layout)
                 .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                     @Override
@@ -636,10 +636,10 @@ public class ThemeActivity extends AppCompatActivity {
                 //infoIcon.getIcon().setColorFilter(toolbar_textcolor, PorterDuff.Mode.SRC_IN);
                 int color;
                 if (helper.isToolbarIconsTranslucent()) {
-                    int color_base = ContextCompat.getColor(ThemeActivity.this, R.color.light_text_color);
+                    int color_base = ContextCompat.getColor(ThemeActivity.this, R.color.black);
                     color = Color.argb(95, Color.red(color_base), Color.green(color_base), Color.blue(color_base));
                 } else {
-                    color = ContextCompat.getColor(ThemeActivity.this, R.color.light_text_color);
+                    color = ContextCompat.getColor(ThemeActivity.this, R.color.black);
                 }
                 infoIcon.getIcon().setColorFilter(color, PorterDuff.Mode.SRC_IN);
             }

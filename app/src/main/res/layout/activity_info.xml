@@ -16,7 +16,7 @@
 
     <android.support.v7.widget.CardView
         android:id="@+id/infocard"
-        android:layout_width="280dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:foreground="?android:attr/selectableItemBackground"
@@ -55,7 +55,6 @@
                         android:layout_centerVertical="true"
                         android:layout_gravity="start"
                         android:layout_margin="20dp"
-                        android:contentDescription="@string/icon"
                         android:src="@mipmap/ic_launcher"/>
 
                     <TextView
@@ -66,7 +65,7 @@
                         android:layout_margin="5dp"
                         android:layout_toEndOf="@+id/image1"
                         android:text="@string/app_name"
-                        android:textColor="@color/dark_grey"
+                        android:textColor="@color/grey700"
                         android:textSize="30sp"/>
                 </RelativeLayout>
             </android.support.v7.widget.CardView>
@@ -105,7 +104,6 @@
                                 android:layout_centerVertical="true"
                                 android:layout_gravity="start"
                                 android:layout_margin="15dp"
-                                android:contentDescription="@string/icon"
                                 android:src="@drawable/ic_info_outline_grey_700_48dp"/>
 
                             <RelativeLayout
@@ -120,7 +118,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_margin="3dp"
                                     android:text="@string/version"
-                                    android:textColor="@color/dark_grey"
+                                    android:textColor="@color/grey700"
                                     android:textSize="20sp"/>
 
                                 <TextView
@@ -129,7 +127,6 @@
                                     android:layout_height="wrap_content"
                                     android:layout_below="@+id/text_view1"
                                     android:layout_margin="3dp"
-                                    android:text="@string/app_version"
                                     android:textColor="@color/grey"
                                     android:textSize="12sp"/>
                             </RelativeLayout>
@@ -157,7 +154,6 @@
                                 android:layout_centerVertical="true"
                                 android:layout_gravity="start"
                                 android:layout_margin="15dp"
-                                android:contentDescription="@string/icon"
                                 android:src="@drawable/ic_account_circle_grey_700_48dp"/>
 
                             <RelativeLayout
@@ -172,7 +168,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_margin="3dp"
                                     android:text="@string/developer"
-                                    android:textColor="@color/dark_grey"
+                                    android:textColor="@color/grey700"
                                     android:textSize="20sp"/>
 
                                 <TextView
@@ -209,7 +205,6 @@
                                 android:layout_centerVertical="true"
                                 android:layout_gravity="start"
                                 android:layout_margin="15dp"
-                                android:contentDescription="@string/icon"
                                 android:src="@drawable/ic_language_grey_700_48dp"/>
 
                             <RelativeLayout
@@ -224,7 +219,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_margin="3dp"
                                     android:text="@string/supported_languages"
-                                    android:textColor="@color/dark_grey"
+                                    android:textColor="@color/grey700"
                                     android:textSize="20sp"/>
 
                                 <HorizontalScrollView
@@ -269,10 +264,8 @@
                                 android:layout_centerVertical="true"
                                 android:layout_gravity="start"
                                 android:layout_margin="15dp"
-                                android:contentDescription="@string/icon"
                                 android:src="@drawable/ic_translate_black_48dp"
-                                android:tint="@color/grey700"
-                                android:tintMode="src_atop"/>
+                                android:tint="@color/grey700"/>
 
                             <TextView
                                 android:id="@+id/text_view10"
@@ -282,7 +275,7 @@
                                 android:layout_margin="5dp"
                                 android:layout_toEndOf="@+id/image8"
                                 android:text="@string/translators"
-                                android:textColor="@color/dark_grey"
+                                android:textColor="@color/grey700"
                                 android:textSize="20sp"/>
                         </RelativeLayout>
                     </android.support.v7.widget.CardView>
@@ -308,7 +301,6 @@
                                 android:layout_centerVertical="true"
                                 android:layout_gravity="start"
                                 android:layout_margin="15dp"
-                                android:contentDescription="@string/icon"
                                 android:src="@drawable/ic_description_grey_700_48dp"/>
 
                             <TextView
@@ -319,7 +311,7 @@
                                 android:layout_margin="5dp"
                                 android:layout_toEndOf="@+id/image5"
                                 android:text="Legal Notices"
-                                android:textColor="@color/dark_grey"
+                                android:textColor="@color/grey700"
                                 android:textSize="20sp"/>
                         </RelativeLayout>
                     </android.support.v7.widget.CardView>
@@ -345,7 +337,6 @@
                                 android:layout_centerVertical="true"
                                 android:layout_gravity="start"
                                 android:layout_margin="15dp"
-                                android:contentDescription="@string/icon"
                                 android:src="@drawable/ic_bug_report_grey_700_48dp"/>
 
                             <TextView
@@ -356,7 +347,7 @@
                                 android:layout_margin="5dp"
                                 android:layout_toEndOf="@+id/image6"
                                 android:text="@string/report_a_bug"
-                                android:textColor="@color/dark_grey"
+                                android:textColor="@color/grey700"
                                 android:textSize="20sp"/>
                         </RelativeLayout>
                     </android.support.v7.widget.CardView>
@@ -383,7 +374,6 @@
                                 android:layout_centerVertical="true"
                                 android:layout_gravity="start"
                                 android:layout_margin="15dp"
-                                android:contentDescription="@string/icon"
                                 android:tint="@color/grey700"
                                 android:src="@drawable/ic_share_white_48dp"/>
 
@@ -395,7 +385,7 @@
                                 android:layout_margin="5dp"
                                 android:layout_toEndOf="@+id/image7"
                                 android:text="@string/share_app"
-                                android:textColor="@color/dark_grey"
+                                android:textColor="@color/grey700"
                                 android:textSize="20sp"/>
                         </RelativeLayout>
                     </android.support.v7.widget.CardView>

@@ -8,6 +8,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
@@ -40,13 +41,14 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         array = readFile(context);
-        MainActivityRunning = MainActivity.isRunning();
+        MainActivityRunning = MainActivity.isRunning;
+        long id = intent.getLongExtra("EventId", 0L);
         switch (intent.getAction()) {
             case "ALARM":
                 SharedPreferences sharedpreferences
                         = context.getSharedPreferences("todolist", Context.MODE_PRIVATE);
-                long id1 = intent.getLongExtra("EventId", 0L);
-                event = lookForEvent(id1);
+
+                event = lookForEvent(id);
                 if (event == null) {
                     return;
                 }
@@ -55,7 +57,6 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
                 checkIfEventIsRepeating(context);
                 break;
             case "notification_button": //Done Button from the reminder notification of a Event
-                long id = intent.getLongExtra("EventId", 0);
                 NotificationManager notificationManager
                         = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
                 notificationManager.cancel(intent.getIntExtra("NotificationId", 0));
@@ -66,7 +67,8 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
                 checkForShowingNotification(context);
                 break;
             case Intent.ACTION_SHUTDOWN:
-                SharedPreferences sharedPreferences = context.getSharedPreferences("todolist", Context.MODE_PRIVATE);
+                SharedPreferences sharedPreferences
+                        = context.getSharedPreferences("todolist", Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putLong("shutdown_timestamp", System.currentTimeMillis());
                 editor.apply();
@@ -76,7 +78,13 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
 
     public void removeEvent(Context context, long event_id) {
         if (MainActivityRunning) {
-            MainActivity.getThis().removeEventNotifDoneButton(event_id);
+            Intent intent = new Intent(context, MainActivity.class);
+            intent.setAction("removeEventNotifDoneButton");
+            intent.putExtra("eventId", event_id);
+            intent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT
+                    |Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                    |Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
         } else {
             try {
                 for (int i = 0; i < array.length(); i++) {
@@ -109,7 +117,7 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
         showNotification(context);
     }
 
-    private void sendNotification(Context context, String event, long event_id, boolean vibrate, int color) {
+    private void sendNotification(Context context, String event, long event_id, boolean vibrate, int colorIndex) {
         if (vibrate) {
             Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
             v.vibrate(500);
@@ -126,13 +134,18 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
         remove_event_intent.setAction("notification_button");
         PendingIntent remove_event_pendingIntent = PendingIntent.getBroadcast(context, id, remove_event_intent, PendingIntent.FLAG_ONE_SHOT);
 
+        int color = new ThemeHelper(context, colorIndex).getEventColor(colorIndex);
+        if(Color.red(color) == 255 && Color.green(color) == 255 && Color.blue(color) == 255){
+            color = ContextCompat.getColor(context, R.color.light_grey);
+        }
+
         NotificationCompat.Builder alarmNotificationBuilder = new NotificationCompat.Builder(context)
                 .setContentTitle(context.getString(R.string.dont_forget))
                 .setSmallIcon(R.drawable.ic_alarm_white_24dp)
                 .setContentText(event)
                 .addAction(R.drawable.ic_done_white_24dp, context.getString(R.string.done), remove_event_pendingIntent)
                 .setAutoCancel(true)
-                .setColor(new ThemeHelper(context).getEventColor(color));
+                .setColor(color);
         alarmNotificationBuilder.setContentIntent(pendingIntent);
         alarmNotificationBuilder.setAutoCancel(true);
         alarmNotificationManager.notify(id, alarmNotificationBuilder.build());
@@ -157,8 +170,14 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
         setAlarm(context, event.getId(), alarmTime);
 
         if (MainActivityRunning) {
-            MainActivity.getThis().getTodolist()
-                    .getEventById(event.getId()).getAlarm().setTime(alarmTime);
+            Intent intent = new Intent(context, MainActivity.class);
+            intent.setAction("setRepeatingAlarm");
+            intent.putExtra("eventId", event.getId());
+            intent.putExtra("alarmTime", alarmTime);
+            intent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT
+                    |Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                    |Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
         } else {
             try {
                 for (int i = 0; i < array.length(); i++) {
@@ -186,22 +205,18 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
     }
 
     private Event lookForEvent(long id) {
-        if (MainActivityRunning) {
-            return MainActivity.getThis().getTodolist().getEventById(id);
-        } else {
-            try {
-                if (array == null) {
-                    return null;
-                }
-                for (int i = 0; i < array.length(); i++) {
-                    Event e = new Event(array.getJSONObject(i));
-                    if (id == e.getId()) {
-                        return e;
-                    }
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
+        try {
+            if (array == null) {
+                return null;
             }
+            for (int i = 0; i < array.length(); i++) {
+                Event e = new Event(array.getJSONObject(i));
+                if (id == e.getId()) {
+                    return e;
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
         return null;
     }
@@ -267,7 +282,7 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
             android.support.v7.app.NotificationCompat.Builder mBuilder
                     = (android.support.v7.app.NotificationCompat.Builder)
                     new android.support.v7.app.NotificationCompat.Builder(context)
-                    .setSmallIcon(R.drawable.ic_notif)
+                    .setSmallIcon(R.drawable.ic_logo)
                     .setContentTitle(context.getString(R.string.app_name))
                     .addAction(R.drawable.ic_add, context.getString(R.string.add_event), add_event_pendingIntent)
                     .setColor(ContextCompat.getColor(context, R.color.button_color))

@@ -2,10 +2,12 @@ package com.koller.lukas.todolist.Activities;
 
 import android.animation.AnimatorInflater;
 import android.animation.AnimatorSet;
+import android.app.ActivityManager;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -28,6 +30,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.common.GoogleApiAvailability;
+
+import com.koller.lukas.todolist.BuildConfig;
 import com.koller.lukas.todolist.R;
 import com.koller.lukas.todolist.Util.ThemeHelper;
 
@@ -106,6 +110,9 @@ public class InfoActivity extends AppCompatActivity {
             text_view10.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
         }
 
+        TextView textView2 = (TextView) findViewById(R.id.text_view2);
+        textView2.setText(BuildConfig.VERSION_NAME);
+
         relativeLayout.setBackgroundColor(helper.get("cord_color"));
         toolbar.setBackgroundColor(helper.get("toolbar_color"));
         toolbar.setTitleTextColor(helper.get("toolbar_textcolor"));
@@ -120,6 +127,12 @@ public class InfoActivity extends AppCompatActivity {
                 ((ImageView) drawerIcon).setColorFilter(helper.getToolbarIconColor(), PorterDuff.Mode.SRC_IN);
             }
         }
+
+        String title = getString(R.string.app_name);
+        BitmapDrawable icon = (BitmapDrawable) ContextCompat.getDrawable(InfoActivity.this, R.mipmap.ic_launcher);
+
+        ActivityManager.TaskDescription tDesc = new ActivityManager.TaskDescription(title, icon.getBitmap(), helper.get("toolbar_color"));
+        this.setTaskDescription(tDesc);
     }
 
     public void reportBugButtonClicked(View v) {
@@ -129,7 +142,7 @@ public class InfoActivity extends AppCompatActivity {
         Intent shareIntent = ShareCompat.IntentBuilder.from(InfoActivity.this)
                 .setType("text/plain")
                 .addEmailTo("lukaskoller6@gmail.com")
-                .setSubject("TODOList " + getString(R.string.app_version) + " Bug Report")
+                .setSubject("TODOList " + BuildConfig.VERSION_NAME + " Bug Report")
                 .setHtmlText(emailContent)
                 .getIntent();
         if (shareIntent.resolveActivity(getPackageManager()) != null) {
@@ -269,9 +282,9 @@ public class InfoActivity extends AppCompatActivity {
     public int getDialogTextColor() {
         int TextColor;
         if (helper.lightCordColor()) {
-            TextColor = ContextCompat.getColor(getApplicationContext(), R.color.light_text_color);
+            TextColor = ContextCompat.getColor(getApplicationContext(), R.color.black);
         } else {
-            TextColor = ContextCompat.getColor(getApplicationContext(), R.color.dark_text_color);
+            TextColor = ContextCompat.getColor(getApplicationContext(), R.color.white);
         }
         return TextColor;
     }

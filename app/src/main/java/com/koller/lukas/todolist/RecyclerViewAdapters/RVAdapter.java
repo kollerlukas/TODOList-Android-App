@@ -23,8 +23,7 @@ import android.widget.TextView;
 
 import com.koller.lukas.todolist.R;
 import com.koller.lukas.todolist.Todolist.Event;
-import com.koller.lukas.todolist.Util.Callbacks.CardButtonOnClickInterface;
-import com.koller.lukas.todolist.Util.ClickHelper.CardButtonOnClickHelper;
+import com.koller.lukas.todolist.Util.Callbacks.CardActionButtonOnClickCallback;
 import com.koller.lukas.todolist.Util.DPCalc;
 import com.koller.lukas.todolist.Util.ThemeHelper;
 
@@ -54,20 +53,19 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
         private ImageView alarm_button;
         private AnimatedVectorDrawableCompat alarm_anim;
 
-        private boolean isExpandingOrCollapsing = false;
         public boolean semiTransparent = false;
         public boolean isAnimationRunning = false;
 
         public Event event;
 
-        private CardButtonOnClickInterface cardButtonOnClickInterface;
+        private CardActionButtonOnClickCallback onClickCallback;
 
         private int fullActionButtonCardHeight;
 
-        EventViewHolder(CardButtonOnClickInterface cardButtonOnClickInterface, Context context, View v) {
+        EventViewHolder(CardActionButtonOnClickCallback onClickCallback, Context context, View v) {
             super(v);
 
-            this.cardButtonOnClickInterface = cardButtonOnClickInterface;
+            this.onClickCallback = onClickCallback;
 
             card = (CardView) v.findViewById(R.id.card);
             reveal_bg = (RelativeLayout) v.findViewById(R.id.rl_card);
@@ -152,7 +150,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             new Handler().postDelayed(new Runnable() {
                 public void run() {
                     isAnimationRunning = false;
-                    cardButtonOnClickInterface.actionButtonClicked(color_button, event);
+                    onClickCallback.actionButtonClicked(color_button, event);
                 }
             }, 350);
         }
@@ -164,7 +162,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             new Handler().postDelayed(new Runnable() {
                 public void run() {
                     isAnimationRunning = false;
-                    cardButtonOnClickInterface.actionButtonClicked(edit_button, event);
+                    onClickCallback.actionButtonClicked(edit_button, event);
                 }
             }, 550);
         }
@@ -176,7 +174,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             new Handler().postDelayed(new Runnable() {
                 public void run() {
                     isAnimationRunning = false;
-                    cardButtonOnClickInterface.actionButtonClicked(alarm_button, event);
+                    onClickCallback.actionButtonClicked(alarm_button, event);
                 }
             }, 350);
         }
@@ -252,8 +250,6 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
         }
 
         public void collapse() {
-            isExpandingOrCollapsing = true;
-
             ValueAnimator animator = getValueAnimator(card_action_view.getHeight(), 0);
             animator.addListener(new Animator.AnimatorListener() {
                 @Override
@@ -263,7 +259,6 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
                 public void onAnimationEnd(Animator animation) {
                     relative_layout.setVisibility(View.INVISIBLE);
                     card_action_view.setVisibility(View.GONE);
-                    isExpandingOrCollapsing = false;
                 }
 
                 @Override
@@ -276,8 +271,6 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
         }
 
         public void expand() {
-            isExpandingOrCollapsing = true;
-
             ValueAnimator animator = getValueAnimator(0, fullActionButtonCardHeight);
             animator.addListener(new Animator.AnimatorListener() {
                 @Override
@@ -287,10 +280,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
                 }
 
                 @Override
-                public void onAnimationEnd(Animator animation) {
-                    isExpandingOrCollapsing = false;
-                    cardButtonOnClickInterface.scrollToCard(getAdapterPosition());
-                }
+                public void onAnimationEnd(Animator animation) {}
 
                 @Override
                 public void onAnimationCancel(Animator animation) {}
@@ -339,15 +329,16 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
     }
 
     private ArrayList<Event> events;
-    private CardButtonOnClickHelper onClickHelper;
+    //private CardActionButtonOnClickHelper onClickHelper;
+    private CardActionButtonOnClickCallback onClickCallback;
     private Context context;
 
     private ArrayList<Integer> itemToBeSetSemiTransparent = new ArrayList<>();
 
     public RVAdapter(ArrayList<Event> events,
-                     CardButtonOnClickHelper onClickHelper, Context context) {
+                     CardActionButtonOnClickCallback onClickCallback, Context context) {
         this.events = events;
-        this.onClickHelper = onClickHelper;
+        this.onClickCallback = onClickCallback;
         this.context = context;
     }
 
@@ -371,7 +362,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
     public EventViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         View v = LayoutInflater.from(viewGroup.getContext())
                 .inflate(R.layout.one_event, viewGroup, false);
-        return new EventViewHolder(onClickHelper, context, v);
+        return new EventViewHolder(onClickCallback, context, v);
     }
 
     public void addItem(int index, Event e) {

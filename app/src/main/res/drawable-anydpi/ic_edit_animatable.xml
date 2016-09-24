@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:drawable="@drawable/ic_edit_vector">
+    <target
+            android:name="cap"
+            android:animation="@anim/ic_edit_anim_rotation"/>
+    <target
+            android:name="cap_path"
+            android:animation="@anim/ic_edit_anim_morph"/>
+</animated-vector>

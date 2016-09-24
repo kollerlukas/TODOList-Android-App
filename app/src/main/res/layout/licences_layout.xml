@@ -18,7 +18,7 @@
             android:paddingEnd="24dp"
             android:paddingStart="24dp"
             android:text="@string/licences_text1"
-            android:textColor="@color/dark_grey"
+            android:textColor="@color/grey700"
             android:textSize="20sp"/>
 
         <android.support.v7.widget.CardView
@@ -30,6 +30,7 @@
             app:cardBackgroundColor="@color/white"
             app:cardCornerRadius="2dp"
             app:cardElevation="2dp"
+            android:padding="5dp"
             app:cardPreventCornerOverlap="true">
 
             <WebView
@@ -49,7 +50,7 @@
             android:paddingEnd="24dp"
             android:paddingStart="24dp"
             android:text="@string/licences_text3"
-            android:textColor="@color/dark_grey"
+            android:textColor="@color/grey700"
             android:textSize="20sp"/>
 
         <android.support.v7.widget.CardView
@@ -61,6 +62,7 @@
             app:cardBackgroundColor="@color/white"
             app:cardCornerRadius="2dp"
             app:cardElevation="2dp"
+            android:padding="5dp"
             app:cardPreventCornerOverlap="true">
 
             <WebView
@@ -80,7 +82,7 @@
             android:paddingEnd="24dp"
             android:paddingStart="24dp"
             android:text="@string/licences_text5"
-            android:textColor="@color/dark_grey"
+            android:textColor="@color/grey700"
             android:textSize="20sp"/>
 
         <android.support.v7.widget.CardView
@@ -92,6 +94,7 @@
             app:cardBackgroundColor="@color/white"
             app:cardCornerRadius="2dp"
             app:cardElevation="2dp"
+            android:padding="5dp"
             app:cardPreventCornerOverlap="false">
 
             <WebView

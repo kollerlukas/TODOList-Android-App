@@ -53,22 +53,8 @@ public class OnItemClickHelper {
         return helper;
     }
 
-    public static OnItemClickHelper removeFrom(RecyclerView mRecyclerView) {
-        OnItemClickHelper helper = (OnItemClickHelper) mRecyclerView.getTag(R.id.item_click_helper);
-        if (helper != null) {
-            helper.detach(mRecyclerView);
-        }
-        return helper;
-    }
-
     public OnItemClickHelper setOnItemClickListener(OnItemClickInterface listener) {
         mOnItemClickInterface = listener;
         return this;
     }
-
-    private void detach(RecyclerView mRecyclerView) {
-        mRecyclerView.removeOnChildAttachStateChangeListener(mAttachListener);
-        mRecyclerView.setTag(666, null);
-    }
-
 }

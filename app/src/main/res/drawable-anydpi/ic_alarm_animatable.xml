@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:drawable="@drawable/ic_alarm_vector">
+    <target
+            android:name="bells"
+            android:animation="@anim/ic_alarm_anim"/>
+</animated-vector>

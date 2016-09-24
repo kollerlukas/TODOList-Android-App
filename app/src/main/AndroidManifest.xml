@@ -20,7 +20,7 @@
             android:name=".Activities.MainActivity"
             android:configChanges="orientation|screenSize"
             android:label="${applicationLabel}"
-            android:launchMode="singleTask"
+            android:launchMode="singleTop"
             android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

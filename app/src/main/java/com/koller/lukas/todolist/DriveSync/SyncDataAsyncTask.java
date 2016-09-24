@@ -81,7 +81,7 @@ public class SyncDataAsyncTask extends AsyncTask<Void, Void, String> {
                 }
             }
 
-            for (int i = 0; i <Todolist.getTodolist().size(); i++){
+            for (int i = 0; i <Todolist.getTodolistArray().size(); i++){
                 todolist_removed.add(false);
             }
         } catch (JSONException e) {
@@ -105,12 +105,12 @@ public class SyncDataAsyncTask extends AsyncTask<Void, Void, String> {
             //update Events
             for (int i = 0; i < driveList.size(); i++) {
                 if (!driveList_removed.get(i)) {
-                    for (int k = 0; k < Todolist.getTodolist().size(); k++) {
-                        if (driveList.get(i).getId() == Todolist.getTodolist().get(k).getId()) {
+                    for (int k = 0; k < Todolist.getTodolistArray().size(); k++) {
+                        if (driveList.get(i).getId() == Todolist.getTodolistArray().get(k).getId()) {
                             driveList_removed.set(i, true);
                             todolist_removed.set(k, true);
 
-                            Event event_T = Todolist.getTodolist().get(k);
+                            Event event_T = Todolist.getTodolistArray().get(k);
                             Event event_d = driveList.get(i);
 
                             eventsToUpdate.add(event_T.getId());
@@ -135,7 +135,7 @@ public class SyncDataAsyncTask extends AsyncTask<Void, Void, String> {
                                 color_timeStamp = event_d.getColor_timeStamp();
                             }
 
-                            Todolist.getTodolist().get(k)
+                            Todolist.getTodolistArray().get(k)
                                     .update(WhatToDo, whatToDo_timeStamp, color, color_timeStamp);
 
                             //Alarms
@@ -169,15 +169,15 @@ public class SyncDataAsyncTask extends AsyncTask<Void, Void, String> {
             //remove Events from todolist
             for (int i = 0; i < todolist_aE.size(); i++){
                 int index = Todolist.getEventIndexById(todolist_aE.get(i));
-                if(index >= Todolist.getTodolist().size()){
+                if(index >= Todolist.getTodolistArray().size()){
                     break;
                 }
                 todolist_removed.set(index, true);
             }
 
-            for (int i = 0; i < Todolist.getTodolist().size(); i++){
+            for (int i = 0; i < Todolist.getTodolistArray().size(); i++){
                 if(!todolist_removed.get(i)){
-                    Todolist.getTodolist().remove(i);
+                    Todolist.getTodolistArray().remove(i);
                 }
             }
 
@@ -186,10 +186,10 @@ public class SyncDataAsyncTask extends AsyncTask<Void, Void, String> {
                 if (!driveList_removed.get(i)) {
                     Event e = driveList.get(i);
                     if(!Todolist.isEventInTodolist(e.getId())){
-                        if(i < Todolist.getTodolist().size()){
-                            Todolist.getTodolist().add(i, e);
+                        if(i < Todolist.getTodolistArray().size()){
+                            Todolist.getTodolistArray().add(i, e);
                         } else {
-                            Todolist.getTodolist().add(e);
+                            Todolist.getTodolistArray().add(e);
                         }
                     }
                 }
@@ -212,7 +212,7 @@ public class SyncDataAsyncTask extends AsyncTask<Void, Void, String> {
             }
 
             //move Events
-            if((Todolist.getTodolist().size()  == driveList.size())){
+            if((Todolist.getTodolistArray().size()  == driveList.size())){
                 for (int i = 0; i < driveList.size(); i++){
                     int index = Todolist.getEventIndexById(driveList.get(i).getId());
                     if(i != index && index != -1){
@@ -232,7 +232,7 @@ public class SyncDataAsyncTask extends AsyncTask<Void, Void, String> {
         } else {
             // was never synced!! -> add all Events
             for (int i = 0; i < driveList.size(); i++) {
-                Todolist.getTodolist().add(driveList.get(i));
+                Todolist.getTodolistArray().add(driveList.get(i));
             }
         }
         return "Success";

@@ -19,7 +19,7 @@
             android:background="@drawable/color_selector_button"
             android:checkable="true"
             android:elevation="2dp"
-            android:onClick="ColorButtonClicked"/>
+            android:onClick="colorButtonClicked"/>
 
         <ImageButton
             android:id="@+id/color2_button"
@@ -31,7 +31,7 @@
             android:background="@drawable/color_selector_button"
             android:checkable="true"
             android:elevation="2dp"
-            android:onClick="ColorButtonClicked"/>
+            android:onClick="colorButtonClicked"/>
 
         <ImageButton
             android:id="@+id/color3_button"
@@ -43,7 +43,7 @@
             android:background="@drawable/color_selector_button"
             android:checkable="true"
             android:elevation="2dp"
-            android:onClick="ColorButtonClicked"/>
+            android:onClick="colorButtonClicked"/>
 
         <ImageButton
             android:id="@+id/color4_button"
@@ -55,7 +55,7 @@
             android:background="@drawable/color_selector_button"
             android:checkable="true"
             android:elevation="2dp"
-            android:onClick="ColorButtonClicked"/>
+            android:onClick="colorButtonClicked"/>
 
         <ImageButton
             android:id="@+id/color5_button"
@@ -67,7 +67,7 @@
             android:background="@drawable/color_selector_button"
             android:checkable="true"
             android:elevation="2dp"
-            android:onClick="ColorButtonClicked"/>
+            android:onClick="colorButtonClicked"/>
 
         <ImageButton
             android:id="@+id/color6_button"
@@ -79,7 +79,7 @@
             android:background="@drawable/color_selector_button"
             android:checkable="true"
             android:elevation="2dp"
-            android:onClick="ColorButtonClicked"/>
+            android:onClick="colorButtonClicked"/>
 
         <ImageButton
             android:id="@+id/color7_button"
@@ -91,7 +91,7 @@
             android:background="@drawable/color_selector_button"
             android:checkable="true"
             android:elevation="2dp"
-            android:onClick="ColorButtonClicked"/>
+            android:onClick="colorButtonClicked"/>
 
         <ImageButton
             android:id="@+id/color8_button"
@@ -103,7 +103,7 @@
             android:background="@drawable/color_selector_button"
             android:checkable="true"
             android:elevation="2dp"
-            android:onClick="ColorButtonClicked"/>
+            android:onClick="colorButtonClicked"/>
 
         <ImageButton
             android:id="@+id/color9_button"
@@ -115,7 +115,7 @@
             android:background="@drawable/color_selector_button"
             android:checkable="true"
             android:elevation="2dp"
-            android:onClick="ColorButtonClicked"/>
+            android:onClick="colorButtonClicked"/>
 
         <ImageButton
             android:id="@+id/color10_button"
@@ -127,7 +127,7 @@
             android:background="@drawable/color_selector_button"
             android:checkable="true"
             android:elevation="2dp"
-            android:onClick="ColorButtonClicked"/>
+            android:onClick="colorButtonClicked"/>
 
         <ImageButton
             android:id="@+id/color11_button"
@@ -139,7 +139,7 @@
             android:background="@drawable/color_selector_button"
             android:checkable="true"
             android:elevation="2dp"
-            android:onClick="ColorButtonClicked"/>
+            android:onClick="colorButtonClicked"/>
 
         <ImageButton
             android:id="@+id/color12_button"
@@ -151,6 +151,6 @@
             android:background="@drawable/color_selector_button"
             android:checkable="true"
             android:elevation="2dp"
-            android:onClick="ColorButtonClicked"/>
+            android:onClick="colorButtonClicked"/>
     </GridLayout>
 </RelativeLayout>

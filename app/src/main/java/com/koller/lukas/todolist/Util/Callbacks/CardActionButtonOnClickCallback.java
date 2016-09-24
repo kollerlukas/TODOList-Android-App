@@ -7,7 +7,7 @@ import com.koller.lukas.todolist.Todolist.Event;
 /**
  * Created by Lukas on 09.03.2016.
  */
-public interface CardButtonOnClickInterface {
+public interface CardActionButtonOnClickCallback {
     void actionButtonClicked(View v, Event e);
-    void scrollToCard(int adapter_position);
+    //void scrollToCard(int adapter_position);
 }

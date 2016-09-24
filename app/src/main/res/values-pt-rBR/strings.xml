@@ -1,32 +1,19 @@
 ﻿<resources>
-    <string name="app_name">TODOList</string>
-    <string name="app_version">2.0</string>
-    <string name="icon">Ícone</string>
-
-    <string name="edit">Editar</string>
     <string name="add_event">Adicionar TODO</string>
     <string name="show_notification">Notificação geral</string>
     <string name="info">Informações</string>
     <string name="restore_last_removed_event">Restaurar último TODO removido</string>
-    <string name="select_theme">Temas do App</string>
     <string name="select_category">Categorias</string>
-    <string name="show_all_events">Mostrar todos os eventos</string>
-    <string name="edit_alarm">Editar alarme</string>
     <string name="silence_all_alarms">Silênci alarmes</string>
-    <string name="remove_all_alarms">Remover todos os alarmes</string>
     <string name="report_a_bug">Reportar um erro</string>
     <string name="contact_me">Contate-me</string>
-
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
-
     <string name="navigation_header1">Alarmes</string>
     <string name="navigation_header2">Categorias</string>
     <string name="navigation_header3">Aparência</string>
     <string name="navigation_header4">Notificação</string>
     <string name="navigation_header5">Sobre</string>
-
-    <string name="choose_a_theme_color">Escolha uma cor para o tema</string>
     <string name="choose_a_category">Categorias selecionadas</string>
     <string name="cancel">Cancelar</string>
     <string name="you_have">Você tem</string>
@@ -41,17 +28,10 @@
     <string name="edit_time">Editar hora</string>
     <string name="remove">Remover</string>
     <string name="alarm_removed">Alarme removido</string>
-    <string name="do_you_want_to_add_an_alarm">Você quer adicionar um alarme?</string>
-    <string name="add_alarm">Adicionar alarme</string>
     <string name="ok">OK</string>
-    <string name="schedule_for_this_alarm_for_tomorrow">Programar esse alarme para amanhã?</string>
     <string name="alarm_was_set_for">Alarme foi definido para</string>
-    <string name="hinzugefuegt"> </string>
     <string name="edit_event">Editar TODO</string>
     <string name="choose_a_color">Escolha uma cor</string>
-    <string name="this_category_contains_no_events">Esta categoria não contém TODOs</string>
-    <string name="do_you_really_want_to_remove_all_alarms">Você realmente deseja remover todos os alarmes?</string>
-    <string name="all_alarms_removed">Todos os alarmes removidos</string>
     <string name="general_notification_is_hidden">Notificação Geral está escondida</string>
     <string name="general_notification_is_shown">Notificação Geral à mostra</string>
     <string name="you_have_no_event_to_restore">Não há TODO algum para restaurar</string>
@@ -62,8 +42,6 @@
     <string name="send_email">Enviar email...</string>
     <string name="do_not_remove">!! Não DELETAR !!</string>
     <string name="dont_forget">Não esquecer</string>
-    <string name="search">Pesquisar/Procurar</string>
-    <string name="search_an_event">Procurar um TODO</string>
     <string name="version">Versão</string>
     <string name="developer">Desenvolvedor</string>
     <string name="developer_name">©2016 Lukas Koller, Munique, Alemanha  </string>
@@ -74,39 +52,24 @@
     <string name="clean_kitchen">Limpar a cozinha</string>
     <string name="do_laundry">Lavar as roupas</string>
     <string name="done">Feito</string>
-    <string name="these_categories_contains_no_events">Estas categorias não contêm TODOs</string>
-    <string name="not_all_events_shown">Nem todos os TODOs à mostra</string>
     <string name="color">Cor</string>
-    <string name="app_intro">Introdução do App</string>
-    <string name="welcome">Bem-vindo ao TODOList</string>
-    <string name="button_for_adding_events">Botão para adicionar TODOs ao seu TODOList</string>
-    <string name="this_is_a_todo">Este é um TODO</string>
-    <string name="tap_event">Toque no TODO para revelar seus botões de ação</string>
-    <string name="action_area">Colorir o TODO , editá-lo ou definir um alarme</string>
-    <string name="swipe_event">Deslize sobre o TODO para removê-lo</string>
     <string name="share_app">Compartilhar</string>
     <string name="no_category_selected">Nenhuma categoria selecionada</string>
     <string name="no_events">Nada para fazer!</string>
-
     <string name="signOut">Sign out</string>
     <string name="signOutDialog_content">Do you want to sign out?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="syncData">Sync</string>
     <string name="navigation_header0">Sync</string>
-
-    <string name="restore_last_removed_event1"></string>
-    <string name="silence_all_alarms2">alarmes</string>
     <string name="translators">Translators</string>
     <string name="translators_names0">Matteo Delton</string>
     <string name="translators_names1">Renata Suzart</string>
     <string name="translators_names2">Ömer Yigit Uzun</string>
     <string name="translators_names3">Robbe Delabre</string>
     <string name="translators_names4">Eric Pujol</string>
-    <string name="app_id">com.koller.lukas.todolist</string>
     <string name="app_theme">App Theme</string>
     <string name="autoSync">AutoSync</string>
-
     <string name="legal_notices">Legal Notices</string>
     <string name="themeActivityInfoDialogTitle">Click any element to style its color!</string>
     <string name="themeActivityInfoDialogContent">(even the Toolbar and FloatingActionButton)</string>
@@ -114,45 +77,12 @@
 
 
     <!--translate-->
-    <string name="licences_text1">Android Support Libraries:</string>
-    <string name="licences_text2">
-        Copyright © 2011 The Android Open Source Project
-        \n
-        \nLicensed under the Apache License, Version 2.0 (the "License");
-        \nyou may not use this file except in compliance with the License.
-        \nYou may obtain a copy of the License at
-        \n
-        \n      http://www.apache.org/licenses/LICENSE-2.0
-        \n
-        \nUnless required by applicable law or agreed to in writing, software
-        \ndistributed under the License is distributed on an "AS IS" BASIS,
-        \nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-        \nSee the License for the specific language governing permissions and
-        \nlimitations under the License.</string>
-    <string name="licences_text3">MaterialNumberPicker: </string>
-    <string name="licences_text4">Copyright 2015 Kasual Business.
-        \n
-        \nLicensed under the Apache License, Version 2.0 (the "License");
-        \nyou may not use this file except in compliance with the License.
-        \nYou may obtain a copy of the License at
-        \n
-        \n   http://www.apache.org/licenses/LICENSE-2.0
-        \n
-        \nUnless required by applicable law or agreed to in writing, software
-        \ndistributed under the License is distributed on an "AS IS" BASIS,
-        \nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-        \nSee the License for the specific language governing permissions and
-        \nlimitations under the License.</string>
-    <string name="licences_text5">Google Play Services Attribution:</string>
-
     <string name="repeat">repeat: </string>
-
     <string name="daily">Every Day</string>
     <string name="weekly">Every Week</string>
     <string name="monthly">Every Month</string>
     <string name="certain_days">Certain Days</string>
     <string name="custom">Custom</string>
-
     <string name="monday">MON</string>
     <string name="tuesday">TUE</string>
     <string name="wednesday">WED</string>
@@ -160,22 +90,17 @@
     <string name="friday">FRI</string>
     <string name="saturday">SAT</string>
     <string name="sunday">SUN</string>
-
     <string name="hours">Hours</string>
     <string name="days">Days</string>
     <string name="weeks">Weeks</string>
     <string name="months">Months</string>
-
     <string name="toolbarAndBackgroundSameColor">Toolbar and Background same Color</string>
-
     <string name="share_todos">share TODOs</string>
     <string name="import_todos">Import TODOs</string>
     <string name="import_">Import</string>
     <string name="import_dialog_content">Select TODOs by tapping them.</string>
-
     <string name="preset_themes">Preset Themes</string>
     <string name="share_theme">share Theme</string>
-
     <string name="experimental_feature">Experimental Feature</string>
     <string name="signin_dialog_experimental_feature">Please note that feature is still (very) experimental.
         \nThe developer does not take any responsibility for the loss of any TODOs.</string>

@@ -133,18 +133,18 @@ public class ThemeHelper {
         colors[11] = ContextCompat.getColor(context, R.color.color11);
         colors[12] = ContextCompat.getColor(context, R.color.color12);
 
-        textColors[1] = ContextCompat.getColor(context, R.color.dark_text_color);
-        textColors[2] = ContextCompat.getColor(context, R.color.dark_text_color);
-        textColors[3] = ContextCompat.getColor(context, R.color.dark_text_color);
-        textColors[4] = ContextCompat.getColor(context, R.color.dark_text_color);
-        textColors[5] = ContextCompat.getColor(context, R.color.light_text_color);
-        textColors[6] = ContextCompat.getColor(context, R.color.light_text_color);
-        textColors[7] = ContextCompat.getColor(context, R.color.dark_text_color);
-        textColors[8] = ContextCompat.getColor(context, R.color.dark_text_color);
-        textColors[9] = ContextCompat.getColor(context, R.color.light_text_color);
-        textColors[10] = ContextCompat.getColor(context, R.color.dark_text_color);
-        textColors[11] = ContextCompat.getColor(context, R.color.dark_text_color);
-        textColors[12] = ContextCompat.getColor(context, R.color.dark_text_color);
+        textColors[1] = ContextCompat.getColor(context, R.color.white);
+        textColors[2] = ContextCompat.getColor(context, R.color.white);
+        textColors[3] = ContextCompat.getColor(context, R.color.white);
+        textColors[4] = ContextCompat.getColor(context, R.color.white);
+        textColors[5] = ContextCompat.getColor(context, R.color.black);
+        textColors[6] = ContextCompat.getColor(context, R.color.white);
+        textColors[7] = ContextCompat.getColor(context, R.color.white);
+        textColors[8] = ContextCompat.getColor(context, R.color.white);
+        textColors[9] = ContextCompat.getColor(context, R.color.black);
+        textColors[10] = ContextCompat.getColor(context, R.color.white);
+        textColors[11] = ContextCompat.getColor(context, R.color.white);
+        textColors[12] = ContextCompat.getColor(context, R.color.white);
     }
 
     public void saveData() {
@@ -180,9 +180,9 @@ public class ThemeHelper {
         fab_color = sharedPreferences.getInt("fab_color", ContextCompat.getColor(context, R.color.button_color));
         fab_textcolor = sharedPreferences.getInt("fab_textcolor", ContextCompat.getColor(context, R.color.white));
         toolbar_color = sharedPreferences.getInt("toolbar_color", ContextCompat.getColor(context, R.color.white));
-        toolbar_textcolor = sharedPreferences.getInt("toolbar_textcolor", ContextCompat.getColor(context, R.color.light_text_color));
+        toolbar_textcolor = sharedPreferences.getInt("toolbar_textcolor", ContextCompat.getColor(context, R.color.black));
         cord_color = sharedPreferences.getInt("cord_color", ContextCompat.getColor(context, R.color.white));
-        cord_textcolor = sharedPreferences.getInt("cord_textcolor", ContextCompat.getColor(context, R.color.light_text_color));
+        cord_textcolor = sharedPreferences.getInt("cord_textcolor", ContextCompat.getColor(context, R.color.black));
 
         for (int i = 1; i < colors.length; i++){
             colors[i] = sharedPreferences.getInt("color" +i, getDefaultColors(i));
@@ -237,29 +237,29 @@ public class ThemeHelper {
     private int getDefaultTextColors(int index){
         switch (index) {
             case 1:
-                return ContextCompat.getColor(context, R.color.dark_text_color);
+                return ContextCompat.getColor(context, R.color.white);
             case 2:
-                return ContextCompat.getColor(context, R.color.dark_text_color);
+                return ContextCompat.getColor(context, R.color.white);
             case 3:
-                return ContextCompat.getColor(context, R.color.dark_text_color);
+                return ContextCompat.getColor(context, R.color.white);
             case 4:
-                return ContextCompat.getColor(context, R.color.dark_text_color);
+                return ContextCompat.getColor(context, R.color.white);
             case 5:
-                return ContextCompat.getColor(context, R.color.light_text_color);
+                return ContextCompat.getColor(context, R.color.black);
             case 6:
-                return ContextCompat.getColor(context, R.color.light_text_color);
+                return ContextCompat.getColor(context, R.color.white);
             case 7:
-                return ContextCompat.getColor(context, R.color.dark_text_color);
+                return ContextCompat.getColor(context, R.color.white);
             case 8:
-                return ContextCompat.getColor(context, R.color.dark_text_color);
+                return ContextCompat.getColor(context, R.color.white);
             case 9:
-                return ContextCompat.getColor(context, R.color.light_text_color);
+                return ContextCompat.getColor(context, R.color.black);
             case 10:
-                return ContextCompat.getColor(context, R.color.dark_text_color);
+                return ContextCompat.getColor(context, R.color.white);
             case 11:
-                return ContextCompat.getColor(context, R.color.dark_text_color);
+                return ContextCompat.getColor(context, R.color.white);
             default:
-                return ContextCompat.getColor(context, R.color.dark_text_color);
+                return ContextCompat.getColor(context, R.color.white);
         }
     }
 
@@ -415,7 +415,7 @@ public class ThemeHelper {
         return sortedColors;
     }
 
-    public int[] getSortedColorsColorSelector() {
+    public int[] getSortedColorsColorSelect() {
         int[] sortedColors = new int[13];//getSortedColors();
         for (int i = 0; i < sortedColors.length; i++){
             sortedColors[i] = i;
