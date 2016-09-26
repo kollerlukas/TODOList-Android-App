@@ -163,7 +163,7 @@ public class MainActivity extends AppCompatActivity
     private RecyclerView mRecyclerView;
     private LinearLayoutManager mLinearLayoutManager;
     private RVAdapter mAdapter;
-    private int mExpandedPosition = -1;
+    //private int mExpandedPosition = -1;
 
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private SwipeRefreshLayout.OnRefreshListener mRefreshListener;
@@ -198,6 +198,7 @@ public class MainActivity extends AppCompatActivity
 
     private boolean isEventDraged = false;
 
+    private ArrayList<Event> eventsToShare;
     private ShareEventCallback shareEventCallback;
     private boolean shareEvents = false;
 
@@ -385,9 +386,9 @@ public class MainActivity extends AppCompatActivity
             public void onChildDraw(Canvas c, RecyclerView recyclerView, final ViewHolder viewHolder,
                                     float dX, float dY, int actionState, boolean isCurrentlyActive) {
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+
                 if (isCurrentlyActive) {
                     closeOpenCard();
-                    mExpandedPosition = -1;
 
                     elevateToolbar();
                     viewHolder.itemView.setPressed(true);
@@ -402,12 +403,12 @@ public class MainActivity extends AppCompatActivity
                                 }
 
                                 //adding all Events to adapter List
-                                ArrayList<Integer> itemToBeSetSemiTransparent = new ArrayList<>();
+                                ArrayList<Event> itemToBeSetSemiTransparent = new ArrayList<>();
                                 for (int i = 0; i < todolist.getTodolistArray().size(); i++) {
                                     if (!todolist.isEventInAdapterList(mAdapter, todolist.getTodolistArray().get(i))) {
                                         mAdapter.addItem(i, todolist.getTodolistArray().get(i));
 
-                                        itemToBeSetSemiTransparent.add(i);
+                                        itemToBeSetSemiTransparent.add(todolist.getTodolistArray().get(i));
                                     }
                                 }
                                 mAdapter.setItemToBeSetSemiTransparent(itemToBeSetSemiTransparent);
@@ -459,15 +460,21 @@ public class MainActivity extends AppCompatActivity
                 if (shareEvents) {
                     viewHolder.setSemiTransparent(!viewHolder.semiTransparent);
                     viewHolder.initCard(MainActivity.this);
-                } else if (!viewHolder.semiTransparent) {
 
-                    if (mExpandedPosition != position || mExpandedPosition == -1) {
+                    if(!eventsToShare.contains(mAdapter.getList().get(position))){
+                        eventsToShare.add(mAdapter.getList().get(position));
+                    } else {
+                        eventsToShare.remove(mAdapter.getList().get(position));
+                    }
+
+                } else if (!viewHolder.semiTransparent) {
+                    if (mAdapter.mExpandedPosition != position || mAdapter.mExpandedPosition == -1) {
                         closeOpenCard();
 
-                        mExpandedPosition = position;
+                        mAdapter.mExpandedPosition = position;
                         viewHolder.expand();
                     } else {
-                        mExpandedPosition = -1;
+                        mAdapter.mExpandedPosition = -1;
                         viewHolder.collapse();
                     }
                 }
@@ -476,36 +483,19 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void closeOpenCard() {
-        if (mExpandedPosition == -1) {
+        if (mAdapter.mExpandedPosition == -1) {
             return;
         }
 
         RVAdapter.EventViewHolder holder
-                = (RVAdapter.EventViewHolder) mRecyclerView.findViewHolderForAdapterPosition(mExpandedPosition);
+                = (RVAdapter.EventViewHolder) mRecyclerView.findViewHolderForAdapterPosition(mAdapter.mExpandedPosition);
         holder.collapse();
-        mExpandedPosition = -1;
+        mAdapter.mExpandedPosition = -1;
     }
 
-    /*public void scrollToCard(int position) {
-        if (position == mAdapter.getItemCount() - 1 && mAdapter.getItemCount() > 1) {
-            mRecyclerView.smoothScrollToPosition(position);
-        }
-    }*/
-
     public void resetAllSemiTransparentEvents() {
-        ArrayList<Event> itemToRemove = new ArrayList<>();
-        for (int i = 0; i < mAdapter.getList().size(); i++) {
-            RVAdapter.EventViewHolder holder
-                    = (RVAdapter.EventViewHolder) mRecyclerView.findViewHolderForAdapterPosition(i);
-            if (holder.semiTransparent) {
-                itemToRemove.add(mAdapter.getList().get(i));
-                holder.setSemiTransparent(false);
-            }
-        }
-
-        for (int i = 0; i < itemToRemove.size(); i++) {
-            mAdapter.removeItem(mAdapter.getList().indexOf(itemToRemove.get(i)));
-        }
+        mAdapter.clearSemiTransparentEventIds();
+        todolist.addOrRemoveEventFromAdapter(mAdapter);
     }
 
     public void initDrawerLayout() {
@@ -677,7 +667,6 @@ public class MainActivity extends AppCompatActivity
         states[k] = new int[0];
         thumbColors[k] = color_grey;
         trackColors[k] = color_dark;
-        k++;
 
         ((SwitchCompat) silenceAllAlarmsToggle.getActionView()).setHighlightColor(helper.get("fab_color"));
 
@@ -1355,8 +1344,8 @@ public class MainActivity extends AppCompatActivity
         checkToolbarElevation();
         eventRemovedSnackbar();
 
-        if(mExpandedPosition == index){
-            mExpandedPosition = -1;
+        if(mAdapter.mExpandedPosition == index){
+            mAdapter.mExpandedPosition = -1;
         }
     }
 
@@ -1388,7 +1377,8 @@ public class MainActivity extends AppCompatActivity
 
                     int index = todolist.getAdapterListPosition(mAdapter, e);
                     ((RVAdapter.EventViewHolder) mRecyclerView.findViewHolderForAdapterPosition(index))
-                            .changeCardColorAnim(MainActivity.this, helper.getEventColor(colorIndex), helper.getEventTextColor(colorIndex));
+                            .changeCardColorAnim(MainActivity.this, helper.getEventColor(colorIndex),
+                                    helper.getEventTextColor(colorIndex));
 
                     if (!settings.getCategory(colorIndex)) {
                         int number_of_event_with_color_index = 0;
@@ -2541,17 +2531,20 @@ public class MainActivity extends AppCompatActivity
         }
 
         fabShareAnim(true);
-
         mSwipeRefreshLayout.setEnabled(false);
-
         closeOpenCard();
 
+        eventsToShare = new ArrayList<>();
+
         //adding all Events to adapter List
-        ArrayList<Integer> itemToBeSetSemiTransparent = new ArrayList<>();
+        ArrayList<Event> itemToBeSetSemiTransparent = new ArrayList<>();
         for (int i = 0; i < todolist.getTodolistArray().size(); i++) {
             if (!todolist.isEventInAdapterList(mAdapter, todolist.getTodolistArray().get(i))) {
                 mAdapter.addItem(i, todolist.getTodolistArray().get(i));
-                itemToBeSetSemiTransparent.add(i);
+
+                itemToBeSetSemiTransparent.add(todolist.getTodolistArray().get(i));
+            } else {
+                eventsToShare.add(todolist.getTodolistArray().get(i));
             }
         }
         mAdapter.setItemToBeSetSemiTransparent(itemToBeSetSemiTransparent);
@@ -2560,26 +2553,9 @@ public class MainActivity extends AppCompatActivity
         shareEventCallback = new ShareEventCallback() {
             @Override
             public void shareEvents() {
-                fabShareAnim(false);
-
-                shareEvents = false;
-                shareEventCallback = null;
-
-                ArrayList<Event> eventsToShare = new ArrayList<>();
-
-                for (int i = 0; i < mAdapter.getList().size(); i++) {
-                    RVAdapter.EventViewHolder holder
-                            = (RVAdapter.EventViewHolder) mRecyclerView.findViewHolderForAdapterPosition(i);
-                    if (!holder.semiTransparent) {
-                        eventsToShare.add(mAdapter.getList().get(i));
-                    }
-                    holder.setSemiTransparent(false);
-                    mAdapter.itemChanged(i);
-                }
-
-                todolist.addOrRemoveEventFromAdapter(mAdapter);
-
                 MainActivity.this.shareEvents(eventsToShare);
+
+                cancel();
             }
 
             @Override
@@ -2593,14 +2569,7 @@ public class MainActivity extends AppCompatActivity
                 shareEvents = false;
                 shareEventCallback = null;
 
-                for (int i = 0; i < mAdapter.getList().size(); i++) {
-                    RVAdapter.EventViewHolder holder
-                            = (RVAdapter.EventViewHolder) mRecyclerView.findViewHolderForAdapterPosition(i);
-                    //mAdapter.getList().get(i).semiTransparent = false;
-                    holder.setSemiTransparent(false);
-                    mAdapter.itemChanged(i);
-                }
-                mAdapter.setItemToBeSetSemiTransparent(new ArrayList<Integer>());
+                mAdapter.clearSemiTransparentEventIds();
                 todolist.addOrRemoveEventFromAdapter(mAdapter);
             }
         };

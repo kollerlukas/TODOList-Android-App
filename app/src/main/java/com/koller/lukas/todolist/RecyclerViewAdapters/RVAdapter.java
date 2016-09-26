@@ -329,27 +329,30 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
     }
 
     private ArrayList<Event> events;
-    //private CardActionButtonOnClickHelper onClickHelper;
     private CardActionButtonOnClickCallback onClickCallback;
     private Context context;
 
-    private ArrayList<Integer> itemToBeSetSemiTransparent = new ArrayList<>();
+    public int mExpandedPosition = -1;
+
+    private ArrayList<Long> semiTransparentEventIds;
 
     public RVAdapter(ArrayList<Event> events,
                      CardActionButtonOnClickCallback onClickCallback, Context context) {
         this.events = events;
         this.onClickCallback = onClickCallback;
         this.context = context;
+
+        semiTransparentEventIds = new ArrayList<>();
     }
 
     @Override
     public void onBindViewHolder(EventViewHolder eventViewHolder, int i) {
-        if(itemToBeSetSemiTransparent.contains(i)){
-            eventViewHolder.setSemiTransparent(true);
-            itemToBeSetSemiTransparent.remove((Object) i);
-        }
-
         eventViewHolder.setEvent(events.get(i));
+        if(semiTransparentEventIds.contains(events.get(i).getId())){
+            eventViewHolder.setSemiTransparent(true);
+        } else {
+            eventViewHolder.setSemiTransparent(false);
+        }
         eventViewHolder.initCard(context);
     }
 
@@ -415,9 +418,16 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
         notifyItemRangeChanged(0, events.size());
     }
 
-    public void setItemToBeSetSemiTransparent(ArrayList<Integer> itemToBeSetSemiTransparent){
+    public void setItemToBeSetSemiTransparent(ArrayList<Event> itemToBeSetSemiTransparent){
         for (int i = 0; i < itemToBeSetSemiTransparent.size(); i++){
-            this.itemToBeSetSemiTransparent.add(itemToBeSetSemiTransparent.get(i));
+            semiTransparentEventIds.add(itemToBeSetSemiTransparent.get(i).getId());
+
+            int index = events.indexOf(itemToBeSetSemiTransparent.get(i));
+            itemChanged(index);
         }
+    }
+
+    public void clearSemiTransparentEventIds(){
+        semiTransparentEventIds = new ArrayList<Long>();
     }
 }
