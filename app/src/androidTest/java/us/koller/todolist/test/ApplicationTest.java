@@ -1,4 +1,4 @@
-package com.koller.lukas.todolist;
+package us.koller.todolist.test;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
