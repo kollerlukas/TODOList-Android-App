@@ -12,6 +12,7 @@
             android:clipToPadding="false"
             android:elevation="0dp"
             android:paddingTop="24dp"
+            android:stateListAnimator="@animator/toolbar_raise"
             android:title=""/>
 
     <android.support.v7.widget.CardView

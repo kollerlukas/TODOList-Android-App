@@ -39,6 +39,7 @@
                 android:layout_height="wrap_content"
                 android:paddingTop="24dp"
                 android:elevation="0dp"
+                android:stateListAnimator="@animator/toolbar_raise"
                 android:text="@string/app_name"/>
 
         <android.support.design.widget.FloatingActionButton

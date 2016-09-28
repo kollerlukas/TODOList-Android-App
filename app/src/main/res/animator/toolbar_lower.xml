@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<set xmlns:android="http://schemas.android.com/apk/res/android"
-     android:interpolator="@android:anim/accelerate_decelerate_interpolator">
-    <objectAnimator
-        android:duration="@android:integer/config_shortAnimTime"
-        android:propertyName="translationZ"
-        android:valueTo="0dp"
-        android:valueType="floatType"/>
-</set>
