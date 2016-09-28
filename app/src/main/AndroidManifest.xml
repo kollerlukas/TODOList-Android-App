@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.koller.lukas.todolist">
+          package="us.koller.todolist">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
@@ -25,7 +25,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
-                <action android:name="com.koller.lukas.WidgetProvider"/>
+                <action android:name="us.koller.WidgetProvider"/>
             </intent-filter>
             <meta-data
                     android:name="com.google.android.apps.drive.APP_ID"
@@ -53,7 +53,6 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
 
                 <data android:mimeType="text/plain"/>
-                <!--><data android:mimeType="application/octet-stream"<--> />
             </intent-filter>
         </activity>
 
@@ -68,7 +67,7 @@
 
         <provider
             android:name="android.support.v4.content.FileProvider"
-            android:authorities="com.koller.lukas.todolist.fileprovider"
+            android:authorities="us.koller.todolist.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
@@ -79,7 +78,7 @@
         <receiver android:name=".Widget.WidgetProvider_add">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
-                <action android:name="com.koller.lukas.WidgetProvider"/>
+                <action android:name="us.koller.WidgetProvider"/>
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"

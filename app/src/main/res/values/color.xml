@@ -8,31 +8,18 @@
     <color name="green">#4caf50</color>
     <color name="blue">#2196f3</color>
 
-    <!--<color name="color1">#9C27B0</color>
-    <color name="color2">#F44336</color>
-    <color name="color3">#FF9800</color>
-    <color name="color4">#2196F3</color>
-    <color name="color5">#ffffff</color>
-    <color name="color6">#FFEB3B</color>
-    <color name="color7">#009688</color>
-    <color name="color8">#4CAF50</color>
-    <color name="color9">#CDDC39</color>
-    <color name="color10">#9E9E9E</color>
-    <color name="color11">#607D8B</color>
-    <color name="color12">#000000</color>-->
-
-    <color name="color1">#ae55ff</color>
-    <color name="color2">#ff3fa5</color>
-    <color name="color3">#fc6558</color>
-    <color name="color4">#79a5f3</color>
-    <color name="color5">#ffffff</color>
-    <color name="color6">#ff9051</color>
-    <color name="color7">#89a0be</color>
-    <color name="color8">#c0bd6f</color>
-    <color name="color9">#ffeb68</color>
-    <color name="color10">#a6ddcc</color>
-    <color name="color11">#63b19d</color>
-    <color name="color12">#7baf69</color>
+    <color name="color1">#EC407A</color>
+    <color name="color2">#AB47BC</color>
+    <color name="color3">#5C6BC0</color>
+    <color name="color4">#42A5F5</color>
+    <color name="color5">#26C6DA</color>
+    <color name="color6">#26A69A</color>
+    <color name="color7">#66BB6A</color>
+    <color name="color8">#D4E157</color>
+    <color name="color9">#FFEE58</color>
+    <color name="color10">#FFA726</color>
+    <color name="color11">#FF7043</color>
+    <color name="color12">#FFFFFF</color>
 
     <color name="transparent">#00000000</color>
     <color name="white">#ffffff</color>

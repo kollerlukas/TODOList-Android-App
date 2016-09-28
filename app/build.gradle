@@ -5,7 +5,7 @@ android {
     buildToolsVersion "23.0.3"
 
     defaultConfig {
-        applicationId "com.koller.lukas.todolist"
+        applicationId "us.koller.todolist"
         minSdkVersion 21
         targetSdkVersion 23
         versionCode 34
