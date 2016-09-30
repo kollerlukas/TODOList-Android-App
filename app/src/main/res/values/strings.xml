@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TODOList</string>
+    <string name="app_name" translatable="false">TODOList</string>
     <string name="add_event">Add TODO</string>
     <string name="show_notification">General Notification</string>
     <string name="info">Info</string>
@@ -63,8 +63,8 @@
     <string name="no">No</string>
     <string name="syncData">Sync</string>
     <string name="navigation_header0">Sync</string>
-    <string name="licences_text1">Android Support Libraries:</string>
-    <string name="licences_text2">
+    <string name="licences_text1" translatable="false">Android Support Libraries:</string>
+    <string name="licences_text2" translatable="false">
         Copyright © 2011 The Android Open Source Project
 \n
 \nLicensed under the Apache License, Version 2.0 (the "License");
@@ -78,8 +78,8 @@
 \nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 \nSee the License for the specific language governing permissions and
 \nlimitations under the License.</string>
-    <string name="licences_text3">MaterialNumberPicker: </string>
-    <string name="licences_text4">Copyright 2015 Kasual Business.
+    <string name="licences_text3" translatable="false">MaterialNumberPicker: </string>
+    <string name="licences_text4" translatable="false">Copyright 2015 Kasual Business.
 \n
 \nLicensed under the Apache License, Version 2.0 (the "License");
 \nyou may not use this file except in compliance with the License.
@@ -92,7 +92,7 @@
 \nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 \nSee the License for the specific language governing permissions and
 \nlimitations under the License.</string>
-    <string name="licences_text5">Google Play Services Attribution:</string>
+    <string name="licences_text5" translatable="false">Google Play Services Attribution:</string>
     <string name="translators">Translators</string>
     <string name="translators_names0">Matteo Delton</string>
     <string name="translators_names1">Renata Suzart</string>

@@ -23,7 +23,7 @@
     <string name="today">Bugün</string>
     <string name="tomorrow">Yarın</string>
     <string name="alarm_scheduled_for">Alarm bu tarih için zamanlanmış: </string>
-    <string name="at"></string>
+    <string name="at"> </string>
     <string name="alarm">Alarm</string>
     <string name="edit_time">Zamanı Düzenle</string>
     <string name="remove">Kaldır</string>

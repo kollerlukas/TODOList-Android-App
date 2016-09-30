@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+        android:width="48dp"
+        android:height="48dp"
+        android:viewportHeight="24"
+        android:viewportWidth="24">
+
+    <group android:name="hook">
+        <path android:name="hook_path"
+              android:pathData="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"
+              android:fillColor="#FFFFFF"/>
+    </group>
+</vector>

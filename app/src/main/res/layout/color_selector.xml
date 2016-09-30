@@ -1,162 +1,187 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="15dp">
+<RelativeLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="15dp">
 
     <ScrollView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:overScrollMode="never"
-        android:layout_centerInParent="true">
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:overScrollMode="never"
+            android:layout_centerInParent="true">
 
         <GridLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
 
             <ImageButton
-                android:id="@+id/color1_button"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_column="1"
-                android:layout_margin="10dp"
-                android:layout_row="1"
-                android:background="@drawable/color_selector_button"
-                android:checkable="true"
-                android:elevation="2dp"
-                android:onClick="colorButtonClicked"/>
+                    android:id="@+id/color1_button"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_column="1"
+                    android:layout_margin="10dp"
+                    android:layout_row="1"
+                    android:background="@drawable/color_selector_button"
+                    android:src="@drawable/ic_color_select"
+                    android:checkable="true"
+                    android:elevation="2dp"
+                    android:padding="5dp"
+                    android:onClick="colorButtonClicked"/>
 
             <ImageButton
-                android:id="@+id/color2_button"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_column="2"
-                android:layout_margin="10dp"
-                android:layout_row="1"
-                android:background="@drawable/color_selector_button"
-                android:checkable="true"
-                android:elevation="2dp"
-                android:onClick="colorButtonClicked"/>
+                    android:id="@+id/color2_button"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_column="2"
+                    android:layout_margin="10dp"
+                    android:layout_row="1"
+                    android:background="@drawable/color_selector_button"
+                    android:src="@drawable/ic_color_select"
+                    android:checkable="true"
+                    android:elevation="2dp"
+                    android:padding="5dp"
+                    android:onClick="colorButtonClicked"/>
 
             <ImageButton
-                android:id="@+id/color3_button"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_column="3"
-                android:layout_margin="10dp"
-                android:layout_row="1"
-                android:background="@drawable/color_selector_button"
-                android:checkable="true"
-                android:elevation="2dp"
-                android:onClick="colorButtonClicked"/>
+                    android:id="@+id/color3_button"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_column="3"
+                    android:layout_margin="10dp"
+                    android:layout_row="1"
+                    android:background="@drawable/color_selector_button"
+                    android:src="@drawable/ic_color_select"
+                    android:checkable="true"
+                    android:elevation="2dp"
+                    android:padding="5dp"
+                    android:onClick="colorButtonClicked"/>
 
             <ImageButton
-                android:id="@+id/color4_button"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_column="1"
-                android:layout_margin="10dp"
-                android:layout_row="2"
-                android:background="@drawable/color_selector_button"
-                android:checkable="true"
-                android:elevation="2dp"
-                android:onClick="colorButtonClicked"/>
+                    android:id="@+id/color4_button"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_column="1"
+                    android:layout_margin="10dp"
+                    android:layout_row="2"
+                    android:background="@drawable/color_selector_button"
+                    android:src="@drawable/ic_color_select"
+                    android:checkable="true"
+                    android:elevation="2dp"
+                    android:padding="5dp"
+                    android:onClick="colorButtonClicked"/>
 
             <ImageButton
-                android:id="@+id/color5_button"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_column="2"
-                android:layout_margin="10dp"
-                android:layout_row="2"
-                android:background="@drawable/color_selector_button"
-                android:checkable="true"
-                android:elevation="2dp"
-                android:onClick="colorButtonClicked"/>
+                    android:id="@+id/color5_button"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_column="2"
+                    android:layout_margin="10dp"
+                    android:layout_row="2"
+                    android:background="@drawable/color_selector_button"
+                    android:src="@drawable/ic_color_select"
+                    android:checkable="true"
+                    android:elevation="2dp"
+                    android:padding="5dp"
+                    android:onClick="colorButtonClicked"/>
 
             <ImageButton
-                android:id="@+id/color6_button"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_column="3"
-                android:layout_margin="10dp"
-                android:layout_row="2"
-                android:background="@drawable/color_selector_button"
-                android:checkable="true"
-                android:elevation="2dp"
-                android:onClick="colorButtonClicked"/>
+                    android:id="@+id/color6_button"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_column="3"
+                    android:layout_margin="10dp"
+                    android:layout_row="2"
+                    android:background="@drawable/color_selector_button"
+                    android:src="@drawable/ic_color_select"
+                    android:checkable="true"
+                    android:elevation="2dp"
+                    android:padding="5dp"
+                    android:onClick="colorButtonClicked"/>
 
             <ImageButton
-                android:id="@+id/color7_button"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_column="1"
-                android:layout_margin="10dp"
-                android:layout_row="3"
-                android:background="@drawable/color_selector_button"
-                android:checkable="true"
-                android:elevation="2dp"
-                android:onClick="colorButtonClicked"/>
+                    android:id="@+id/color7_button"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_column="1"
+                    android:layout_margin="10dp"
+                    android:layout_row="3"
+                    android:background="@drawable/color_selector_button"
+                    android:src="@drawable/ic_color_select"
+                    android:checkable="true"
+                    android:elevation="2dp"
+                    android:padding="5dp"
+                    android:onClick="colorButtonClicked"/>
 
             <ImageButton
-                android:id="@+id/color8_button"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_column="2"
-                android:layout_margin="10dp"
-                android:layout_row="3"
-                android:background="@drawable/color_selector_button"
-                android:checkable="true"
-                android:elevation="2dp"
-                android:onClick="colorButtonClicked"/>
+                    android:id="@+id/color8_button"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_column="2"
+                    android:layout_margin="10dp"
+                    android:layout_row="3"
+                    android:background="@drawable/color_selector_button"
+                    android:src="@drawable/ic_color_select"
+                    android:checkable="true"
+                    android:elevation="2dp"
+                    android:padding="5dp"
+                    android:onClick="colorButtonClicked"/>
 
             <ImageButton
-                android:id="@+id/color9_button"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_column="3"
-                android:layout_margin="10dp"
-                android:layout_row="3"
-                android:background="@drawable/color_selector_button"
-                android:checkable="true"
-                android:elevation="2dp"
-                android:onClick="colorButtonClicked"/>
+                    android:id="@+id/color9_button"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_column="3"
+                    android:layout_margin="10dp"
+                    android:layout_row="3"
+                    android:background="@drawable/color_selector_button"
+                    android:src="@drawable/ic_color_select"
+                    android:checkable="true"
+                    android:elevation="2dp"
+                    android:padding="5dp"
+                    android:onClick="colorButtonClicked"/>
 
             <ImageButton
-                android:id="@+id/color10_button"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_column="1"
-                android:layout_margin="10dp"
-                android:layout_row="4"
-                android:background="@drawable/color_selector_button"
-                android:checkable="true"
-                android:elevation="2dp"
-                android:onClick="colorButtonClicked"/>
+                    android:id="@+id/color10_button"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_column="1"
+                    android:layout_margin="10dp"
+                    android:layout_row="4"
+                    android:background="@drawable/color_selector_button"
+                    android:src="@drawable/ic_color_select"
+                    android:checkable="true"
+                    android:elevation="2dp"
+                    android:padding="5dp"
+                    android:onClick="colorButtonClicked"/>
 
             <ImageButton
-                android:id="@+id/color11_button"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_column="2"
-                android:layout_margin="10dp"
-                android:layout_row="4"
-                android:background="@drawable/color_selector_button"
-                android:checkable="true"
-                android:elevation="2dp"
-                android:onClick="colorButtonClicked"/>
+                    android:id="@+id/color11_button"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_column="2"
+                    android:layout_margin="10dp"
+                    android:layout_row="4"
+                    android:background="@drawable/color_selector_button"
+                    android:src="@drawable/ic_color_select"
+                    android:checkable="true"
+                    android:elevation="2dp"
+                    android:padding="5dp"
+                    android:onClick="colorButtonClicked"/>
 
             <ImageButton
-                android:id="@+id/color12_button"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_column="3"
-                android:layout_margin="10dp"
-                android:layout_row="4"
-                android:background="@drawable/color_selector_button"
-                android:checkable="true"
-                android:elevation="2dp"
-                android:onClick="colorButtonClicked"/>
+                    android:id="@+id/color12_button"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_column="3"
+                    android:layout_margin="10dp"
+                    android:layout_row="4"
+                    android:background="@drawable/color_selector_button"
+                    android:src="@drawable/ic_color_select"
+                    android:checkable="true"
+                    android:elevation="2dp"
+                    android:padding="5dp"
+                    android:onClick="colorButtonClicked"/>
         </GridLayout>
     </ScrollView>
 </RelativeLayout>

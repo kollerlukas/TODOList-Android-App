@@ -17,7 +17,6 @@
                 android:layout_width="250dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:onClick="ntdClicked"
                 android:visibility="gone"/>
 
         <android.support.v4.widget.SwipeRefreshLayout
@@ -54,6 +53,7 @@
                 app:backgroundTint="@color/button_color"
                 app:elevation="6dp"
                 app:fabSize="normal"/>
+
     </android.support.design.widget.CoordinatorLayout>
 
     <android.support.design.widget.NavigationView
