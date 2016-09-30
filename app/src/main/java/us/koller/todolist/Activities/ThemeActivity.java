@@ -1,11 +1,8 @@
 package us.koller.todolist.Activities;
 
-import android.animation.AnimatorInflater;
-import android.animation.AnimatorSet;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -80,7 +77,6 @@ public class ThemeActivity extends AppCompatActivity {
     private AlertDialog dialog;
     private AlertDialog themePickerDialog;
 
-    private boolean toolbar_elevated = true;
     private boolean toolbarAndBackgroundSameColor = true;
 
     private Button presetThemes;
@@ -193,6 +189,7 @@ public class ThemeActivity extends AppCompatActivity {
 
         fab.setBackgroundTintList(ColorStateList.valueOf(helper.get("fab_color")));
         fab.getDrawable().setTint(helper.get("fab_textcolor"));
+        fab.setRippleColor(ContextCompat.getColor(context, R.color.white));
 
         presetThemes.setTextColor(ContextCompat.getColor(context, R.color.black));
 
@@ -271,7 +268,7 @@ public class ThemeActivity extends AppCompatActivity {
 
     public void showColorPickerDialog(final ColorPickerDialogCallback colorPickerDialogCallback, boolean eventColor, int oldColor, int oldTextColor, boolean showCheckbox) {
         LayoutInflater layoutInflater = this.getLayoutInflater();
-        View layout = layoutInflater.inflate(R.layout.theme_picker, null);
+        View layout = layoutInflater.inflate(R.layout.color_picker, null);
         final String format = "%1$03d";
 
         final CardView colorCard = (CardView) layout.findViewById(R.id.colorCard);

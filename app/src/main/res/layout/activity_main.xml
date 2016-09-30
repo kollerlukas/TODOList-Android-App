@@ -17,7 +17,8 @@
                 android:layout_width="250dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:visibility="gone"/>
+                android:visibility="gone"
+                android:contentDescription="@string/nothing_to_do_illustration"/>
 
         <android.support.v4.widget.SwipeRefreshLayout
                 android:id="@+id/swipeRefreshLayout"
@@ -49,7 +50,6 @@
                 android:layout_margin="16dp"
                 android:onClick="fabClicked"
                 android:src="@drawable/ic_add"
-                android:stateListAnimator="@anim/raise"
                 app:backgroundTint="@color/button_color"
                 app:elevation="6dp"
                 app:fabSize="normal"/>

@@ -40,7 +40,7 @@
     <string name="now_the_Phone_will_vibrate_when_alarms_are_fired">Now the Phone will vibrate when Alarms are fired</string>
     <string name="event_removed">TODO removed</string>
     <string name="undo">Undo</string>
-    <string name="send_email">Send Email...</string>
+    <string name="send_email">Send Email&#8230;</string>
     <string name="do_not_remove">!!Do not delete!!</string>
     <string name="dont_forget">Do not forget</string>
     <string name="version">Version</string>
@@ -134,4 +134,14 @@
         The signIn allows you to sync your TODOs across devices!\n\n
         Please note that feature is still (very) experimental.
         \nThe developer does not take any responsibility for the loss of any TODOs.</string>
+
+    <string name="light">light</string>
+    <string name="dark">dark</string>
+    <string name="black">black</string>
+    <string name="textcolor">TextColor</string>
+
+    <string name="launcher_icon" translatable="false">Launcher Icon</string>
+    <string name="nothing_to_do_illustration" translatable="false">Nothing to Do Illustration</string>
+    <string name="color_button" translatable="false">Color Button</string>
+    <string name="button" translatable="false">Button</string>
 </resources>

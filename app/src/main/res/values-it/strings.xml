@@ -13,7 +13,7 @@
     <string name="navigation_header2">Categorie</string>
     <string name="navigation_header3">Aspetto</string>
     <string name="navigation_header4">Notifica</string>
-    <string name="navigation_header5">A proposito di...</string>
+    <string name="navigation_header5">A proposito di&#8230;</string>
     <string name="choose_a_category">Categorie selezionate</string>
     <string name="cancel">Cancella</string>
     <string name="you_have">Hai</string>
@@ -39,7 +39,7 @@
     <string name="now_the_Phone_will_vibrate_when_alarms_are_fired">Adesso il telefono vibrerà quando i promemoria verranno attivati</string>
     <string name="event_removed">TODO rimosso</string>
     <string name="undo">Annulla</string>
-    <string name="send_email">Invia un\'e-mail...</string>
+    <string name="send_email">Invia un\'e-mail&#8230;</string>
     <string name="do_not_remove">!!Non cancellare!!</string>
     <string name="dont_forget">Non dimenticare</string>
     <string name="version">Versione</string>
@@ -103,4 +103,8 @@
     <string name="experimental_feature">Experimental Feature</string>
     <string name="signin_dialog_experimental_feature">Please note that feature is still (very) experimental.
         \nThe developer does not take any responsibility for the loss of any TODOs.</string>
+    <string name="black">black</string>
+    <string name="dark">dark</string>
+    <string name="light">light</string>
+    <string name="textcolor">TextColor</string>
 </resources>

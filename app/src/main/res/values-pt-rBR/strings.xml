@@ -39,7 +39,7 @@
     <string name="now_the_Phone_will_vibrate_when_alarms_are_fired">Agora, o telefone vibrará quando os alarmes forem disparados</string>
     <string name="event_removed">TODO removido</string>
     <string name="undo">Desfazer</string>
-    <string name="send_email">Enviar email...</string>
+    <string name="send_email">Enviar email&#8230;</string>
     <string name="do_not_remove">!! Não DELETAR !!</string>
     <string name="dont_forget">Não esquecer</string>
     <string name="version">Versão</string>
@@ -104,4 +104,8 @@
     <string name="experimental_feature">Experimental Feature</string>
     <string name="signin_dialog_experimental_feature">Please note that feature is still (very) experimental.
         \nThe developer does not take any responsibility for the loss of any TODOs.</string>
+    <string name="black">black</string>
+    <string name="dark">dark</string>
+    <string name="light">light</string>
+    <string name="textcolor">TextColor</string>
 </resources>

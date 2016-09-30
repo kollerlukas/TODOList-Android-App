@@ -91,15 +91,19 @@ public class ThemeHelper {
     }
 
     public void restoreDefaultTheme(Context context, String theme) {
-        if (theme.equals("light")) {
-            toolbar_color = ContextCompat.getColor(context, R.color.white);
-            toolbar_textcolor = getDarkTextColor();
-        } else if (theme.equals("dark")) {
-            toolbar_color = ContextCompat.getColor(context, R.color.dark_background);
-            toolbar_textcolor = getLightTextColor();
-        } else {
-            toolbar_color = ContextCompat.getColor(context, R.color.black);
-            toolbar_textcolor = getLightTextColor();
+        switch (theme){
+            case "light":
+                toolbar_color = ContextCompat.getColor(context, R.color.white);
+                toolbar_textcolor = getDarkTextColor();
+                break;
+            case "dark":
+                toolbar_color = ContextCompat.getColor(context, R.color.dark_background);
+                toolbar_textcolor = getLightTextColor();
+                break;
+            default:
+                toolbar_color = ContextCompat.getColor(context, R.color.black);
+                toolbar_textcolor = getLightTextColor();
+                break;
         }
 
         cord_color = toolbar_color;
@@ -218,11 +222,11 @@ public class ThemeHelper {
     }
 
     public int getLightTextColor(){
-        return Color.argb(222, 255, 255, 255);
+        return Color.argb(255, 255, 255, 255);
     }
 
     public int getDarkTextColor(){
-        return Color.argb(138, 0, 0, 0);
+        return Color.argb(222, 0, 0, 0);
     }
 
     public void setEventColor(int index, int color){
@@ -319,7 +323,7 @@ public class ThemeHelper {
                 return Color.argb(96, 0, 0, 0);
             } else {
                 //dark
-                return Color.argb(138, 255, 255, 255);
+                return Color.argb(96, 255, 255, 255);
             }
         } else {
             return toolbar_textcolor;

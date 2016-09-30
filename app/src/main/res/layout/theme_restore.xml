@@ -12,6 +12,7 @@
         android:foreground="?android:attr/selectableItemBackground"
         android:padding="20dp"
         android:paddingStart="16dp"
+        android:paddingEnd="16dp"
         app:cardBackgroundColor="@color/transparent"
         app:cardCornerRadius="0dp"
         app:cardElevation="0dp">
@@ -24,7 +25,8 @@
             android:layout_gravity="center_vertical"
             android:layout_margin="5dp"
             android:paddingStart="16dp"
-            android:text="light"
+            android:paddingEnd="16dp"
+            android:text="@string/light"
             android:textColor="@color/grey700"
             android:textSize="20sp"/>
     </android.support.v7.widget.CardView>
@@ -37,6 +39,7 @@
         android:foreground="?android:attr/selectableItemBackground"
         android:padding="20dp"
         android:paddingStart="16dp"
+        android:paddingEnd="16dp"
         app:cardBackgroundColor="@color/transparent"
         app:cardCornerRadius="0dp"
         app:cardElevation="0dp">
@@ -49,7 +52,8 @@
             android:layout_gravity="center_vertical"
             android:layout_margin="5dp"
             android:paddingStart="16dp"
-            android:text="dark"
+            android:paddingEnd="16dp"
+            android:text="@string/dark"
             android:textColor="@color/grey700"
             android:textSize="20sp"/>
     </android.support.v7.widget.CardView>
@@ -62,6 +66,7 @@
         android:foreground="?android:attr/selectableItemBackground"
         android:padding="20dp"
         android:paddingStart="16dp"
+        android:paddingEnd="16dp"
         app:cardBackgroundColor="@color/transparent"
         app:cardCornerRadius="0dp"
         app:cardElevation="0dp">
@@ -74,7 +79,8 @@
             android:layout_gravity="center_vertical"
             android:layout_margin="5dp"
             android:paddingStart="16dp"
-            android:text="black"
+            android:paddingEnd="16dp"
+            android:text="@string/black"
             android:textColor="@color/grey700"
             android:textSize="20sp"/>
     </android.support.v7.widget.CardView>

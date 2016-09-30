@@ -208,7 +208,12 @@ public class SyncDataAsyncTask extends AsyncTask<Void, Void, String> {
 
             //remove Events from driveList
             for (int i = 0; i < todolist_rE.size(); i++){
-                driveList.remove(driveList.indexOf(todolist_rE.get(i)));
+                for (int k = 0; k < driveList.size(); k++){
+                    if(driveList.get(k).getId() == todolist_rE.get(i)){
+                        driveList.remove(k);
+                        break;
+                    }
+                }
             }
 
             //move Events

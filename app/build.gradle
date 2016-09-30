@@ -8,7 +8,7 @@ android {
         applicationId "us.koller.todolist"
         minSdkVersion 21
         targetSdkVersion 23
-        versionCode 35
+        versionCode 36
         versionName "2.0"
         manifestPlaceholders = [applicationLabel: "@string/app_name"]
     }
@@ -28,8 +28,8 @@ dependencies {
     compile 'com.android.support:cardview-v7:23.2.0'
     compile 'com.android.support:design:23.2.0'
 
-    compile 'com.google.android.gms:play-services-auth:9.6.0'
-    compile 'com.google.android.gms:play-services-drive:9.6.0'
+    compile 'com.google.android.gms:play-services-auth:9.6.1'
+    compile 'com.google.android.gms:play-services-drive:9.6.1'
 
     compile 'biz.kasual:materialnumberpicker:1.2.1'
 }

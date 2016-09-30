@@ -240,12 +240,13 @@ public class MainActivity extends AppCompatActivity
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
 
-        if (getResources().getBoolean(R.bool.tablet)) {
+        tablet = getResources().getBoolean(R.bool.tablet);
+        /*if (getResources().getBoolean(R.bool.tablet)) {
             tablet = true;
         } else {
             //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
             tablet = false;
-        }
+        }*/
 
         mDrawerToggle.syncState();
 
@@ -388,7 +389,8 @@ public class MainActivity extends AppCompatActivity
                     switch (actionState) {
                         case ItemTouchHelper.ACTION_STATE_DRAG:
                             elevateToolbar();
-                            viewHolder.itemView.setPressed(true);
+                            viewHolder.itemView.setPressed(false);
+                            viewHolder.itemView.setHovered(true);
 
                             isEventDraged = true;
                             if (!todolist.isAdapterListTodolist(mAdapter)) {
@@ -413,6 +415,9 @@ public class MainActivity extends AppCompatActivity
                             break;
 
                         case ItemTouchHelper.ACTION_STATE_SWIPE:
+                            viewHolder.itemView.setPressed(true);
+                            viewHolder.itemView.setHovered(false);
+
                             Display mdisp = getWindowManager().getDefaultDisplay();
                             Point mdispSize = new Point();
                             mdisp.getSize(mdispSize);
@@ -430,6 +435,7 @@ public class MainActivity extends AppCompatActivity
                     }
                     isEventDraged = false;
                     viewHolder.itemView.setPressed(false);
+                    viewHolder.itemView.setHovered(false);
                     handler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
@@ -629,7 +635,7 @@ public class MainActivity extends AppCompatActivity
         changeColorOfToolbarDrawerIcon(helper.getToolbarIconColor());
 
         mFab = (FloatingActionButton) findViewById(R.id.fab);
-        mFab.setBackgroundColor(helper.get("fab_color"));
+        mFab.setBackgroundTintList(ColorStateList.valueOf(helper.get("fab_color")));
         mFab.getDrawable().setTint(helper.get("fab_textcolor"));
         mFab.setRippleColor(ContextCompat.getColor(context, R.color.white));
 
@@ -704,7 +710,7 @@ public class MainActivity extends AppCompatActivity
     public void initSignInWithGoogle() {
         mSwipeRefreshLayout.setEnabled(false);
 
-        ((SignInButton) navigationView.getHeaderView(0).findViewById(R.id.sign_in_button))
+        navigationView.getHeaderView(0).findViewById(R.id.sign_in_button)
                 .setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -725,11 +731,11 @@ public class MainActivity extends AppCompatActivity
 
         if (!(boolean) settings.get("syncEnabled")) {
             personData.setVisibility(View.GONE);
-            ((SignInButton) navigationView.getHeaderView(0).findViewById(R.id.sign_in_button)).setVisibility(View.VISIBLE);
+            navigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
         } else {
             personData.setVisibility(View.VISIBLE);
             personEmail.setText("...");
-            ((SignInButton) navigationView.getHeaderView(0).findViewById(R.id.sign_in_button)).setVisibility(View.GONE);
+            navigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.GONE);
             OptionalPendingResult<GoogleSignInResult> opr
                     = Auth.GoogleSignInApi.silentSignIn(mGoogleApiClient);
             if (opr.isDone()) {
@@ -738,7 +744,7 @@ public class MainActivity extends AppCompatActivity
             } else {
                 opr.setResultCallback(new ResultCallback<GoogleSignInResult>() {
                     @Override
-                    public void onResult(GoogleSignInResult googleSignInResult) {
+                    public void onResult(@NonNull GoogleSignInResult googleSignInResult) {
                         handleSignInResult(googleSignInResult);
                     }
                 });
@@ -748,7 +754,7 @@ public class MainActivity extends AppCompatActivity
 
     public void signIn() {
         //show loading
-        ((SignInButton) navigationView.getHeaderView(0).findViewById(R.id.sign_in_button)).setVisibility(View.GONE);
+        navigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.GONE);
         personData.setVisibility(View.VISIBLE);
         this.personEmail.setText("...");
 
@@ -759,7 +765,7 @@ public class MainActivity extends AppCompatActivity
         Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
                 new ResultCallback<Status>() {
                     @Override
-                    public void onResult(Status status) {
+                    public void onResult(@NonNull Status status) {
                         // signed out!
                         settings.set("signedIn", false);
                         settings.set("syncEnabled", false);
@@ -777,7 +783,7 @@ public class MainActivity extends AppCompatActivity
         Auth.GoogleSignInApi.revokeAccess(mGoogleApiClient).setResultCallback(
                 new ResultCallback<Status>() {
                     @Override
-                    public void onResult(Status status) {/*noting*/}
+                    public void onResult(@NonNull Status status) {/*noting*/}
                 });
     }
 
@@ -803,7 +809,7 @@ public class MainActivity extends AppCompatActivity
                 personName = "";
             }
             String personEmail = acct.getEmail();
-            ((SignInButton) navigationView.getHeaderView(0).findViewById(R.id.sign_in_button)).setVisibility(View.GONE);
+            navigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.GONE);
             personData.setVisibility(View.VISIBLE);
             this.personName.setText(personName);
             this.personEmail.setText(personEmail);
@@ -842,7 +848,7 @@ public class MainActivity extends AppCompatActivity
             // not Signed in
             personData.setOnClickListener(null);
             personData.setVisibility(View.GONE);
-            ((SignInButton) navigationView.getHeaderView(0).findViewById(R.id.sign_in_button)).setVisibility(View.VISIBLE);
+            navigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
             syncDataMenuItem.setVisible(false);
             settings.set("syncEnabled", false);
             settings.set("signedIn", false);
@@ -3011,7 +3017,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onConnectionFailed(ConnectionResult result) {
+    public void onConnectionFailed(@NonNull ConnectionResult result) {
         // GoogleApiClient connection failed
     }
 }

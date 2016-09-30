@@ -68,7 +68,8 @@
                     android:src="@drawable/ic_color_select"
                     android:elevation="2dp"
                     android:padding="5dp"
-                    android:scaleType="fitCenter"/>
+                    android:scaleType="fitCenter"
+                    android:contentDescription="@string/color_button"/>
 
                 <ImageButton
                     android:id="@+id/color2_button"
@@ -80,7 +81,8 @@
                     android:src="@drawable/ic_color_select"
                     android:elevation="2dp"
                     android:padding="5dp"
-                    android:scaleType="fitCenter"/>
+                    android:scaleType="fitCenter"
+                    android:contentDescription="@string/color_button"/>
 
                 <ImageButton
                     android:id="@+id/color3_button"
@@ -92,7 +94,8 @@
                     android:src="@drawable/ic_color_select"
                     android:elevation="2dp"
                     android:padding="5dp"
-                    android:scaleType="fitCenter"/>
+                    android:scaleType="fitCenter"
+                    android:contentDescription="@string/color_button"/>
 
                 <ImageButton
                     android:id="@+id/color4_button"
@@ -104,7 +107,8 @@
                     android:src="@drawable/ic_color_select"
                     android:elevation="2dp"
                     android:padding="5dp"
-                    android:scaleType="fitCenter"/>
+                    android:scaleType="fitCenter"
+                    android:contentDescription="@string/color_button"/>
 
                 <ImageButton
                     android:id="@+id/color5_button"
@@ -116,7 +120,8 @@
                     android:src="@drawable/ic_color_select"
                     android:elevation="2dp"
                     android:padding="5dp"
-                    android:scaleType="fitCenter"/>
+                    android:scaleType="fitCenter"
+                    android:contentDescription="@string/color_button"/>
 
                 <ImageButton
                     android:id="@+id/color6_button"
@@ -128,7 +133,8 @@
                     android:src="@drawable/ic_color_select"
                     android:elevation="2dp"
                     android:padding="5dp"
-                    android:scaleType="fitCenter"/>
+                    android:scaleType="fitCenter"
+                    android:contentDescription="@string/color_button"/>
 
                 <ImageButton
                     android:id="@+id/color7_button"
@@ -140,7 +146,8 @@
                     android:src="@drawable/ic_color_select"
                     android:elevation="2dp"
                     android:padding="5dp"
-                    android:scaleType="fitCenter"/>
+                    android:scaleType="fitCenter"
+                    android:contentDescription="@string/color_button"/>
 
                 <ImageButton
                     android:id="@+id/color8_button"
@@ -152,7 +159,8 @@
                     android:src="@drawable/ic_color_select"
                     android:elevation="2dp"
                     android:padding="5dp"
-                    android:scaleType="fitCenter"/>
+                    android:scaleType="fitCenter"
+                    android:contentDescription="@string/color_button"/>
 
                 <ImageButton
                     android:id="@+id/color9_button"
@@ -164,7 +172,8 @@
                     android:src="@drawable/ic_color_select"
                     android:elevation="2dp"
                     android:padding="5dp"
-                    android:scaleType="fitCenter"/>
+                    android:scaleType="fitCenter"
+                    android:contentDescription="@string/color_button"/>
 
                 <ImageButton
                     android:id="@+id/color10_button"
@@ -176,7 +185,8 @@
                     android:src="@drawable/ic_color_select"
                     android:elevation="2dp"
                     android:padding="5dp"
-                    android:scaleType="fitCenter"/>
+                    android:scaleType="fitCenter"
+                    android:contentDescription="@string/color_button"/>
 
                 <ImageButton
                     android:id="@+id/color11_button"
@@ -188,7 +198,8 @@
                     android:src="@drawable/ic_color_select"
                     android:elevation="2dp"
                     android:padding="5dp"
-                    android:scaleType="fitCenter"/>
+                    android:scaleType="fitCenter"
+                    android:contentDescription="@string/color_button"/>
 
                 <ImageButton
                     android:id="@+id/color12_button"
@@ -200,7 +211,8 @@
                     android:src="@drawable/ic_color_select"
                     android:elevation="2dp"
                     android:padding="5dp"
-                    android:scaleType="fitCenter"/>
+                    android:scaleType="fitCenter"
+                    android:contentDescription="@string/color_button"/>
             </LinearLayout>
         </HorizontalScrollView>
     </RelativeLayout>

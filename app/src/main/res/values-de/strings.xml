@@ -39,7 +39,7 @@
     <string name="now_the_Phone_will_vibrate_when_alarms_are_fired">Jetzt vibriert das Handy wenn ein Wecker klingelt</string>
     <string name="event_removed">TODO entfernt</string>
     <string name="undo">Rückgängig</string>
-    <string name="send_email">Email senden...</string>
+    <string name="send_email">Email senden&#8230;</string>
     <string name="do_not_remove">!!Nicht löschen!!</string>
     <string name="dont_forget">Nicht vergessen</string>
     <string name="version">Version</string>
@@ -105,4 +105,8 @@
     <string name="signin_dialog_experimental_feature">
         Bitte nehmen Sie zur Kenntnis, dass dieses Feature noch (sehr) experiementell ist.
         \nDer Entwickler nimmt keine Haftung für den Verlust von TODOs, und somit auch nicht für das eventuelle Verpassen von Terminen.</string>
+    <string name="light">light</string>
+    <string name="dark">dark</string>
+    <string name="black">black</string>
+    <string name="textcolor">TextColor</string>
 </resources>

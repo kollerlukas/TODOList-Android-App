@@ -18,7 +18,7 @@ public class WidgetProvider_add extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds){
-        RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.add_event_widget_layout);
+        RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.fab_widget);
         Intent intent = new Intent(context, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         intent.setAction("widget_button");

@@ -1,44 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-              android:orientation="vertical"
-              android:paddingTop="24dp"
-              android:background="@color/black_semi_transparent">
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="24dp"
+        android:background="@color/black_semi_transparent">
 
     <com.google.android.gms.common.SignInButton
-        android:id="@+id/sign_in_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal|center_vertical"
-        android:layout_marginBottom="16dp"
-        android:layout_marginTop="16dp"/>
+            android:id="@+id/sign_in_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal|center_vertical"
+            android:layout_marginBottom="16dp"
+            android:layout_marginTop="16dp"/>
 
     <RelativeLayout
-        android:id="@+id/personData"
-        android:layout_gravity="center_vertical"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_marginBottom="16dp"
-        android:paddingTop="16dp"
-        android:paddingStart="16dp"
-        android:visibility="gone">
+            android:id="@+id/personData"
+            android:layout_gravity="center_vertical"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginBottom="16dp"
+            android:paddingTop="16dp"
+            android:paddingStart="16dp"
+            android:visibility="gone">
 
         <TextView
-            android:id="@+id/personName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
-            android:textColor="@color/white"
-            android:textSize="14sp"/>
+                android:id="@+id/personName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/white"
+                android:textSize="14sp"/>
 
         <TextView
-            android:id="@+id/personEmail"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/personName"
-            android:fontFamily="sans-serif"
-            android:textColor="@color/white"
-            android:textSize="14sp"/>
+                android:id="@+id/personEmail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/personName"
+                android:fontFamily="sans-serif"
+                android:textColor="@color/white"
+                android:textSize="14sp"/>
     </RelativeLayout>
 </LinearLayout>
