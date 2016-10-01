@@ -502,7 +502,9 @@ public class MainActivity extends AppCompatActivity
 
         RVAdapter.EventViewHolder holder
                 = (RVAdapter.EventViewHolder) mRecyclerView.findViewHolderForAdapterPosition(mAdapter.mExpandedPosition);
-        holder.collapse();
+        if(holder != null){
+            holder.collapse();
+        }
         mAdapter.mExpandedPosition = -1;
     }
 
@@ -1437,6 +1439,12 @@ public class MainActivity extends AppCompatActivity
                 .setTitle(getString(R.string.choose_a_color))
                 .setCancelable(true)
                 .setNegativeButton(getString(R.string.cancel), null)
+                .setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        dialog = null;
+                    }
+                })
                 .create();
         //dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimations;
         dialog.show();
@@ -1662,6 +1670,8 @@ public class MainActivity extends AppCompatActivity
                         anim.setDuration(100);
                         fab.startAnimation(anim);
                         fab.setVisibility(View.VISIBLE);
+
+                        dialog = null;
                     }
                 })
                 .create();
@@ -1711,7 +1721,7 @@ public class MainActivity extends AppCompatActivity
             am_pm = " am";
         }
 
-        if (Hour > 11 && !timeFormat) {
+        if (Hour > 12 && !timeFormat) {
             Hour = Hour - 12;
             am_pm = " pm";
         }
@@ -2309,6 +2319,7 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onDismiss(DialogInterface dialog) {
                         colorSelectedCallback = null;
+                        dialog = null;
                     }
                 })
                 .create();
@@ -2839,6 +2850,12 @@ public class MainActivity extends AppCompatActivity
                         initTheme();
                     }
                 })
+                .setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        dialog = null;
+                    }
+                })
                 .create();
         dialog.show();
         changeDialogButtonColor(dialog);
@@ -2927,6 +2944,12 @@ public class MainActivity extends AppCompatActivity
                         }
 
                         todolist.addOrRemoveEventFromAdapter(mAdapter);
+                    }
+                })
+                .setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        dialog = null;
                     }
                 })
                 .create();

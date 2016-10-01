@@ -40,9 +40,6 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
         CardView card;
         CardView card_action_view;
 
-        private RelativeLayout reveal_bg;
-        private RelativeLayout relative_layout;
-
         private TextView textview;
 
         private ImageView color_button;
@@ -65,9 +62,8 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             super(v);
 
             card = (CardView) v.findViewById(R.id.card);
-            reveal_bg = (RelativeLayout) v.findViewById(R.id.rl_card);
             card_action_view = (CardView) v.findViewById(R.id.card_action_buttons);
-            relative_layout = (RelativeLayout) v.findViewById(R.id.relative_layout);
+
             textview = (TextView) v.findViewById(R.id.event_name);
 
             color_button = (ImageView) v.findViewById(R.id.color_button);
@@ -157,6 +153,8 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
         public void changeCardColorAnim(final Context context, final int color, final int textColor) {
             colorAnimRunning = true;
 
+            final RelativeLayout reveal_bg = (RelativeLayout) itemView.findViewById(R.id.rl_card);
+
             final Drawable reveal_bg_d = ContextCompat.getDrawable(context, R.drawable.card_reveal_bg);
             reveal_bg_d.setColorFilter(color, PorterDuff.Mode.SRC_IN);
 
@@ -198,9 +196,9 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             });
 
             Animator animator = ViewAnimationUtils.createCircularReveal(reveal_bg,
-                    color_button.getWidth() / 2 + color_button.getLeft() + relative_layout.getLeft() + card_action_view.getLeft(),
-                    color_button.getHeight() / 2 + color_button.getTop() + relative_layout.getTop() + card_action_view.getTop()
-                    , 0, reveal_bg.getWidth());
+                    color_button.getWidth() / 2 + color_button.getLeft() + card_action_view.getLeft(),
+                    color_button.getHeight() / 2 + color_button.getTop() + card_action_view.getTop(),
+                    0, reveal_bg.getWidth());
             animator.setDuration(1000);
             animator.setStartDelay(250);
             animator.addListener(new Animator.AnimatorListener() {
@@ -388,6 +386,19 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             eventViewHolder.setSemiTransparent(false);
         }
         eventViewHolder.initCard();
+
+        if(mExpandedPosition != i){
+            //eventViewHolder.collapse();
+            eventViewHolder.card_action_view.setVisibility(View.GONE);
+            eventViewHolder.color_button.setImageDrawable(null);
+            eventViewHolder.color_anim = null;
+            eventViewHolder.edit_button.setImageDrawable(null);
+            eventViewHolder.edit_anim = null;
+            eventViewHolder.alarm_button.setImageDrawable(null);
+            eventViewHolder.alarm_anim = null;
+        } else {
+            eventViewHolder.expand();
+        }
     }
 
     @Override
