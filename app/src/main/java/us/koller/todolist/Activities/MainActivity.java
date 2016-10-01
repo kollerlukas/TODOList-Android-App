@@ -5,7 +5,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.OptionalPendingResult;
@@ -18,6 +17,7 @@ import com.google.android.gms.drive.DriveFolder;
 import com.google.android.gms.drive.DriveId;
 import com.google.android.gms.drive.DriveStatusCodes;
 
+import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.DatePickerDialog;
@@ -78,6 +78,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -341,6 +342,16 @@ public class MainActivity extends AppCompatActivity
         });
 
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
+        setOnRefreshListener(false);
+    }
+
+    public void setOnRefreshListener(boolean setListener){
+        if(!setListener){
+            mSwipeRefreshLayout.setOnRefreshListener(null);
+            mSwipeRefreshLayout.setEnabled(false);
+            return;
+        }
+
         mRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -349,6 +360,7 @@ public class MainActivity extends AppCompatActivity
             }
         };
         mSwipeRefreshLayout.setOnRefreshListener(mRefreshListener);
+        mSwipeRefreshLayout.setEnabled(true);
     }
 
     public void addOnItemTouchListenerToRecyclerView() {
@@ -460,7 +472,7 @@ public class MainActivity extends AppCompatActivity
                 RVAdapter.EventViewHolder viewHolder = (RVAdapter.EventViewHolder) holder;
                 if (shareEvents) {
                     viewHolder.setSemiTransparent(!viewHolder.semiTransparent);
-                    viewHolder.initCard(context);
+                    viewHolder.initCard();
 
                     if (!eventsToShare.contains(mAdapter.getList().get(position))) {
                         eventsToShare.add(mAdapter.getList().get(position));
@@ -524,7 +536,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
         mDrawerToggle.setDrawerIndicatorEnabled(true);
-        mDrawerLayout.setDrawerListener(mDrawerToggle);
+        mDrawerLayout.addDrawerListener(mDrawerToggle);
         navigationView
                 = (NavigationView) findViewById(R.id.navigation_view);
         NavigationMenuView navigationMenuView
@@ -629,6 +641,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         helper = new ThemeHelper(context);
+        mAdapter.setThemeHelper(helper);
 
         mToolbar.setBackgroundColor(helper.get("toolbar_color"));
         mToolbar.setTitleTextColor(helper.get("toolbar_textcolor"));
@@ -708,8 +721,6 @@ public class MainActivity extends AppCompatActivity
     //<DriveSync Methods>
 
     public void initSignInWithGoogle() {
-        mSwipeRefreshLayout.setEnabled(false);
-
         navigationView.getHeaderView(0).findViewById(R.id.sign_in_button)
                 .setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -733,9 +744,11 @@ public class MainActivity extends AppCompatActivity
             personData.setVisibility(View.GONE);
             navigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
         } else {
-            personData.setVisibility(View.VISIBLE);
-            personEmail.setText("...");
             navigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.GONE);
+            personData.setVisibility(View.VISIBLE);
+            this.personName.setText("");
+            this.personEmail.setText("...");
+
             OptionalPendingResult<GoogleSignInResult> opr
                     = Auth.GoogleSignInApi.silentSignIn(mGoogleApiClient);
             if (opr.isDone()) {
@@ -756,9 +769,31 @@ public class MainActivity extends AppCompatActivity
         //show loading
         navigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.GONE);
         personData.setVisibility(View.VISIBLE);
+        this.personName.setText("");
         this.personEmail.setText("...");
 
         startActivityForResult(Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient), RC_SIGN_IN);
+    }
+
+    public void signOutDialog(){
+        mDrawerLayout.closeDrawers();
+        String content = getString(R.string.signOutDialog_content);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context, getDialogTheme());
+        builder.setMessage(content)
+                .setTitle(getString(R.string.signOut))
+                .setPositiveButton(getString(R.string.yes), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (mGoogleApiClient.isConnected()) {
+                            //revokeAccess();
+                            signOut();
+                        }
+                    }
+                })
+                .setNegativeButton(getString(R.string.no), null);
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        changeDialogButtonColor(dialog);
     }
 
     private void signOut() {
@@ -771,7 +806,7 @@ public class MainActivity extends AppCompatActivity
                         settings.set("syncEnabled", false);
                         settings.set("lastSyncTimeStamp", (long) 0);
 
-                        mSwipeRefreshLayout.setEnabled(false);
+                        setOnRefreshListener(false);
                         syncDataMenuItem.setVisible(false);
                         initSignInWithGoogle();
                     }
@@ -792,10 +827,8 @@ public class MainActivity extends AppCompatActivity
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         switch (requestCode) {
             case RC_SIGN_IN:
-                if (resultCode == RESULT_OK) {
-                    handleSignInResult(
-                            Auth.GoogleSignInApi.getSignInResultFromIntent(intent));
-                }
+                handleSignInResult(
+                        Auth.GoogleSignInApi.getSignInResultFromIntent(intent));
                 break;
         }
     }
@@ -804,11 +837,14 @@ public class MainActivity extends AppCompatActivity
         if (result.isSuccess()) {
             // Signed in successfully
             GoogleSignInAccount acct = result.getSignInAccount();
-            String personName = acct.getDisplayName();
-            if (personName == null) {
+            String personName, personEmail;
+            if(acct != null){
+                personName = acct.getDisplayName();
+                personEmail = acct.getEmail();
+            } else {
                 personName = "";
+                personEmail = "";
             }
-            String personEmail = acct.getEmail();
             navigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.GONE);
             personData.setVisibility(View.VISIBLE);
             this.personName.setText(personName);
@@ -817,32 +853,14 @@ public class MainActivity extends AppCompatActivity
             personData.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mDrawerLayout.closeDrawers();
-                    String content = getString(R.string.signOutDialog_content);
-                    AlertDialog.Builder builder
-                            = new AlertDialog.Builder(context, getDialogTheme());
-                    builder.setMessage(content)
-                            .setTitle(getString(R.string.signOut))
-                            .setPositiveButton(getString(R.string.yes), new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    if (mGoogleApiClient.isConnected()) {
-                                        //revokeAccess();
-                                        signOut();
-                                    }
-                                }
-                            })
-                            .setNegativeButton(getString(R.string.no), null);
-                    AlertDialog dialog = builder.create();
-                    dialog.show();
-                    changeDialogButtonColor(dialog);
+                    signOutDialog();
                 }
             });
             //syncDataMenuItem.setVisible(true);
             settings.set("syncEnabled", true);
             settings.set("signedIn", true);
 
-            mSwipeRefreshLayout.setEnabled(true);
+            setOnRefreshListener(true);
         } else {
             showToast("SignIn not successful!");
             // not Signed in
@@ -853,7 +871,7 @@ public class MainActivity extends AppCompatActivity
             settings.set("syncEnabled", false);
             settings.set("signedIn", false);
 
-            mSwipeRefreshLayout.setEnabled(false);
+            setOnRefreshListener(false);
         }
     }
 
@@ -1093,9 +1111,7 @@ public class MainActivity extends AppCompatActivity
         try {
             statusCode = new EditFileInAppFolder(mGoogleApiClient, data)
                     .execute(file).get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
+        } catch (InterruptedException|ExecutionException e) {
             e.printStackTrace();
         }
 
@@ -1118,7 +1134,7 @@ public class MainActivity extends AppCompatActivity
             Drive.DriveApi.newDriveContents(mGoogleApiClient).setResultCallback(
                     new ResultCallback<DriveApi.DriveContentsResult>() {
                         @Override
-                        public void onResult(DriveApi.DriveContentsResult result) {
+                        public void onResult(@NonNull DriveApi.DriveContentsResult result) {
                             if (!result.getStatus().isSuccess()) {
                                 showToast("Error while trying to create new file contents");
                                 mSwipeRefreshLayout.setRefreshing(false);
@@ -1127,7 +1143,7 @@ public class MainActivity extends AppCompatActivity
                             new CreateFile(mGoogleApiClient,
                                     new ResultCallback<DriveFolder.DriveFileResult>() {
                                         @Override
-                                        public void onResult(DriveFolder.DriveFileResult result) {
+                                        public void onResult(@NonNull DriveFolder.DriveFileResult result) {
                                             if (!result.getStatus().isSuccess()) {
                                                 showToast("Error while trying to create a file; Status-Code: "
                                                         + result.getStatus().getStatusMessage());
@@ -1441,8 +1457,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void EditButtonClicked(final Event e) {
-        final LayoutInflater inputDialog_layout = getLayoutInflater();
-        final View inputDialog = inputDialog_layout.inflate(R.layout.input_dialog, null);
+        //final LayoutInflater inputDialog_layout = getLayoutInflater();
+        final View inputDialog = View.inflate(context, R.layout.input_dialog, null);
         final EditText editText = (EditText) inputDialog.findViewById(R.id.edit_text);
         editText.setTextColor(getDialogTextColor());
         editText.setText(e.getWhatToDo());
@@ -1478,7 +1494,6 @@ public class MainActivity extends AppCompatActivity
                 });
 
         final AlertDialog input_dialog = input_dialog_builder.create();
-        input_dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimations;
         input_dialog.show();
         changeDialogButtonColor(input_dialog);
     }
@@ -1529,8 +1544,7 @@ public class MainActivity extends AppCompatActivity
         });
         fab.startAnimation(anim);
 
-        final LayoutInflater inputDialog_layout = this.getLayoutInflater();
-        final View inputDialog = inputDialog_layout.inflate(R.layout.add_event_dialog, null);
+        final View inputDialog = View.inflate(context, R.layout.add_event_dialog, null);
         final TextInputEditText editText = (TextInputEditText) inputDialog.findViewById(R.id.edit_text);
         final RadioButton color_rb = (RadioButton) inputDialog.findViewById(R.id.radio_button_color);
         final HorizontalScrollView horizontalScrollView
@@ -1700,8 +1714,7 @@ public class MainActivity extends AppCompatActivity
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis((long) e.getAlarm().get("time"));
 
-        android.text.format.DateFormat dateFormat = new android.text.format.DateFormat();
-        boolean timeFormat = dateFormat.is24HourFormat(this);
+        boolean timeFormat = android.text.format.DateFormat.is24HourFormat(this);
 
         int Hour = calendar.get(Calendar.HOUR_OF_DAY);
 
@@ -1711,7 +1724,7 @@ public class MainActivity extends AppCompatActivity
             am_pm = " am";
         }
 
-        if (Hour > 12 && !timeFormat) {
+        if (Hour > 11 && !timeFormat) {
             Hour = Hour - 12;
             am_pm = " pm";
         }
@@ -1735,10 +1748,9 @@ public class MainActivity extends AppCompatActivity
         String content = "<b>" + s + " "
                 + getString(R.string.at)
                 + " " + Hour + ":"
-                + String.format("%02d", Minutes) + am_pm + "</b>";
+                + String.format(getResources().getConfiguration().locale, "%02d", Minutes) + am_pm + "</b>";
 
-        final LayoutInflater layoutInflater = this.getLayoutInflater();
-        final View alarm_info_dialog = layoutInflater.inflate(R.layout.alarm_info_dialog, null);
+        final View alarm_info_dialog = View.inflate(context, R.layout.alarm_info_dialog, null);
 
         final TextView alarmInfoText1 = (TextView) alarm_info_dialog.findViewById(R.id.alarmInfoText1);
         alarmInfoText1.setText(Html.fromHtml(getString(R.string.alarm_scheduled_for)));
@@ -1831,7 +1843,7 @@ public class MainActivity extends AppCompatActivity
         final AppCompatSpinner spinner = (AppCompatSpinner) alarm_info_dialog.findViewById(R.id.spinner);
         spinner.setEnabled((boolean) e.getAlarm().get("repeating"));
 
-        final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, state);
+        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, state);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
         spinner.setSupportBackgroundTintList(getColorStateListForSpinner());
@@ -1974,8 +1986,10 @@ public class MainActivity extends AppCompatActivity
                     }
                 })
                 .create();
-        alarmInfoDialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimations;
-        alarmInfoDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+        Window w = alarmInfoDialog.getWindow();
+        if(w != null){
+            w.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+        }
         alarmInfoDialog.show();
         changeDialogButtonColor(alarmInfoDialog);
     }
@@ -2079,18 +2093,26 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    @SuppressWarnings("deprecation")
     public void ShowAlarmTimePicker(final Event e, final Calendar alarmDate) {
         Calendar calendar = Calendar.getInstance(TimeZone.getDefault());
         calendar.add(Calendar.MINUTE, 1);
         int theme;
-        if (helper.lightCordColor()) {
-            theme = TimePickerDialog.THEME_DEVICE_DEFAULT_LIGHT;
+        if(android.os.Build.VERSION.SDK_INT > 21){
+            if (helper.lightCordColor()) {
+                theme = android.R.style.Theme_DeviceDefault_Light_Dialog_Alert;
+            } else {
+                theme = android.R.style.Theme_DeviceDefault_Dialog_Alert;
+            }
         } else {
-            theme = TimePickerDialog.THEME_DEVICE_DEFAULT_DARK;
+            if (helper.lightCordColor()) {
+                theme = TimePickerDialog.THEME_DEVICE_DEFAULT_LIGHT;
+            } else {
+                theme = TimePickerDialog.THEME_DEVICE_DEFAULT_DARK;
+            }
         }
 
-        android.text.format.DateFormat dateFormat = new android.text.format.DateFormat();
-        boolean timeFormat = dateFormat.is24HourFormat(this);
+        boolean timeFormat = android.text.format.DateFormat.is24HourFormat(this);
 
         TimePickerDialog timePickerDialog = new TimePickerDialog(context, theme,
                 new TimePickerDialog.OnTimeSetListener() {
@@ -2110,14 +2132,24 @@ public class MainActivity extends AppCompatActivity
         timePickerDialog.show();
     }
 
+    @SuppressWarnings("deprecation")
     public void showAlarmDatePicker(final Event e) {
         final Calendar calendar = Calendar.getInstance(TimeZone.getDefault());
         int theme;
-        if (helper.lightCordColor()) {
-            theme = DatePickerDialog.THEME_DEVICE_DEFAULT_LIGHT;
+        if(android.os.Build.VERSION.SDK_INT > 21){
+            if (helper.lightCordColor()) {
+                theme = android.R.style.Theme_DeviceDefault_Light_Dialog_Alert;
+            } else {
+                theme = android.R.style.Theme_DeviceDefault_Dialog_Alert;
+            }
         } else {
-            theme = DatePickerDialog.THEME_DEVICE_DEFAULT_DARK;
+            if (helper.lightCordColor()) {
+                theme = TimePickerDialog.THEME_DEVICE_DEFAULT_LIGHT;
+            } else {
+                theme = TimePickerDialog.THEME_DEVICE_DEFAULT_DARK;
+            }
         }
+
         DatePickerDialog datePickerDialog =
                 new DatePickerDialog(context, theme, new DatePickerDialog.OnDateSetListener() {
                     @Override
@@ -2334,7 +2366,7 @@ public class MainActivity extends AppCompatActivity
             return;
         }
         if (illustration.getVisibility() != View.VISIBLE) {
-            Animation anim = AnimationUtils.loadAnimation(this, R.anim.abc_fade_in);
+            Animation anim = AnimationUtils.loadAnimation(this, R.anim.fade_in);
             anim.setStartOffset(300);
             anim.setDuration(500);
             anim.setAnimationListener(new Animation.AnimationListener() {
@@ -2356,7 +2388,7 @@ public class MainActivity extends AppCompatActivity
     public void removeNothingTodo() {
         final ImageView illustration = (ImageView) findViewById(R.id.nothing_todo);
         if (!(illustration.getVisibility() == View.GONE)) {
-            Animation fadeOut = AnimationUtils.loadAnimation(this, R.anim.abc_fade_out);
+            Animation fadeOut = AnimationUtils.loadAnimation(this, R.anim.fade_out);
             fadeOut.setAnimationListener(new Animation.AnimationListener() {
                 @Override
                 public void onAnimationStart(Animation animation) {
@@ -2378,8 +2410,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void checkToolbarElevation() {
-        if (((int) helper.get("cord_color"))
-                != ((int) helper.get("toolbar_color"))) {
+        if (helper.get("cord_color") != helper.get("toolbar_color")) {
             elevateToolbar();
             return;
         }
@@ -2478,8 +2509,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public View inflateCategorySelector() {
-        LayoutInflater layoutInflater = this.getLayoutInflater();
-        View layout = layoutInflater.inflate(R.layout.color_selector, null);
+        View layout = View.inflate(context, R.layout.color_selector, null);
         final ImageButton[] buttons = getColorButtons(layout);
 
         int[] sortedColors = helper.getSortedColorsColorSelect();
@@ -2504,8 +2534,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public View inflateColorSelector() {
-        LayoutInflater layoutInflater = this.getLayoutInflater();
-        View layout = layoutInflater.inflate(R.layout.color_selector, null);
+        View layout = View.inflate(context, R.layout.color_selector, null);
         final ImageButton[] buttons = getColorButtons(layout);
 
         int[] sortedColors = helper.getSortedColorsColorSelect();
@@ -2558,7 +2587,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         fabShareAnim(true);
-        mSwipeRefreshLayout.setEnabled(false);
+        setOnRefreshListener(false);
         closeOpenCard();
 
         eventsToShare = new ArrayList<>();
@@ -2590,7 +2619,7 @@ public class MainActivity extends AppCompatActivity
                 fabShareAnim(false);
 
                 if ((boolean) settings.get("signedIn")) {
-                    mSwipeRefreshLayout.setEnabled(true);
+                    setOnRefreshListener(true);
                 }
 
                 shareEvents = false;
@@ -2724,6 +2753,7 @@ public class MainActivity extends AppCompatActivity
         sendBroadcast(intent);
     }
 
+    @SuppressLint("Deprecated")
     public void checkEventRemoved() {
         ArrayList<Long> eventsToRemove;
         try {
@@ -2731,9 +2761,7 @@ public class MainActivity extends AppCompatActivity
             for (int i = 0; i < eventsToRemove.size(); i++) {
                 removeEventNotifDoneButton(eventsToRemove.get(i));
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (FileNotFoundException e) {
+        } catch (JSONException| FileNotFoundException e) {
             e.printStackTrace();
         }
     }
@@ -2785,8 +2813,7 @@ public class MainActivity extends AppCompatActivity
             return;
         }
 
-        LayoutInflater layoutInflater = this.getLayoutInflater();
-        View layout = layoutInflater.inflate(R.layout.import_theme_dialog, null);
+        View layout = View.inflate(context, R.layout.import_theme_dialog, null);
 
         ListView list = (ListView) layout.findViewById(R.id.import_theme_list);
         ImportListViewAdapter adapter = new ImportListViewAdapter(context, colors, importHelper);
@@ -2859,8 +2886,7 @@ public class MainActivity extends AppCompatActivity
             return;
         }
 
-        LayoutInflater layoutInflater = this.getLayoutInflater();
-        View layout = layoutInflater.inflate(R.layout.import_events_list_view, null);
+        View layout = View.inflate(context, R.layout.import_events_list_view, null);
 
         ListView list = (ListView) layout.findViewById(R.id.widget_list);
         ImportListViewAdapter adapter = new ImportListViewAdapter(context, events,
@@ -2899,7 +2925,7 @@ public class MainActivity extends AppCompatActivity
                         if (events.size() > 0 && todolist.getTodolistArray().size() == 0) {
                             removeNothingTodo();
                         }
-                        ArrayList<Event> importEvents = new ArrayList<Event>();
+                        ArrayList<Event> importEvents = new ArrayList<>();
                         for (int k = 0; k < whichEventsToImport.length; k++) {
                             if (whichEventsToImport[k]) {
                                 importEvents.add(events.get(k));
@@ -2925,18 +2951,12 @@ public class MainActivity extends AppCompatActivity
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         mDrawerToggle.onConfigurationChanged(newConfig);
+        checkToolbarElevation();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        /*for (int i = 0; i < mToolbar.getMenu().size(); i++) {
-            if (mToolbar.getMenu().getItem(i).getItemId() == R.id.share_todos) {
-                //shareIcon = mToolbar.getMenu().getItem(i);
-                //shareIcon.getIcon().setColorFilter(helper.get("toolbar_textcolor"), PorterDuff.Mode.SRC_IN);
-                //shareIcon.getIcon().setColorFilter(helper.getToolbarIconColor(), PorterDuff.Mode.SRC_IN);
-            }
-        }*/
         return true;
     }
 

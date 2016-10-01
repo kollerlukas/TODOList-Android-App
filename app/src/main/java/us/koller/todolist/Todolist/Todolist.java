@@ -18,8 +18,7 @@ import us.koller.todolist.RecyclerViewAdapters.RVAdapter;
 import us.koller.todolist.Settings;
 
 /**
- * Write a description of class Todolist here.
- * Todolist manages your EVENTs.
+ * Write a description of class Todolist here. Todolist manages your EVENTs.
  *
  * @author (Lukas Koller)
  * @version (1.0)
@@ -59,9 +58,7 @@ public class Todolist {
         //readSettings(context);
         try {
             readData(context);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (FileNotFoundException e) {
+        } catch (JSONException|FileNotFoundException e) {
             e.printStackTrace();
         }
     }
@@ -132,7 +129,7 @@ public class Todolist {
         return false;
     }
 
-    public ArrayList initAdapterList() {
+    public ArrayList<Event> initAdapterList() {
         ArrayList<Event> adapter_list = new ArrayList<>();
         for (int i = 0; i < todolist.size(); i++) {
             if (settings.getCategory(todolist.get(i).getColor())) {
@@ -237,11 +234,11 @@ public class Todolist {
         }
     }
 
-    public void saveRemovedEvents(Context context) throws JSONException {
+    private void saveRemovedEvents(Context context) throws JSONException {
         saveFile(context, "removedEvents", getRemovedEventsString());
     }
 
-    public void saveAddedEvents(Context context) throws JSONException {
+    private void saveAddedEvents(Context context) throws JSONException {
         saveFile(context, "addedEvents", getAddedEventsString());
     }
 
@@ -263,7 +260,7 @@ public class Todolist {
         return array.toString();
     }
 
-    public String getRemovedEventsString() throws JSONException {
+    private String getRemovedEventsString() throws JSONException {
         JSONArray array = new JSONArray();
         for (int i = 0; i < removedEvents.size(); i++) {
             array.put(removedEvents.get(i));
@@ -271,7 +268,7 @@ public class Todolist {
         return array.toString();
     }
 
-    public String getAddedEventsString() throws JSONException {
+    private String getAddedEventsString() throws JSONException {
         JSONArray array = new JSONArray();
         for (int i = 0; i < addedEvents.size(); i++) {
             array.put(addedEvents.get(i));
@@ -279,7 +276,7 @@ public class Todolist {
         return array.toString();
     }
 
-    public void readData(Context context) throws JSONException, FileNotFoundException {
+    private void readData(Context context) throws JSONException, FileNotFoundException {
         String data = readFile(context, "events");
         JSONArray array = new JSONArray(data);
         for (int i = 0; i < array.length(); i++) {
@@ -306,12 +303,12 @@ public class Todolist {
             throws JSONException, FileNotFoundException {
         String data = readFile(context, "events");
         JSONArray array = new JSONArray(data);
-        ArrayList<Long> newList = new ArrayList();
+        ArrayList<Long> newList = new ArrayList<>();
         for (int i = 0; i < array.length(); i++) {
             Event e = new Event(array.getJSONObject(i));
             newList.add(e.getId());
         }
-        ArrayList<Long> currentList = new ArrayList();
+        ArrayList<Long> currentList = new ArrayList<>();
         for (int i = 0; i < todolist.size(); i++) {
             currentList.add(todolist.get(i).getId());
         }
@@ -319,16 +316,14 @@ public class Todolist {
         return currentList;
     }
 
-    public String readFile(Context context, String filename) {
+    private String readFile(Context context, String filename) {
         StringBuilder sb = new StringBuilder();
         try {
             FileInputStream fis = context.openFileInput(filename);
             BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
             String line;
-            if (fis != null) {
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line + "\n");
-                }
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\n");
             }
             fis.close();
         } catch (IOException e) {
@@ -338,14 +333,12 @@ public class Todolist {
         return sb.toString();
     }
 
-    public void saveFile(Context context, String filename, String data)
+    private void saveFile(Context context, String filename, String data)
             throws JSONException {
         try {
             FileOutputStream fos = context.openFileOutput(filename, Context.MODE_PRIVATE);
             fos.write(data.getBytes());
             fos.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }

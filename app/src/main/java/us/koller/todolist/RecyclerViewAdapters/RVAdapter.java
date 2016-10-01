@@ -11,7 +11,6 @@ import android.support.graphics.drawable.AnimatedVectorDrawableCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -21,11 +20,10 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import us.koller.todolist.R;
-
 import java.util.ArrayList;
 import java.util.Collections;
 
+import us.koller.todolist.R;
 import us.koller.todolist.Todolist.Event;
 import us.koller.todolist.Util.Callbacks.CardActionButtonOnClickCallback;
 import us.koller.todolist.Util.DPCalc;
@@ -37,8 +35,10 @@ import us.koller.todolist.Util.ThemeHelper;
 public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
 
     public class EventViewHolder extends RecyclerView.ViewHolder implements OnClickListener {
-        public CardView card;
-        public CardView card_action_view;
+        Event event;
+
+        CardView card;
+        CardView card_action_view;
 
         private RelativeLayout reveal_bg;
         private RelativeLayout relative_layout;
@@ -55,22 +55,14 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
         private AnimatedVectorDrawableCompat alarm_anim;
 
         public boolean semiTransparent = false;
-        public boolean isAnimationRunning = false;
-
-        public Event event;
-
-        private CardActionButtonOnClickCallback onClickCallback;
-
-        private int fullActionButtonCardHeight;
+        boolean isAnimationRunning = false;
 
         // if card is collapsed during colorAnim; because collapse remove vectorDrawables
         private boolean colorAnimRunning = false;
         private boolean pendindCollapse = false;
 
-        EventViewHolder(CardActionButtonOnClickCallback onClickCallback, Context context, View v) {
+        EventViewHolder(View v) {
             super(v);
-
-            this.onClickCallback = onClickCallback;
 
             card = (CardView) v.findViewById(R.id.card);
             reveal_bg = (RelativeLayout) v.findViewById(R.id.rl_card);
@@ -89,23 +81,17 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             alarm_button.setOnClickListener(this);
 
             card_action_view.setVisibility(View.GONE);
-
-            fullActionButtonCardHeight
-                    = (int) DPCalc.dpIntoPx(context.getResources(), 45);
         }
 
-        public void setEvent(Event event) {
+        void setEvent(Event event) {
             this.event = event;
         }
 
-        public void initCard(Context context) {
-            ThemeHelper helper = new ThemeHelper(context, event.getColor());
+        public void initCard() {
             textview.setText(event.getWhatToDo());
             if (!semiTransparent) {
                 setColor(helper.getEventColor(event.getColor()),
                         helper.getEventTextColor(event.getColor()));
-                card.setElevation(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
-                        2, context.getResources().getDisplayMetrics()));
             } else {
                 setColor(helper.getEventColor_semitransparent(event.getColor()),
                         helper.getEventTextColor_semitransparent(event.getColor()));
@@ -115,10 +101,6 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
         private void setColor(int color, int textColor) {
             card.setCardBackgroundColor(color);
             textview.setTextColor(textColor);
-
-            /*color_anim.setTint(textColor);
-            edit_anim.setTint(textColor);
-            alarm_anim.setTint(textColor);*/
         }
 
         @Override
@@ -172,25 +154,21 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             }, 350);
         }
 
-        public void changeCardColorAnim(final Context context, final int color, final int textColor){
-            if(color == textColor){
-                return;
-            }
-
+        public void changeCardColorAnim(final Context context, final int color, final int textColor) {
             colorAnimRunning = true;
 
             final Drawable reveal_bg_d = ContextCompat.getDrawable(context, R.drawable.card_reveal_bg);
             reveal_bg_d.setColorFilter(color, PorterDuff.Mode.SRC_IN);
 
             int color_progress_oldTextColor;
-            if(Color.red(textview.getCurrentTextColor()) == 255){
+            if (Color.red(textview.getCurrentTextColor()) == 255) {
                 color_progress_oldTextColor = Color.alpha(textview.getCurrentTextColor()) + 256;
             } else {
                 color_progress_oldTextColor = 255 - Color.alpha(textview.getCurrentTextColor());
             }
 
             int color_progress_newTextColor;
-            if(Color.red(textColor) == 255){
+            if (Color.red(textColor) == 255) {
                 color_progress_newTextColor = Color.alpha(textColor) + 256;
             } else {
                 color_progress_newTextColor = 255 - Color.alpha(textColor);
@@ -217,8 +195,8 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             });
 
             Animator animator = ViewAnimationUtils.createCircularReveal(reveal_bg,
-                    color_button.getWidth()/2 + color_button.getLeft() + relative_layout.getLeft() + card_action_view.getLeft(),
-                    color_button.getHeight()/2 + color_button.getTop() + relative_layout.getTop() + card_action_view.getTop()
+                    color_button.getWidth() / 2 + color_button.getLeft() + relative_layout.getLeft() + card_action_view.getLeft(),
+                    color_button.getHeight() / 2 + color_button.getTop() + relative_layout.getTop() + card_action_view.getTop()
                     , 0, reveal_bg.getWidth());
             animator.setDuration(1000);
             animator.setStartDelay(250);
@@ -235,7 +213,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
 
                     colorAnimRunning = false;
 
-                    if(pendindCollapse){
+                    if (pendindCollapse) {
                         pendindCollapse = false;
 
                         color_button.setImageDrawable(null);
@@ -259,25 +237,26 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             textColor_fade.start();
         }
 
-        public void setSemiTransparent(boolean semiTransparent){
+        public void setSemiTransparent(boolean semiTransparent) {
             this.semiTransparent = semiTransparent;
         }
 
         public void collapse() {
-            if(card_action_view.getVisibility() == View.GONE){
+            if (card_action_view.getVisibility() == View.GONE) {
                 return;
             }
 
             ValueAnimator animator = getValueAnimator(card_action_view.getHeight(), 0);
             animator.addListener(new Animator.AnimatorListener() {
                 @Override
-                public void onAnimationStart(Animator animation) {}
+                public void onAnimationStart(Animator animation) {
+                }
 
                 @Override
                 public void onAnimationEnd(Animator animation) {
                     card_action_view.setVisibility(View.GONE);
 
-                    if(!colorAnimRunning){
+                    if (!colorAnimRunning) {
                         color_button.setImageDrawable(null);
                         color_anim = null;
 
@@ -292,31 +271,30 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
                 }
 
                 @Override
-                public void onAnimationCancel(Animator animation) {}
+                public void onAnimationCancel(Animator animation) {
+                }
 
                 @Override
-                public void onAnimationRepeat(Animator animation) {}
+                public void onAnimationRepeat(Animator animation) {
+                }
             });
             animator.start();
         }
 
         public void expand() {
-            if(card_action_view.getVisibility() == View.VISIBLE){
+            if (card_action_view.getVisibility() == View.VISIBLE) {
                 return;
             }
 
-            color_anim = AnimatedVectorDrawableCompat.create(context,
-                    R.drawable.ic_color_animatable);
+            color_anim = AnimatedVectorDrawableCompat.create(appContext, R.drawable.ic_color_animatable);
             color_button.setBackground(null);
             color_button.setImageDrawable(color_anim);
 
-            edit_anim = AnimatedVectorDrawableCompat.create(context,
-                    R.drawable.ic_edit_animatable);
+            edit_anim = AnimatedVectorDrawableCompat.create(appContext, R.drawable.ic_edit_animatable);
             edit_button.setBackground(null);
             edit_button.setImageDrawable(edit_anim);
 
-            alarm_anim = AnimatedVectorDrawableCompat.create(context,
-                    R.drawable.ic_alarm_animatable);
+            alarm_anim = AnimatedVectorDrawableCompat.create(appContext, R.drawable.ic_alarm_animatable);
             alarm_button.setBackground(null);
             alarm_button.setImageDrawable(alarm_anim);
 
@@ -324,7 +302,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             edit_anim.setTint(textview.getCurrentTextColor());
             alarm_anim.setTint(textview.getCurrentTextColor());
 
-            ValueAnimator animator = getValueAnimator(0, fullActionButtonCardHeight);
+            ValueAnimator animator = getValueAnimator(0, (int) CARD_ACTION_VIEW_HEIGHT);
             animator.addListener(new Animator.AnimatorListener() {
                 @Override
                 public void onAnimationStart(Animator animation) {
@@ -332,13 +310,16 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
                 }
 
                 @Override
-                public void onAnimationEnd(Animator animation) {}
+                public void onAnimationEnd(Animator animation) {
+                }
 
                 @Override
-                public void onAnimationCancel(Animator animation) {}
+                public void onAnimationCancel(Animator animation) {
+                }
 
                 @Override
-                public void onAnimationRepeat(Animator animation) {}
+                public void onAnimationRepeat(Animator animation) {
+                }
             });
             animator.start();
         }
@@ -348,7 +329,6 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
 
             ValueAnimator animator = ValueAnimator.ofInt(start, end);
             animator.setDuration(250);
-            //animator.setInterpolator(new DecelerateInterpolator());
             animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator valueAnimator) {
@@ -359,20 +339,12 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
                     card_action_view.setLayoutParams(layoutParams);
 
                     float animatedFraction = valueAnimator.getAnimatedFraction();
-                    if(!expanding){
-                        animatedFraction = 1- animatedFraction;
+                    if (!expanding) {
+                        animatedFraction = 1 - animatedFraction;
                     }
 
-                    //color_button.setScaleX(animatedFraction);
-                    //color_button.setScaleY(animatedFraction);
                     color_button.setAlpha(animatedFraction);
-
-                    //edit_button.setScaleX(animatedFraction);
-                    //edit_button.setScaleY(animatedFraction);
                     edit_button.setAlpha(animatedFraction);
-
-                    //alarm_button.setScaleX(animatedFraction);
-                    //alarm_button.setScaleY(animatedFraction);
                     alarm_button.setAlpha(animatedFraction);
                 }
             });
@@ -382,19 +354,26 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
 
     private ArrayList<Event> events;
     private CardActionButtonOnClickCallback onClickCallback;
-    private Context context;
+
+    private ThemeHelper helper;
 
     public int mExpandedPosition = -1;
 
     private ArrayList<Long> semiTransparentEventIds;
 
-    public RVAdapter(ArrayList<Event> events,
-                     CardActionButtonOnClickCallback onClickCallback, Context context) {
+    private float CARD_ACTION_VIEW_HEIGHT;
+
+    private Context appContext;
+
+    public RVAdapter(ArrayList<Event> events, CardActionButtonOnClickCallback onClickCallback, Context context) {
         this.events = events;
         this.onClickCallback = onClickCallback;
-        this.context = context;
+
+        appContext = context.getApplicationContext();
 
         semiTransparentEventIds = new ArrayList<>();
+
+        CARD_ACTION_VIEW_HEIGHT = DPCalc.dpIntoPx(context.getResources(), 45);
     }
 
     @Override
@@ -405,7 +384,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
         } else {
             eventViewHolder.setSemiTransparent(false);
         }
-        eventViewHolder.initCard(context.getApplicationContext());
+        eventViewHolder.initCard();
     }
 
     @Override
@@ -417,7 +396,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
     public EventViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         View v = LayoutInflater.from(viewGroup.getContext())
                 .inflate(R.layout.one_event, viewGroup, false);
-        return new EventViewHolder(onClickCallback, context, v);
+        return new EventViewHolder(v);
     }
 
     public void addItem(int index, Event e) {
@@ -466,12 +445,12 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
         notifyItemMoved(fromPosition, toPosition);
     }
 
-    public void allItemsChanged(){
+    public void allItemsChanged() {
         notifyItemRangeChanged(0, events.size());
     }
 
-    public void setItemToBeSetSemiTransparent(ArrayList<Event> itemToBeSetSemiTransparent){
-        for (int i = 0; i < itemToBeSetSemiTransparent.size(); i++){
+    public void setItemToBeSetSemiTransparent(ArrayList<Event> itemToBeSetSemiTransparent) {
+        for (int i = 0; i < itemToBeSetSemiTransparent.size(); i++) {
             semiTransparentEventIds.add(itemToBeSetSemiTransparent.get(i).getId());
 
             int index = events.indexOf(itemToBeSetSemiTransparent.get(i));
@@ -479,7 +458,11 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
         }
     }
 
-    public void clearSemiTransparentEventIds(){
-        semiTransparentEventIds = new ArrayList<Long>();
+    public void clearSemiTransparentEventIds() {
+        semiTransparentEventIds = new ArrayList<>();
+    }
+
+    public void setThemeHelper(ThemeHelper helper) {
+        this.helper = helper;
     }
 }
