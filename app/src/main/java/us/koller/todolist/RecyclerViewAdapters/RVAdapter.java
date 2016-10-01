@@ -188,9 +188,12 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
                         textColor = Color.argb(255 - color_progress, 0, 0, 0);
                     }
                     textview.setTextColor(textColor);
-                    color_anim.setTint(textColor);
-                    edit_anim.setTint(textColor);
-                    alarm_anim.setTint(textColor);
+
+                    if(color_anim != null && edit_anim != null && alarm_anim != null){
+                        color_anim.setTint(textColor);
+                        edit_anim.setTint(textColor);
+                        alarm_anim.setTint(textColor);
+                    }
                 }
             });
 
