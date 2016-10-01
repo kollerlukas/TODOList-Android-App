@@ -909,8 +909,6 @@ public class MainActivity extends AppCompatActivity
                         new RetrieveDriveId(mGoogleApiClient, new ModifiedDateCallback() {
                             @Override
                             public void noFilesFound() {
-                                //showToast("no Files found -> creating new file");
-
                                 createNewFile();
                             }
 
@@ -934,9 +932,6 @@ public class MainActivity extends AppCompatActivity
                                         showToast("Api Client not connected");
                                     }
                                 } else {
-                                    //mSwipeRefreshLayout.setRefreshing(false);
-                                    //showToast("MainActivity: modifiedDate old!");
-
                                     settings.set("lastReceivedDataTimeStamp", timeStamp);
                                     settings.set("driveId", driveId);
 
@@ -961,12 +956,10 @@ public class MainActivity extends AppCompatActivity
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
-    public void tryToRetrieveDriveId() {
+    /*public void tryToRetrieveDriveId() {
         new RetrieveDriveId(mGoogleApiClient, new DriveIdCallback() {
             @Override
             public void noFilesFound() {
-                //showToast("no Files found -> creating new file");
-
                 createNewFile();
             }
 
@@ -981,7 +974,7 @@ public class MainActivity extends AppCompatActivity
                 DriveIdError(statusCode);
             }
         }).execute();
-    }
+    }*/
 
     public void tryToRetrieveData(DriveId driveId) {
         mSwipeRefreshLayout.setRefreshing(true);
@@ -991,8 +984,6 @@ public class MainActivity extends AppCompatActivity
             public void error(String error) {
                 switch (error) {
                     case "no data":
-                        //showToast("no Files found -> creating new file");
-
                         createNewFile();
                         break;
                     case "file.open() not successful":
@@ -1051,7 +1042,6 @@ public class MainActivity extends AppCompatActivity
                 showToast("SyncDataAsyncTask: " + error);
 
                 if (error.equals("JSONException") && completeSync) {
-                    //writeToGoogleDrive();
                     mSwipeRefreshLayout.setRefreshing(false);
                     completeSync = false;
                     return;
@@ -1074,7 +1064,6 @@ public class MainActivity extends AppCompatActivity
         mDrawerLayout.closeDrawers();
         if (mGoogleApiClient.isConnected()) {
             if (settings.driveIdStored()) {
-                //showToast("reusing driveId");
                 writeToFile((DriveId) settings.get("driveId"));
             } else {
                 new RetrieveDriveId(mGoogleApiClient, new DriveIdCallback() {
@@ -1127,8 +1116,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void createNewFile() {
-        //showToast("creating File");
-
         mDrawerLayout.closeDrawers();
         if (mGoogleApiClient.isConnected()) {
             Drive.DriveApi.newDriveContents(mGoogleApiClient).setResultCallback(
