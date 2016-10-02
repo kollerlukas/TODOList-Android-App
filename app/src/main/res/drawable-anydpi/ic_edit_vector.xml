@@ -5,18 +5,30 @@
         android:viewportHeight="24"
         android:viewportWidth="24">
 
-    <group android:name="edit_pen">
-        <path android:name="pen"
-              android:pathData="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"
-              android:fillColor="#FFFFFF"/>
+    <path android:name="tail"
+          android:pathData="M 19.085 4.915 a 10.07 10.07 0 0 1 -14.24 14.24 a 10.07 10.07 1 0 1 14.24 -14.24z"
+          android:strokeColor="#000000"
+          android:strokeWidth="1.5"
+          android:trimPathStart="0.125"
+          android:trimPathEnd="0.125"
+          android:strokeLineCap="butt"
+          android:strokeLineJoin="miter"
+          android:strokeMiterLimit="10"/>
 
-        <group android:name="cap"
-               android:pivotX="12"
-               android:pivotY="12">
-            <path android:name="cap_path"
-                  android:pathData="M20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l0 0c0 0 0 0 0 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-                  android:fillColor="#FFFFFF"/>
-            <!--M20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z-->
-        </group>
+    <group android:name="cap"
+           android:pivotX="12"
+           android:pivotY="12">
+        <path android:pathData="M20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l0 0c0 0 0 0 0 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+              android:fillColor="#000000"
+              android:strokeLineCap="butt"
+              android:strokeLineJoin="miter"
+              android:strokeMiterLimit="10"/>
     </group>
+
+    <path android:name="pen"
+          android:pathData="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"
+          android:fillColor="#000000"
+          android:strokeLineCap="butt"
+          android:strokeLineJoin="miter"
+          android:strokeMiterLimit="10"/>
 </vector>
