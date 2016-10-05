@@ -20,7 +20,8 @@ public class WidgetProvider_add extends AppWidgetProvider {
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds){
         RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.fab_widget);
         Intent intent = new Intent(context, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        intent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT
+                | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         intent.setAction("widget_button");
         PendingIntent configPendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
         remoteViews.setOnClickPendingIntent(R.id.widget_button, configPendingIntent);

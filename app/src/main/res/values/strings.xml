@@ -138,10 +138,11 @@
     <string name="light">light</string>
     <string name="dark">dark</string>
     <string name="black">black</string>
-    <string name="textcolor">TextColor</string>
+    <string name="textcolor" translatable="false">TextColor</string>
 
     <string name="launcher_icon" translatable="false">Launcher Icon</string>
     <string name="nothing_to_do_illustration" translatable="false">Nothing to Do Illustration</string>
     <string name="color_button" translatable="false">Color Button</string>
     <string name="button" translatable="false">Button</string>
+
 </resources>

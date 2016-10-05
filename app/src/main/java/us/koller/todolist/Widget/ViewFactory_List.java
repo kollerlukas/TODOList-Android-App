@@ -27,12 +27,12 @@ import us.koller.todolist.Util.ThemeHelper;
 /**
  * Created by Lukas on 20.08.2016.
  */
-public class ViewFactory_List implements RemoteViewsService.RemoteViewsFactory {
-    private ArrayList<Event> events = new ArrayList<Event>();
+class ViewFactory_List implements RemoteViewsService.RemoteViewsFactory {
+    private ArrayList<Event> events = new ArrayList<>();
     private Context context = null;
     private ThemeHelper helper;
 
-    public ViewFactory_List(Context context, Intent intent) {
+    ViewFactory_List(Context context, Intent intent) {
         this.context = context;
         helper = new ThemeHelper(context);
 
@@ -54,7 +54,10 @@ public class ViewFactory_List implements RemoteViewsService.RemoteViewsFactory {
             colorBackground(remoteView, id, helper.getEventColor(color_index));
 
             PendingIntent clickPI = PendingIntent.getActivity(context, 0,
-                    new Intent(context, MainActivity.class).setAction("START_MAIN_ACTIVITY"),
+                    new Intent(context, MainActivity.class)
+                            .setAction("START_MAIN_ACTIVITY")
+                            .setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT
+                                    | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT),
                     PendingIntent.FLAG_UPDATE_CURRENT);
 
             remoteView.setOnClickPendingIntent(id, clickPI);
@@ -63,18 +66,14 @@ public class ViewFactory_List implements RemoteViewsService.RemoteViewsFactory {
         return remoteView;
     }
 
-    public void colorBackground(RemoteViews widget, int id, int color){
+    private void colorBackground(RemoteViews widget, int id, int color){
         try {
             Class c = Class.forName("android.widget.RemoteViews");
-            Method m = c.getMethod("setDrawableParameters", new Class[] {int.class, boolean.class, int.class, int.class, PorterDuff.Mode.class, int.class});
-            m.invoke(widget, new Object[]{id, true, -1, color, PorterDuff.Mode.SRC_IN, -1});
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
+            Method m = c.getMethod("setDrawableParameters", int.class, boolean.class, int.class,
+                    int.class, PorterDuff.Mode.class, int.class);
+            m.invoke(widget, id, true, -1, color, PorterDuff.Mode.SRC_IN, -1);
+        } catch (ClassNotFoundException | NoSuchMethodException
+                | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
     }
@@ -117,7 +116,7 @@ public class ViewFactory_List implements RemoteViewsService.RemoteViewsFactory {
     @Override
     public void onDestroy() {}
 
-    public void loadData(){
+    private void loadData(){
         JSONArray array = readData();
         if(array == null){
             return;
@@ -132,16 +131,14 @@ public class ViewFactory_List implements RemoteViewsService.RemoteViewsFactory {
         }
     }
 
-    public JSONArray readData(){
+    private JSONArray readData(){
         StringBuilder sb = new StringBuilder();
         try {
             FileInputStream fis = context.openFileInput("events");
             BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
             String line;
-            if (fis != null) {
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line + "\n");
-                }
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\n");
             }
             fis.close();
         } catch (IOException e) {

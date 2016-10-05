@@ -14,8 +14,6 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
 
-import us.koller.todolist.R;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -84,8 +82,8 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
             intent.setAction("removeEventNotifDoneButton");
             intent.putExtra("eventId", event_id);
             intent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT
-                    |Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-                    |Intent.FLAG_ACTIVITY_NEW_TASK);
+                    | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                    | Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
         } else {
             try {
@@ -100,8 +98,6 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
                     FileOutputStream fos = context.openFileOutput("events", Context.MODE_PRIVATE);
                     fos.write(data.getBytes());
                     fos.close();
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -127,8 +123,12 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
         int id = (int) System.currentTimeMillis();
         NotificationManager alarmNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         //Clicking on the notification
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, id, new Intent(context,
-                MainActivity.class).setAction("START_MAIN_ACTIVITY"), PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, id,
+                new Intent(context, MainActivity.class)
+                        .setAction("START_MAIN_ACTIVITY")
+                        .setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT
+                                | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT),
+                PendingIntent.FLAG_UPDATE_CURRENT);
         //Clicking the notification actionButton
         Intent remove_event_intent = new Intent(context, BroadcastReceiver.class);
         remove_event_intent.putExtra("NotificationId", id);
@@ -137,7 +137,7 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
         PendingIntent remove_event_pendingIntent = PendingIntent.getBroadcast(context, id, remove_event_intent, PendingIntent.FLAG_ONE_SHOT);
 
         int color = new ThemeHelper(context, colorIndex).getEventColor(colorIndex);
-        if(Color.red(color) == 255 && Color.green(color) == 255 && Color.blue(color) == 255){
+        if (Color.red(color) == 255 && Color.green(color) == 255 && Color.blue(color) == 255) {
             color = ContextCompat.getColor(context, R.color.light_grey);
         }
 
@@ -161,8 +161,8 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
             event.removeAlarm();
             return;
         }
-        if(((int) event.getAlarm().get("repeatMode")) == 3){
-            if((boolean) event.getAlarm().noDaySelected()){
+        if (((int) event.getAlarm().get("repeatMode")) == 3) {
+            if (event.getAlarm().noDaySelected()) {
                 event.removeAlarm();
                 return;
             }
@@ -177,8 +177,8 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
             intent.putExtra("eventId", event.getId());
             intent.putExtra("alarmTime", alarmTime);
             intent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT
-                    |Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-                    |Intent.FLAG_ACTIVITY_NEW_TASK);
+                    | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                    | Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
         } else {
             try {
@@ -195,8 +195,6 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
                     FileOutputStream fos = context.openFileOutput("events", Context.MODE_PRIVATE);
                     fos.write(data.getBytes());
                     fos.close();
-                } catch (FileNotFoundException exception) {
-                    exception.printStackTrace();
                 } catch (IOException exception) {
                     exception.printStackTrace();
                 }
@@ -230,7 +228,7 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
             }
             for (int i = 0; i < array.length(); i++) {
                 Event e = new Event(array.getJSONObject(i));
-                if(e.getAlarm() != null){
+                if (e.getAlarm() != null) {
                     long alarmTime = (long) e.getAlarm().get("time");
                     if (alarmTime > System.currentTimeMillis()) {
                         setAlarm(context, e.getId(), alarmTime);
@@ -266,7 +264,7 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
                 return;
             }
             int todolist_size = array.length();
-            if(todolist_size == 0){
+            if (todolist_size == 0) {
                 ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE)).cancel(0);
                 return;
             }
@@ -284,11 +282,11 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
             android.support.v7.app.NotificationCompat.Builder mBuilder
                     = (android.support.v7.app.NotificationCompat.Builder)
                     new android.support.v7.app.NotificationCompat.Builder(context)
-                    .setSmallIcon(R.drawable.ic_logo)
-                    .setContentTitle(context.getString(R.string.app_name))
-                    .addAction(R.drawable.ic_add, context.getString(R.string.add_event), add_event_pendingIntent)
-                    .setColor(ContextCompat.getColor(context, R.color.button_color))
-                    .setContentText(content);
+                            .setSmallIcon(R.drawable.ic_logo)
+                            .setContentTitle(context.getString(R.string.app_name))
+                            .addAction(R.drawable.ic_add, context.getString(R.string.add_event), add_event_pendingIntent)
+                            .setColor(ContextCompat.getColor(context, R.color.button_color))
+                            .setContentText(content);
             NotificationManager mNotificationManager
                     = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             Intent resultIntent
@@ -329,10 +327,8 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
             FileInputStream fis = context.openFileInput("events");
             BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
             String line;
-            if (fis != null) {
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line + "\n");
-                }
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\n");
             }
             fis.close();
         } catch (IOException e) {

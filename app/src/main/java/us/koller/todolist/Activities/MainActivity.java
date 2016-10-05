@@ -29,6 +29,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
@@ -242,12 +243,12 @@ public class MainActivity extends AppCompatActivity
         super.onPostCreate(savedInstanceState);
 
         tablet = getResources().getBoolean(R.bool.tablet);
-        /*if (getResources().getBoolean(R.bool.tablet)) {
+        if (getResources().getBoolean(R.bool.tablet)) {
             tablet = true;
         } else {
-            //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
             tablet = false;
-        }*/
+        }
 
         mDrawerToggle.syncState();
 
@@ -1442,7 +1443,7 @@ public class MainActivity extends AppCompatActivity
                 .setOnDismissListener(new DialogInterface.OnDismissListener() {
                     @Override
                     public void onDismiss(DialogInterface dialog) {
-                        dialog = null;
+                        MainActivity.this.dialog = null;
                     }
                 })
                 .create();
@@ -1671,7 +1672,7 @@ public class MainActivity extends AppCompatActivity
                         fab.startAnimation(anim);
                         fab.setVisibility(View.VISIBLE);
 
-                        dialog = null;
+                        MainActivity.this.dialog = null;
                     }
                 })
                 .create();
@@ -2319,7 +2320,7 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onDismiss(DialogInterface dialog) {
                         colorSelectedCallback = null;
-                        dialog = null;
+                        MainActivity.this.dialog = null;
                     }
                 })
                 .create();
@@ -2818,13 +2819,13 @@ public class MainActivity extends AppCompatActivity
         adapter.eventsImport = false;
         list.setAdapter(adapter);
 
-        //FloatingActionButton fab = (FloatingActionButton) layout.findViewById(R.id.import_theme_fab);
+        FloatingActionButton fab = (FloatingActionButton) layout.findViewById(R.id.import_theme_fab);
         CardView card = (CardView) layout.findViewById(R.id.import_theme_card);
         Toolbar toolbar = (Toolbar) layout.findViewById(R.id.import_theme_toolbar);
         View statusBar = layout.findViewById(R.id.import_theme_statusbar);
 
-        //fab.setBackgroundTintList(ColorStateList.valueOf(importHelper.get("fab_color")));
-        //fab.getDrawable().setTint(importHelper.get("fab_textcolor"));
+        fab.setBackgroundTintList(ColorStateList.valueOf(importHelper.get("fab_color")));
+        fab.getDrawable().setTint(importHelper.get("fab_textcolor"));
         card.setCardBackgroundColor(importHelper.get("cord_color"));
 
         toolbar.setBackgroundColor(importHelper.get("toolbar_color"));
@@ -2853,7 +2854,7 @@ public class MainActivity extends AppCompatActivity
                 .setOnDismissListener(new DialogInterface.OnDismissListener() {
                     @Override
                     public void onDismiss(DialogInterface dialog) {
-                        dialog = null;
+                        MainActivity.this.dialog = null;
                     }
                 })
                 .create();
@@ -2949,7 +2950,7 @@ public class MainActivity extends AppCompatActivity
                 .setOnDismissListener(new DialogInterface.OnDismissListener() {
                     @Override
                     public void onDismiss(DialogInterface dialog) {
-                        dialog = null;
+                        MainActivity.this.dialog = null;
                     }
                 })
                 .create();
@@ -2957,12 +2958,12 @@ public class MainActivity extends AppCompatActivity
         changeDialogButtonColor(dialog);
     }
 
-    @Override
+    /*@Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         mDrawerToggle.onConfigurationChanged(newConfig);
         checkToolbarElevation();
-    }
+    }*/
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -3034,6 +3035,9 @@ public class MainActivity extends AppCompatActivity
     protected void onNewIntent(Intent intent) {
         setIntent(intent);
         super.onNewIntent(intent);
+        if(mDrawerLayout != null){
+            mDrawerLayout.closeDrawers();
+        }
     }
 
     @Override

@@ -12,7 +12,7 @@
     <objectAnimator
             android:name="tail"
             android:propertyName="trimPathEnd"
-            android:duration="400"
+            android:duration="425"
             android:valueFrom="0"
             android:valueTo="1"
             android:valueType="floatType"

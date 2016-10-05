@@ -18,10 +18,10 @@
 
         <activity
             android:name=".Activities.MainActivity"
-            android:configChanges="orientation|screenSize"
             android:label="${applicationLabel}"
             android:launchMode="singleTop"
             android:theme="@style/AppTheme">
+            <!--android:configChanges="orientation|screenSize"-->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -35,23 +35,24 @@
         <activity
             android:name=".Activities.InfoActivity"
             android:label="@string/info"
+            android:launchMode="singleTask"
             android:theme="@style/InfoActivityTheme"/>
 
         <activity
             android:name=".Activities.ThemeActivity"
             android:label="@string/app_theme"
+            android:launchMode="singleTask"
             android:theme="@style/ThemeActivityTheme"/>
 
         <activity
             android:name=".Activities.ImportDataActivity"
             android:label="@string/import_"
+            android:launchMode="singleTask"
             android:noHistory="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
-
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-
                 <data android:mimeType="text/plain"/>
             </intent-filter>
         </activity>

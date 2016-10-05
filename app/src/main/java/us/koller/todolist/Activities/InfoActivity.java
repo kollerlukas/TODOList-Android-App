@@ -58,7 +58,7 @@ public class InfoActivity extends AppCompatActivity {
         context = this;
 
         if (!getResources().getBoolean(R.bool.tablet)) {
-            //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         }
 
         setContentView(R.layout.activity_info);
@@ -66,7 +66,9 @@ public class InfoActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.info_activity_toolbar);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
+        if(actionBar != null){
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
 
         initRecyclerView();
 
@@ -177,8 +179,7 @@ public class InfoActivity extends AppCompatActivity {
     }
 
     public void licencesClicked() {
-        LayoutInflater layoutInflater = getLayoutInflater();
-        View layout = layoutInflater.inflate(R.layout.licences_layout, null);
+        View layout = View.inflate(this, R.layout.licences_layout, null);
 
         TextView text_view_1 = (TextView) layout.findViewById(R.id.text_view_1);
         TextView text_view_2 = (TextView) layout.findViewById(R.id.text_view_2);
@@ -209,8 +210,7 @@ public class InfoActivity extends AppCompatActivity {
     }
 
     public void translatorsClicked() {
-        LayoutInflater layoutInflater = this.getLayoutInflater();
-        View layout = layoutInflater.inflate(R.layout.translators, null);
+        View layout = View.inflate(this, R.layout.translators, null);
 
         TextView text_view0 = (TextView) layout.findViewById(R.id.name0);
         TextView text_view1 = (TextView) layout.findViewById(R.id.name1);
@@ -228,7 +228,9 @@ public class InfoActivity extends AppCompatActivity {
                 .setView(layout)
                 .setCancelable(true)
                 .create();
-        dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimations;
+        if(dialog.getWindow() != null){
+            dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimations;
+        }
         dialog.show();
     }
 
@@ -317,11 +319,5 @@ public class InfoActivity extends AppCompatActivity {
         super.onBackPressed();
         this.finish();
         this.overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
-    }
-
-    public void elevateToolbar(Toolbar toolbar) {
-        AnimatorSet set = (AnimatorSet) AnimatorInflater.loadAnimator(context, R.animator.toolbar_raise);
-        set.setTarget(toolbar);
-        set.start();
     }
 }

@@ -27,41 +27,36 @@ public class ImportDataActivity extends AppCompatActivity {
         overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
 
         ContentResolver cR = ImportDataActivity.this.getContentResolver();
+        if(cR.getType(data) == null){
+            this.finish();
+            return;
+        }
         //Toast.makeText(ImportDataActivity.this, String.valueOf(cR.getType(data)), Toast.LENGTH_SHORT).show();
 
-        String eventsToImport = "";
+        String eventsToImport;
         Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT
+                |Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         intent.setAction("Import");
-        if (data != null) {
-            getIntent().setData(null);
-            try {
-                eventsToImport = importData(data);
-            } catch (Exception e) {
-                this.finish();
-                return;
-            }
-        } else {
+        getIntent().setData(null);
+        try {
+            eventsToImport = importData(data);
+        } catch (Exception e) {
             this.finish();
             return;
         }
 
-        if(cR.getType(data) == null){
-            Toast.makeText(this, "Sorry! This file can't be imported." + '\n'
-                    + " Please only import files shared through the app.", Toast.LENGTH_SHORT).show();
-            this.finish();
-            return;
-        }
+        String type = cR.getType(data);
 
-        if (cR.getType(data).equals("application/octet-stream")) {
-            //intent.putExtra("events", eventsToImport);
+        if(type == null || type.equals("application/octet-stream")){
             Toast.makeText(this, "Sorry! This file can't be imported." + '\n'
                     + " Please only import files shared through the app.", Toast.LENGTH_SHORT).show();
-            //Toast.makeText(this, "contentTypeError", Toast.LENGTH_SHORT).show();
             this.finish();
             return;
-        } else if (cR.getType(data).equals("text/plain")) {
+        } else if (type.equals("text/plain")) {
             intent.putExtra("events", eventsToImport);
         }
+
         startActivity(intent);
         this.finish();
     }
@@ -75,18 +70,14 @@ public class ImportDataActivity extends AppCompatActivity {
                 if (is == null) {
                     return "";
                 }
-                StringBuffer buf = new StringBuffer();
+                StringBuilder buf = new StringBuilder();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(is));
                 String str;
-                if (is != null) {
-                    while ((str = reader.readLine()) != null) {
-                        buf.append(str + "\n");
-                    }
+                while ((str = reader.readLine()) != null) {
+                    buf.append(str).append("\n");
                 }
                 is.close();
                 return buf.toString();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }

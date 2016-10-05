@@ -3,6 +3,7 @@ package us.koller.todolist.Activities;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -14,6 +15,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ShareCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatCheckBox;
@@ -90,14 +92,17 @@ public class ThemeActivity extends AppCompatActivity {
         helper = new ThemeHelper(this);
 
         if (!getResources().getBoolean(R.bool.tablet)) {
-            //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         }
 
         setContentView(R.layout.activity_theme);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar_theme);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null){
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
 
         fab = (FloatingActionButton) findViewById(R.id.fab_theme);
         cord = (CoordinatorLayout) findViewById(R.id.coordinatorLayout_theme);
@@ -267,8 +272,7 @@ public class ThemeActivity extends AppCompatActivity {
     }
 
     public void showColorPickerDialog(final ColorPickerDialogCallback colorPickerDialogCallback, boolean eventColor, int oldColor, int oldTextColor, boolean showCheckbox) {
-        LayoutInflater layoutInflater = this.getLayoutInflater();
-        View layout = layoutInflater.inflate(R.layout.color_picker, null);
+        View layout = View.inflate(this, R.layout.color_picker, null);
         final String format = "%1$03d";
 
         final CardView colorCard = (CardView) layout.findViewById(R.id.colorCard);
@@ -283,19 +287,19 @@ public class ThemeActivity extends AppCompatActivity {
         final SeekBar seekBarRed = (SeekBar) layout.findViewById(R.id.seekbar_red);
         final TextView red_text = (TextView) layout.findViewById(R.id.red_text);
         seekBarRed.setProgress(Color.red(oldColor));
-        red_text.setText(String.format(format, Color.red(oldColor)));
+        red_text.setText(String.format(getResources().getConfiguration().locale, format, Color.red(oldColor)));
         colorSeekbars[0] = seekBarRed;
 
         final SeekBar seekBarGreen = (SeekBar) layout.findViewById(R.id.seekbar_green);
         final TextView green_text = (TextView) layout.findViewById(R.id.green_text);
         seekBarGreen.setProgress(Color.green(oldColor));
-        green_text.setText(String.format(format, Color.green(oldColor)));
+        green_text.setText(String.format(getResources().getConfiguration().locale, format, Color.green(oldColor)));
         colorSeekbars[1] = seekBarGreen;
 
         final SeekBar seekBarBlue = (SeekBar) layout.findViewById(R.id.seekbar_blue);
         final TextView blue_text = (TextView) layout.findViewById(R.id.blue_text);
         seekBarBlue.setProgress(Color.blue(oldColor));
-        blue_text.setText(String.format(format, Color.blue(oldColor)));
+        blue_text.setText(String.format(getResources().getConfiguration().locale, format, Color.blue(oldColor)));
         colorSeekbars[2] = seekBarBlue;
 
         colorCard.setCardBackgroundColor(Color.rgb(seekBarRed.getProgress(),
@@ -320,7 +324,7 @@ public class ThemeActivity extends AppCompatActivity {
             grey_text.setText(String.format(format, 255 - seekBarGrey.getProgress()));
         }
         colorTextView.setTextColor(color);
-        colorTextView.setText("TextColor");
+        colorTextView.setText(getString(R.string.textcolor));
 
         AppCompatCheckBox checkbox = (AppCompatCheckBox) layout.findViewById(R.id.checkbox);
         if (!showCheckbox) {
@@ -593,8 +597,7 @@ public class ThemeActivity extends AppCompatActivity {
     }
 
     public void restoreDefaultColors() {
-        LayoutInflater layoutInflater = this.getLayoutInflater();
-        View layout = layoutInflater.inflate(R.layout.theme_restore, null);
+        View layout = View.inflate(this, R.layout.theme_restore, null);
         CardView light = (CardView) layout.findViewById(R.id.light_cardview);
         CardView dark = (CardView) layout.findViewById(R.id.dark_cardview);
         CardView black = (CardView) layout.findViewById(R.id.black_cardview);
@@ -616,7 +619,9 @@ public class ThemeActivity extends AppCompatActivity {
                 .setView(layout)
                 .setCancelable(true)
                 .create();
-        dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimations;
+        if(dialog.getWindow() != null){
+            dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimations;
+        }
         dialog.show();
     }
 
@@ -715,8 +720,7 @@ public class ThemeActivity extends AppCompatActivity {
     }
 
     public void checkToolbarElevation() {
-        if(((int) helper.get("cord_color"))
-                != ((int) helper.get("toolbar_color"))){
+        if(helper.get("cord_color") != helper.get("toolbar_color")){
             elevateToolbar();
             return;
         }
