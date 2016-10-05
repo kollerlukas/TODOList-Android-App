@@ -276,6 +276,8 @@ public class MainActivity extends AppCompatActivity
 
         if ((boolean) settings.get("notificationToggle")) {
             checkForNotificationUpdate();
+        } else {
+            cancelNotification();
         }
 
         if (todolist.getTodolistArray().size() == 0) {
@@ -574,9 +576,7 @@ public class MainActivity extends AppCompatActivity
                                 @Override
                                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                                     notificationToggleClicked();
-                                    if (!(notificationToggle.isChecked() && isChecked)) {
-                                        notificationToggle.setChecked((boolean) settings.get("notificationToggle"));
-                                    }
+                                    notificationToggle.setChecked((boolean) settings.get("notificationToggle"));
                                 }
                             });
                             break;
@@ -3005,6 +3005,11 @@ public class MainActivity extends AppCompatActivity
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        settings.saveSettings();
+
+        isRunning = false;
+
+        updateWidget();
 
         super.onStop();
     }
@@ -3017,17 +3022,6 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onPause() {
-        try {
-            todolist.saveData(this);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        settings.saveSettings();
-
-        isRunning = false;
-
-        updateWidget();
-
         super.onPause();
     }
 

@@ -1,6 +1,7 @@
 package us.koller.todolist.RecyclerViewAdapters;
 
 import android.animation.Animator;
+import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Color;
@@ -199,9 +200,10 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             Animator animator = ViewAnimationUtils.createCircularReveal(reveal_bg,
                     color_button.getWidth() / 2 + color_button.getLeft() + card_action_view.getLeft(),
                     color_button.getHeight() / 2 + color_button.getTop() + card_action_view.getTop(),
-                    0, reveal_bg.getWidth());
+                    0,  reveal_bg.getWidth() - color_button.getLeft());
             animator.setDuration(1000);
             animator.setStartDelay(250);
+            animator.setInterpolator(new AccelerateDecelerateInterpolator());
             animator.addListener(new Animator.AnimatorListener() {
                 @Override
                 public void onAnimationStart(Animator animation) {
@@ -235,8 +237,10 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
                 @Override
                 public void onAnimationRepeat(Animator animation) {/*nothing*/}
             });
-            animator.start();
-            textColor_fade.start();
+
+            AnimatorSet set = new AnimatorSet();
+            set.playTogether(animator, textColor_fade);
+            set.start();
         }
 
         public void setSemiTransparent(boolean semiTransparent) {
