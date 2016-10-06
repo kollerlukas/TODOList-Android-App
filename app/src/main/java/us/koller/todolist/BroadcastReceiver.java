@@ -64,7 +64,7 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
                 break;
             case Intent.ACTION_BOOT_COMPLETED:
                 resetAlarms(context, intent);
-                checkForShowingNotification(context);
+                showNotification(context);
                 break;
             case Intent.ACTION_SHUTDOWN:
                 SharedPreferences sharedPreferences
@@ -79,7 +79,7 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
     public void removeEvent(Context context, long event_id) {
         if (MainActivityRunning) {
             Intent intent = new Intent(context, MainActivity.class);
-            intent.setAction("removeEventNotifDoneButton");
+            intent.setAction("removeEventNotificationDoneButton");
             intent.putExtra("eventId", event_id);
             intent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT
                     | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
@@ -249,14 +249,14 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
         return "";
     }
 
-    public void checkForShowingNotification(Context context) {
-        if (context.getSharedPreferences("todolist",
-                Context.MODE_PRIVATE).getBoolean("notificationToggle", true)) {
-            showNotification(context);
-        }
+    public boolean checkForShowingNotification(Context context) {
+        return context.getSharedPreferences("todolist", Context.MODE_PRIVATE).getBoolean("notificationToggle", true);
     }
 
     public void showNotification(Context context) {
+        if(!checkForShowingNotification(context)){
+            return;
+        }
         try {
             String content;
             if (array == null) {

@@ -41,7 +41,7 @@ public class ThemeHelper {
         readData(context);
     }
 
-    public ThemeHelper(JSONObject json, Context context) throws JSONException {
+    public ThemeHelper(JSONObject json) throws JSONException {
         fab_color = json.getInt("fab_color");
         fab_textcolor = json.getInt("fab_textcolor");
         toolbar_color = json.getInt("toolbar_color");
@@ -221,12 +221,12 @@ public class ThemeHelper {
         return textColor;
     }
 
-    public int getLightTextColor(){
+    private int getLightTextColor(){
         return Color.argb(255, 255, 255, 255);
     }
 
-    public int getDarkTextColor(){
-        return Color.argb(222, 0, 0, 0);
+    private int getDarkTextColor(){
+        return Color.argb(138, 0, 0, 0);
     }
 
     public void setEventColor(int index, int color){
@@ -411,7 +411,7 @@ public class ThemeHelper {
         return sortedColorsColorSelector;
     }
 
-    public boolean isColorLight(int color){
+    private boolean isColorLight(int color){
         int rgbSum = Color.red(color) + Color.green(color) + Color.blue(color);
         return rgbSum/3 > 185;
     }

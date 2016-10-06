@@ -2,7 +2,7 @@
 <resources>
     <color name="accent">#616161</color>
 
-    <color name="button_color">#ff3d00</color>
+    <color name="button_color">#F44336</color><!--ff3d00-->
 
     <color name="red">#f44336</color>
     <color name="green">#4caf50</color>
