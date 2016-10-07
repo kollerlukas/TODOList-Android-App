@@ -144,6 +144,11 @@ public class MainActivity extends AppCompatActivity
         implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
+    public static final String ADD_EVENT = "ADD_EVENT";
+    public static final String IMPORT = "IMPORT";
+    public static final String NOTIFICATION_DONE_BUTTON = "NOTIFICATION_DONE_BUTTON";
+    public static final String UPDATE_EVENT_ALARM = "UPDATE_EVENT_ALARM";
+
     public static boolean isRunning;
 
     private Context context;
@@ -263,7 +268,7 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         initTheme();
 
-        checkIntent();
+        //checkIntent();
 
         checkEventRemoved();
 
@@ -700,15 +705,15 @@ public class MainActivity extends AppCompatActivity
         }
 
         mAdapter.allItemsChanged();
-        newTheme = false;
 
         checkToolbarElevation();
 
-        String title = getString(R.string.app_name);
-        BitmapDrawable icon = (BitmapDrawable) ContextCompat.getDrawable(context, R.mipmap.ic_launcher);
+        this.setTaskDescription(new ActivityManager.TaskDescription(
+                getString(R.string.app_name),
+                ((BitmapDrawable) ContextCompat.getDrawable(context, R.mipmap.ic_launcher)).getBitmap(),
+                helper.get("toolbar_color")));
 
-        ActivityManager.TaskDescription tDesc = new ActivityManager.TaskDescription(title, icon.getBitmap(), helper.get("toolbar_color"));
-        this.setTaskDescription(tDesc);
+        newTheme = false;
     }
 
     //<DriveSync Methods>
@@ -830,15 +835,13 @@ public class MainActivity extends AppCompatActivity
         if (result.isSuccess()) {
             // Signed in successfully
             GoogleSignInAccount acct = result.getSignInAccount();
-            String personName, personEmail;
+            String personName = "", personEmail = "";
             if(acct != null){
                 personName = acct.getDisplayName();
                 personEmail = acct.getEmail();
-            } else {
-                personName = "";
-                personEmail = "";
             }
-            navigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.GONE);
+            navigationView.getHeaderView(0)
+                    .findViewById(R.id.sign_in_button).setVisibility(View.GONE);
             personData.setVisibility(View.VISIBLE);
             this.personName.setText(personName);
             this.personEmail.setText(personEmail);
@@ -859,7 +862,8 @@ public class MainActivity extends AppCompatActivity
             // not Signed in
             personData.setOnClickListener(null);
             personData.setVisibility(View.GONE);
-            navigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
+            navigationView.getHeaderView(0)
+                    .findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
             syncDataMenuItem.setVisible(false);
             settings.set("syncEnabled", false);
             settings.set("signedIn", false);
@@ -984,8 +988,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void syncData(String data) {
-        //Log.d("MainActivity", "received data: " + data);
-
         new SyncDataAsyncTask(todolist, data,
                 (long) settings.get("lastSyncTimeStamp"), new SyncDataCallback() {
             @Override
@@ -1062,8 +1064,6 @@ public class MainActivity extends AppCompatActivity
         DriveFile file = driveId.asDriveFile();
 
         String data = todolist.getSyncData();
-
-        //Log.d("MainActivity", "send data: " + data);
 
         int statusCode = 0;
         try {
@@ -1197,49 +1197,38 @@ public class MainActivity extends AppCompatActivity
         Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
     }
 
-    public void checkIntent() {
-        Intent intent = getIntent();
+    public void checkIntent(Intent intent) {
         String action = intent.getAction();
         if (action != null) {
             switch (action) {
-                case "widget_button":
-                    if (dialog != null) {
-                        dialog.dismiss();
-                    }
-                    FloatingActionButton fab
-                            = (FloatingActionButton) findViewById(R.id.fab);
-                    if (fab != null) {
-                        fabClicked(fab);
-                    }
-                    break;
-                case "notification_add_todo":
+                case ADD_EVENT:
                     if (dialog != null) {
                         dialog.dismiss();
                     }
                     fabClicked(findViewById(R.id.fab));
                     break;
-                case "Import":
+                case IMPORT:
                     //check if theme or TODOs
                     if (dialog != null) {
                         dialog.dismiss();
                     }
                     onImportIntent(intent.getStringExtra("events"));
                     break;
-                case "addNewEvents":
-                    if (dialog != null) {
-                        dialog.dismiss();
-                    }
-                    showImportEvents(intent.getStringExtra("events"), false);
-                    break;
-                case "removeEventNotificationDoneButton":
+                case NOTIFICATION_DONE_BUTTON:
                     removeEventNotificationDoneButton(intent.getLongExtra("eventId", 0));
                     break;
-                case "setRepeatingAlarm":
+                case UPDATE_EVENT_ALARM:
                     long eventId = intent.getLongExtra("eventId", 0);
                     long alarmTime = intent.getLongExtra("alarmTime", 0);
-                    todolist.getEventById(eventId).getAlarm().setTime(alarmTime);
+                    Alarm alarm = todolist.getEventById(eventId).getAlarm();
+                    if(alarm != null){
+                        alarm.setTime(alarmTime);
+                    } else {
+                        todolist.getEventById(eventId).setAlarm(eventId, alarmTime);
+                    }
+                    setAlarm(alarmTime, eventId);
                     break;
-                case "newEvent":
+                /*case "newEvent":
                     showToast("new TODO");
                     String whatToDo = intent.getStringExtra("whatToDo");
                     int color = intent.getIntExtra("color", 0);
@@ -1262,13 +1251,9 @@ public class MainActivity extends AppCompatActivity
                     todolist.addOrRemoveEventFromAdapter(mAdapter);
                     mRecyclerView.scrollToPosition(mAdapter.getList().indexOf(e));
                     checkForNotificationUpdate();
-                    break;
-                default:
-                    //do nothing
-                    break;
+                    break;*/
             }
         }
-        intent.setAction("no_action");
     }
 
     public void checkForNotificationUpdate() {
@@ -1294,7 +1279,7 @@ public class MainActivity extends AppCompatActivity
             content = getString(R.string.you_have) + " " + todolist.getTodolistArray().size() + " " + getString(R.string.events_in_your_todolist);
         }
         Intent add_event_intent = new Intent(context, MainActivity.class);
-        add_event_intent.setAction("notification_add_todo");
+        add_event_intent.setAction(ADD_EVENT);
         add_event_intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         PendingIntent add_event_pendingIntent = PendingIntent.getActivity(context, 6, add_event_intent, 0); // PendingIntent.FLAG_IMMUTABLE
 
@@ -2146,7 +2131,7 @@ public class MainActivity extends AppCompatActivity
                 = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, BroadcastReceiver.class);
         intent.putExtra("EventId", id);
-        intent.setAction("ALARM");
+        intent.setAction(BroadcastReceiver.ALARM);
         PendingIntent pendingIntent
                 = PendingIntent.getBroadcast(context, (int) id, intent, 0);
         mAlarmManager.setExact(AlarmManager.RTC_WAKEUP, alarmTime, pendingIntent);
@@ -2166,7 +2151,7 @@ public class MainActivity extends AppCompatActivity
                 = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, BroadcastReceiver.class);
         intent.putExtra("EventId", id);
-        intent.setAction("ALARM");
+        intent.setAction(BroadcastReceiver.ALARM);
         PendingIntent pendingIntent
                 = PendingIntent.getBroadcast(context, (int) id, intent, 0);
         mAlarmManager.cancel(pendingIntent);
@@ -2975,11 +2960,8 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onNewIntent(Intent intent) {
-        setIntent(intent);
         super.onNewIntent(intent);
-        if(mDrawerLayout != null){
-            mDrawerLayout.closeDrawers();
-        }
+        checkIntent(intent);
     }
 
     @Override

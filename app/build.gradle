@@ -8,7 +8,7 @@ android {
         applicationId "us.koller.todolist"
         minSdkVersion 21
         targetSdkVersion 23
-        versionCode 46
+        versionCode 48
         versionName "2.0"
         manifestPlaceholders = [applicationLabel: "@string/app_name"]
     }

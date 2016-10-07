@@ -2,6 +2,7 @@ package us.koller.todolist;
 
 import android.content.Context;
 import android.graphics.PorterDuff;
+import android.support.annotation.NonNull;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,26 +38,32 @@ public class ImportListViewAdapter extends ArrayAdapter<Event> {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
         Event e = getItem(position);
         if (convertView == null) {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.widget_list_row, parent, false);
         }
-        int color_index = e.getColor();
+
+        int color_index = 1;
+        String whatToDo = "Error";
+        if(e != null){
+            color_index = e.getColor();
+            whatToDo = e.getWhatToDo();
+        }
 
         TextView text = (TextView) convertView.findViewById(R.id.list_row_text);
 
-        text.setText(e.getWhatToDo());
-        if(eventsImport){
-            /*text.getBackground().setColorFilter(helper.getEventColor_semitransparent(color_index), PorterDuff.Mode.SRC_IN);
-            text.setTextColor(helper.getEventTextColor_semitransparent(color_index));*/
+        text.setText(whatToDo);
 
+        text.getBackground().setColorFilter(helper.getEventColor(color_index), PorterDuff.Mode.SRC_IN);
+        text.setTextColor(helper.getEventTextColor(color_index));
+        /*if(eventsImport){
             text.getBackground().setColorFilter(helper.getEventColor(color_index), PorterDuff.Mode.SRC_IN);
             text.setTextColor(helper.getEventTextColor(color_index));
         } else {
             text.getBackground().setColorFilter(helper.getEventColor(color_index), PorterDuff.Mode.SRC_IN);
             text.setTextColor(helper.getEventTextColor(color_index));
-        }
+        }*/
         text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
 
         text.setPadding(padding, padding, padding, padding);

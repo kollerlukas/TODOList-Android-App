@@ -10,7 +10,6 @@ import android.widget.Toast;
 import us.koller.todolist.R;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -31,13 +30,12 @@ public class ImportDataActivity extends AppCompatActivity {
             this.finish();
             return;
         }
-        //Toast.makeText(ImportDataActivity.this, String.valueOf(cR.getType(data)), Toast.LENGTH_SHORT).show();
 
         String eventsToImport;
         Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT
                 |Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-        intent.setAction("Import");
+        intent.setAction(MainActivity.IMPORT);
         getIntent().setData(null);
         try {
             eventsToImport = importData(data);
