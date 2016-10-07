@@ -9,6 +9,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
@@ -19,7 +21,6 @@ import org.json.JSONException;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -52,7 +53,7 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
                 if (event == null) {
                     return;
                 }
-                sendNotification(context, event.getWhatToDo(), event.getId(),
+                sendAlarmNotification(context, event.getWhatToDo(), event.getId(),
                         sharedpreferences.getBoolean("vibrate", true), event.getColor());
                 checkIfEventIsRepeating(context);
                 break;
@@ -115,7 +116,7 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
         showNotification(context);
     }
 
-    private void sendNotification(Context context, String event, long event_id, boolean vibrate, int colorIndex) {
+    private void sendAlarmNotification(Context context, String event, long event_id, boolean vibrate, int colorIndex) {
         if (vibrate) {
             Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
             v.vibrate(500);
@@ -136,10 +137,14 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
         remove_event_intent.setAction("notification_button");
         PendingIntent remove_event_pendingIntent = PendingIntent.getBroadcast(context, id, remove_event_intent, PendingIntent.FLAG_ONE_SHOT);
 
-        int color = new ThemeHelper(context, colorIndex).getEventColor(colorIndex);
+        ThemeHelper helper = new ThemeHelper(context, colorIndex);
+        int color = helper.getEventColor(colorIndex);
         if (Color.red(color) == 255 && Color.green(color) == 255 && Color.blue(color) == 255) {
             color = ContextCompat.getColor(context, R.color.light_grey);
         }
+
+        Drawable d = ContextCompat.getDrawable(context, R.drawable.ic_alarm_white_24dp);
+        d.setColorFilter(helper.getEventTextColor(colorIndex), PorterDuff.Mode.SRC_IN);
 
         NotificationCompat.Builder alarmNotificationBuilder = new NotificationCompat.Builder(context)
                 .setContentTitle(context.getString(R.string.dont_forget))
@@ -234,7 +239,7 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
                         setAlarm(context, e.getId(), alarmTime);
                     } else if (alarmTime > context.getSharedPreferences("todolist",
                             Context.MODE_PRIVATE).getLong("shutdown_timestamp", System.currentTimeMillis())) {
-                        sendNotification(context,
+                        sendAlarmNotification(context,
                                 e.getWhatToDo(),
                                 intent.getIntExtra("EventId", 0),
                                 context.getSharedPreferences("todolist",
