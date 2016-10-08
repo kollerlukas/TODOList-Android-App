@@ -2,11 +2,8 @@ package us.koller.todolist.Activities;
 
 import com.google.android.gms.common.GoogleApiAvailability;
 
-import android.animation.AnimatorInflater;
-import android.animation.AnimatorSet;
 import android.app.ActivityManager;
 import android.content.ActivityNotFoundException;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.PorterDuff;
@@ -23,7 +20,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -47,15 +43,11 @@ public class InfoActivity extends AppCompatActivity {
 
     private ThemeHelper helper;
 
-    private Context context;
-
     private RecyclerView mRecyclerView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        context = this;
 
         if (!getResources().getBoolean(R.bool.tablet)) {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -96,13 +88,13 @@ public class InfoActivity extends AppCompatActivity {
                 getString(R.string.developer_name), getString(R.string.english_german),
                 "", "", "", ""};
 
-        Drawable[] drawables = {ContextCompat.getDrawable(context, R.drawable.ic_info_outline_grey_700_48dp),
-                ContextCompat.getDrawable(context, R.drawable.ic_account_circle_grey_700_48dp),
-                ContextCompat.getDrawable(context, R.drawable.ic_language_grey_700_48dp),
-                ContextCompat.getDrawable(context, R.drawable.ic_translate_black_48dp),
-                ContextCompat.getDrawable(context, R.drawable.ic_description_grey_700_48dp),
-                ContextCompat.getDrawable(context, R.drawable.ic_bug_report_grey_700_48dp),
-                ContextCompat.getDrawable(context, R.drawable.ic_share_white_48dp),};
+        Drawable[] drawables = {ContextCompat.getDrawable(InfoActivity.this, R.drawable.ic_info_outline_grey_700_48dp),
+                ContextCompat.getDrawable(InfoActivity.this, R.drawable.ic_account_circle_grey_700_48dp),
+                ContextCompat.getDrawable(InfoActivity.this, R.drawable.ic_language_grey_700_48dp),
+                ContextCompat.getDrawable(InfoActivity.this, R.drawable.ic_translate_black_48dp),
+                ContextCompat.getDrawable(InfoActivity.this, R.drawable.ic_description_grey_700_48dp),
+                ContextCompat.getDrawable(InfoActivity.this, R.drawable.ic_bug_report_grey_700_48dp),
+                ContextCompat.getDrawable(InfoActivity.this, R.drawable.ic_share_white_48dp),};
 
         Info_RVAdapter mAdapter = new Info_RVAdapter(itemsText, itemsText_small, drawables);
         mRecyclerView.setAdapter(mAdapter);
@@ -157,7 +149,7 @@ public class InfoActivity extends AppCompatActivity {
         }
 
         String title = getString(R.string.app_name);
-        BitmapDrawable icon = (BitmapDrawable) ContextCompat.getDrawable(context, R.mipmap.ic_launcher);
+        BitmapDrawable icon = (BitmapDrawable) ContextCompat.getDrawable(InfoActivity.this, R.mipmap.ic_launcher);
 
         ActivityManager.TaskDescription tDesc = new ActivityManager.TaskDescription(title, icon.getBitmap(), helper.get("toolbar_color"));
         this.setTaskDescription(tDesc);
@@ -198,10 +190,10 @@ public class InfoActivity extends AppCompatActivity {
         web_view_2.loadDataWithBaseURL("",
                 getString(R.string.licences_text4), "text/html", "UTF-8", "");
         web_view_3.loadDataWithBaseURL("", GoogleApiAvailability.getInstance()
-                .getOpenSourceSoftwareLicenseInfo(context), "text/html", "UTF-8", "");
+                .getOpenSourceSoftwareLicenseInfo(InfoActivity.this), "text/html", "UTF-8", "");
 
         AlertDialog dialog =
-                new AlertDialog.Builder(context, getDialogTheme())
+                new AlertDialog.Builder(InfoActivity.this, getDialogTheme())
                         .setTitle(getString(R.string.legal_notices))
                         .setView(layout)
                         .setCancelable(true)
@@ -224,7 +216,7 @@ public class InfoActivity extends AppCompatActivity {
         text_view3.setTextColor(getDialogTextColor());
         text_view4.setTextColor(getDialogTextColor());
 
-        AlertDialog dialog = new AlertDialog.Builder(context, getDialogTheme())
+        AlertDialog dialog = new AlertDialog.Builder(InfoActivity.this, getDialogTheme())
                 .setView(layout)
                 .setCancelable(true)
                 .create();
@@ -290,7 +282,7 @@ public class InfoActivity extends AppCompatActivity {
 
     public int getDialogTheme() {
         int theme;
-        if (helper.lightCordColor()) {
+        if (helper.lightCoordColor()) {
             theme = R.style.DialogTheme_light;
         } else {
             theme = R.style.DialogTheme_dark;
@@ -299,13 +291,10 @@ public class InfoActivity extends AppCompatActivity {
     }
 
     public int getDialogTextColor() {
-        int TextColor;
-        if (helper.lightCordColor()) {
-            TextColor = ContextCompat.getColor(getApplicationContext(), R.color.black);
-        } else {
-            TextColor = ContextCompat.getColor(getApplicationContext(), R.color.white);
+        if (helper.lightCoordColor()) {
+            return helper.getDarkTextColor();
         }
-        return TextColor;
+        return helper.getLightTextColor();
     }
 
     @Override
@@ -318,6 +307,7 @@ public class InfoActivity extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         this.finish();
-        this.overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+        this.overridePendingTransition(R.anim.slide_in_left,
+                R.anim.slide_out_right);
     }
 }

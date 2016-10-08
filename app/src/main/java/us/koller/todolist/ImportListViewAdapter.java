@@ -37,6 +37,7 @@ public class ImportListViewAdapter extends ArrayAdapter<Event> {
         padding = (int) (20 * scale + 0.5f);
     }
 
+    @NonNull
     @Override
     public View getView(int position, View convertView, @NonNull ViewGroup parent) {
         Event e = getItem(position);
@@ -57,13 +58,6 @@ public class ImportListViewAdapter extends ArrayAdapter<Event> {
 
         text.getBackground().setColorFilter(helper.getEventColor(color_index), PorterDuff.Mode.SRC_IN);
         text.setTextColor(helper.getEventTextColor(color_index));
-        /*if(eventsImport){
-            text.getBackground().setColorFilter(helper.getEventColor(color_index), PorterDuff.Mode.SRC_IN);
-            text.setTextColor(helper.getEventTextColor(color_index));
-        } else {
-            text.getBackground().setColorFilter(helper.getEventColor(color_index), PorterDuff.Mode.SRC_IN);
-            text.setTextColor(helper.getEventTextColor(color_index));
-        }*/
         text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
 
         text.setPadding(padding, padding, padding, padding);

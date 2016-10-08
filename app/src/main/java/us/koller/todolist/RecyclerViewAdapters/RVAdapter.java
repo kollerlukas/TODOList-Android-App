@@ -36,7 +36,7 @@ import us.koller.todolist.Util.ThemeHelper;
  */
 public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
 
-    public class EventViewHolder extends RecyclerView.ViewHolder implements OnClickListener {
+    public static class EventViewHolder extends RecyclerView.ViewHolder implements OnClickListener {
         Event event;
 
         CardView card;
@@ -45,22 +45,18 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
         private TextView textview;
 
         private ImageView color_button;
-        private AnimatedVectorDrawableCompat color_anim;
 
         private ImageView edit_button;
-        private AnimatedVectorDrawableCompat edit_anim;
 
         private ImageView alarm_button;
-        private AnimatedVectorDrawableCompat alarm_anim;
 
         public boolean semiTransparent = false;
         boolean isAnimationRunning = false;
 
-        // if card is collapsed during colorAnim; because collapse remove vectorDrawables
-        private boolean colorAnimRunning = false;
-        private boolean pendindCollapse = false;
+        private CardActionButtonOnClickCallback onClickCallback;
 
-        EventViewHolder(View v) {
+        EventViewHolder(View v, CardActionButtonOnClickCallback onClickCallback, AnimatedVectorDrawableCompat color_anim,
+                        AnimatedVectorDrawableCompat edit_anim, AnimatedVectorDrawableCompat alarm_anim) {
             super(v);
 
             card = (CardView) v.findViewById(R.id.card);
@@ -74,19 +70,32 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
 
             alarm_button = (ImageView) v.findViewById(R.id.alarm_button);
 
+            color_button.setBackground(null);
+            color_button.setImageDrawable(color_anim);
+
+            edit_button.setBackground(null);
+            edit_button.setImageDrawable(edit_anim);
+
+            alarm_button.setBackground(null);
+            alarm_button.setImageDrawable(alarm_anim);
+
             color_button.setOnClickListener(this);
             edit_button.setOnClickListener(this);
             alarm_button.setOnClickListener(this);
 
             card_action_view.setVisibility(View.GONE);
+
+            this.onClickCallback = onClickCallback;
         }
 
         void setEvent(Event event) {
             this.event = event;
         }
 
-        public void initCard() {
+        public void initCard(ThemeHelper helper) {
             textview.setText(event.getWhatToDo());
+            setColor(helper.getEventColor(event.getColor()),
+                    helper.getEventTextColor(event.getColor()));
             if (!semiTransparent) {
                 setColor(helper.getEventColor(event.getColor()),
                         helper.getEventTextColor(event.getColor()));
@@ -99,6 +108,10 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
         private void setColor(int color, int textColor) {
             card.setCardBackgroundColor(color);
             textview.setTextColor(textColor);
+
+            color_button.getDrawable().setTint(textColor);
+            edit_button.getDrawable().setTint(textColor);
+            alarm_button.getDrawable().setTint(textColor);
         }
 
         @Override
@@ -119,7 +132,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
         private void colorButtonClicked() {
             isAnimationRunning = true;
 
-            color_anim.start();
+            ((AnimatedVectorDrawableCompat) color_button.getDrawable()).start();
             new Handler().postDelayed(new Runnable() {
                 public void run() {
                     isAnimationRunning = false;
@@ -131,7 +144,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
         private void editButtonClicked() {
             isAnimationRunning = true;
 
-            edit_anim.start();
+            ((AnimatedVectorDrawableCompat) edit_button.getDrawable()).start();
             new Handler().postDelayed(new Runnable() {
                 public void run() {
                     isAnimationRunning = false;
@@ -143,7 +156,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
         private void alarmButtonClicked() {
             isAnimationRunning = true;
 
-            alarm_anim.start();
+            ((AnimatedVectorDrawableCompat) alarm_button.getDrawable()).start();
             new Handler().postDelayed(new Runnable() {
                 public void run() {
                     isAnimationRunning = false;
@@ -153,8 +166,6 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
         }
 
         public void changeCardColorAnim(final Context context, final int color, final int textColor) {
-            colorAnimRunning = true;
-
             final RelativeLayout reveal_bg = (RelativeLayout) itemView.findViewById(R.id.rl_card);
 
             final Drawable reveal_bg_d = ContextCompat.getDrawable(context, R.drawable.card_reveal_bg);
@@ -189,10 +200,12 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
                     }
                     textview.setTextColor(textColor);
 
-                    if(color_anim != null && edit_anim != null && alarm_anim != null){
-                        color_anim.setTint(textColor);
-                        edit_anim.setTint(textColor);
-                        alarm_anim.setTint(textColor);
+                    if (color_button.getDrawable() != null
+                            && edit_button.getDrawable() != null
+                            && alarm_button.getDrawable() != null) {
+                        color_button.getDrawable().setTint(textColor);
+                        edit_button.getDrawable().setTint(textColor);
+                        alarm_button.getDrawable().setTint(textColor);
                     }
                 }
             });
@@ -200,7 +213,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             Animator animator = ViewAnimationUtils.createCircularReveal(reveal_bg,
                     color_button.getWidth() / 2 + color_button.getLeft() + card_action_view.getLeft(),
                     color_button.getHeight() / 2 + color_button.getTop() + card_action_view.getTop(),
-                    0,  reveal_bg.getWidth() - color_button.getLeft());
+                    0, reveal_bg.getWidth() - color_button.getLeft());
             animator.setDuration(1000);
             animator.setStartDelay(250);
             animator.setInterpolator(new AccelerateDecelerateInterpolator());
@@ -214,21 +227,6 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
                 public void onAnimationEnd(Animator animation) {
                     card.setCardBackgroundColor(color);
                     reveal_bg.setBackground(null);
-
-                    colorAnimRunning = false;
-
-                    if (pendindCollapse) {
-                        pendindCollapse = false;
-
-                        color_button.setImageDrawable(null);
-                        color_anim = null;
-
-                        edit_button.setImageDrawable(null);
-                        edit_anim = null;
-
-                        alarm_button.setImageDrawable(null);
-                        alarm_anim = null;
-                    }
                 }
 
                 @Override
@@ -255,34 +253,18 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             ValueAnimator animator = getValueAnimator(card_action_view.getHeight(), 0);
             animator.addListener(new Animator.AnimatorListener() {
                 @Override
-                public void onAnimationStart(Animator animation) {
-                }
+                public void onAnimationStart(Animator animation) {/*nothing*/}
 
                 @Override
                 public void onAnimationEnd(Animator animation) {
                     card_action_view.setVisibility(View.GONE);
-
-                    if (!colorAnimRunning) {
-                        color_button.setImageDrawable(null);
-                        color_anim = null;
-
-                        edit_button.setImageDrawable(null);
-                        edit_anim = null;
-
-                        alarm_button.setImageDrawable(null);
-                        alarm_anim = null;
-                    } else {
-                        pendindCollapse = true;
-                    }
                 }
 
                 @Override
-                public void onAnimationCancel(Animator animation) {
-                }
+                public void onAnimationCancel(Animator animation) {/*nothing*/}
 
                 @Override
-                public void onAnimationRepeat(Animator animation) {
-                }
+                public void onAnimationRepeat(Animator animation) {/*nothing*/}
             });
             animator.start();
         }
@@ -292,22 +274,6 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
                 return;
             }
 
-            color_anim = AnimatedVectorDrawableCompat.create(appContext, R.drawable.ic_color_animatable);
-            color_button.setBackground(null);
-            color_button.setImageDrawable(color_anim);
-
-            edit_anim = AnimatedVectorDrawableCompat.create(appContext, R.drawable.ic_edit_animatable);
-            edit_button.setBackground(null);
-            edit_button.setImageDrawable(edit_anim);
-
-            alarm_anim = AnimatedVectorDrawableCompat.create(appContext, R.drawable.ic_alarm_animatable);
-            alarm_button.setBackground(null);
-            alarm_button.setImageDrawable(alarm_anim);
-
-            color_anim.setTint(textview.getCurrentTextColor());
-            edit_anim.setTint(textview.getCurrentTextColor());
-            alarm_anim.setTint(textview.getCurrentTextColor());
-
             ValueAnimator animator = getValueAnimator(0, (int) CARD_ACTION_VIEW_HEIGHT);
             animator.addListener(new Animator.AnimatorListener() {
                 @Override
@@ -316,22 +282,20 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
                 }
 
                 @Override
-                public void onAnimationEnd(Animator animation) {
-                }
+                public void onAnimationEnd(Animator animation) {/*nothing*/}
 
                 @Override
-                public void onAnimationCancel(Animator animation) {
-                }
+                public void onAnimationCancel(Animator animation) {/*nothing*/}
 
                 @Override
-                public void onAnimationRepeat(Animator animation) {
-                }
+                public void onAnimationRepeat(Animator animation) {/*nothing*/}
             });
             animator.start();
         }
 
         private ValueAnimator getValueAnimator(final int start, final int end) {
             final boolean expanding = start < end;
+            final ViewGroup.LayoutParams layoutParams = card_action_view.getLayoutParams();
 
             ValueAnimator animator = ValueAnimator.ofInt(start, end);
             animator.setDuration(300);
@@ -339,20 +303,30 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                    int value = (Integer) valueAnimator.getAnimatedValue();
-                    ViewGroup.LayoutParams layoutParams
-                            = card_action_view.getLayoutParams();
-                    layoutParams.height = value;
+                    layoutParams.height = (int) (start + (end - start) * valueAnimator.getAnimatedFraction());
                     card_action_view.setLayoutParams(layoutParams);
 
                     float animatedFraction = valueAnimator.getAnimatedFraction();
-                    if (!expanding) {
-                        animatedFraction = 1 - animatedFraction;
+
+                    int color = textview.getTextColors().getDefaultColor();
+                    int alpha;
+
+                    if ((valueAnimator.getAnimatedFraction() > 0.5f && expanding)
+                            || (valueAnimator.getAnimatedFraction() < 0.5f && !expanding)) {
+                        if(expanding){
+                            alpha = (int) (255 * (animatedFraction - 0.5f)*2);
+                        } else {
+                            alpha = (int) (255 * (1 - animatedFraction*2));
+                        }
+                    } else {
+                        alpha = 0;
                     }
 
-                    color_button.setAlpha(animatedFraction);
-                    edit_button.setAlpha(animatedFraction);
-                    alarm_button.setAlpha(animatedFraction);
+                    int color_a = Color.argb(alpha, Color.red(color), Color.green(color), Color.blue(color));
+
+                    color_button.getDrawable().setTint(color_a);
+                    edit_button.getDrawable().setTint(color_a);
+                    alarm_button.getDrawable().setTint(color_a);
                 }
             });
             return animator;
@@ -368,15 +342,15 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
 
     private ArrayList<Long> semiTransparentEventIds;
 
-    private float CARD_ACTION_VIEW_HEIGHT;
+    private static float CARD_ACTION_VIEW_HEIGHT = 0;
 
-    private Context appContext;
+    private Context context;
 
     public RVAdapter(ArrayList<Event> events, CardActionButtonOnClickCallback onClickCallback, Context context) {
         this.events = events;
         this.onClickCallback = onClickCallback;
 
-        appContext = context.getApplicationContext();
+        this.context = context;
 
         semiTransparentEventIds = new ArrayList<>();
 
@@ -386,22 +360,15 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
     @Override
     public void onBindViewHolder(EventViewHolder eventViewHolder, int i) {
         eventViewHolder.setEvent(events.get(i));
-        if(semiTransparentEventIds.contains(events.get(i).getId())){
+        if (semiTransparentEventIds.contains(events.get(i).getId())) {
             eventViewHolder.setSemiTransparent(true);
         } else {
             eventViewHolder.setSemiTransparent(false);
         }
-        eventViewHolder.initCard();
+        eventViewHolder.initCard(helper);
 
-        if(mExpandedPosition != i){
-            //eventViewHolder.collapse();
+        if (mExpandedPosition != i) {
             eventViewHolder.card_action_view.setVisibility(View.GONE);
-            eventViewHolder.color_button.setImageDrawable(null);
-            eventViewHolder.color_anim = null;
-            eventViewHolder.edit_button.setImageDrawable(null);
-            eventViewHolder.edit_anim = null;
-            eventViewHolder.alarm_button.setImageDrawable(null);
-            eventViewHolder.alarm_anim = null;
         } else {
             eventViewHolder.expand();
         }
@@ -416,7 +383,10 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
     public EventViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         View v = LayoutInflater.from(viewGroup.getContext())
                 .inflate(R.layout.one_event, viewGroup, false);
-        return new EventViewHolder(v);
+        return new EventViewHolder(v, onClickCallback,
+                AnimatedVectorDrawableCompat.create(context, R.drawable.ic_color_animatable),
+                AnimatedVectorDrawableCompat.create(context, R.drawable.ic_edit_animatable),
+                AnimatedVectorDrawableCompat.create(context, R.drawable.ic_alarm_animatable));
     }
 
     public void addItem(int index, Event e) {

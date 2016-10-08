@@ -10,7 +10,6 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ShareCompat;
 import android.support.v4.content.ContextCompat;
@@ -25,7 +24,6 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -57,14 +55,11 @@ import us.koller.todolist.Util.ThemeHelper;
  */
 public class ThemeActivity extends AppCompatActivity {
 
-    private Context context;
-
     private ThemeHelper helper;
 
     private Toolbar toolbar;
     private Toolbar toolbar_card;
     private FloatingActionButton fab;
-    private CoordinatorLayout cord;
     private CardView card;
     private View drawerIcon;
     private MenuItem infoIcon;
@@ -74,7 +69,6 @@ public class ThemeActivity extends AppCompatActivity {
 
     private RecyclerView mRecyclerView;
     private Theme_RVAdapter mAdapter;
-    private LinearLayoutManager mLinearLayoutManager;
 
     private AlertDialog dialog;
     private AlertDialog themePickerDialog;
@@ -86,8 +80,6 @@ public class ThemeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        context = this;
 
         helper = new ThemeHelper(this);
 
@@ -105,7 +97,6 @@ public class ThemeActivity extends AppCompatActivity {
         }
 
         fab = (FloatingActionButton) findViewById(R.id.fab_theme);
-        cord = (CoordinatorLayout) findViewById(R.id.coordinatorLayout_theme);
         card = (CardView) findViewById(R.id.cardView);
         toolbar_card = (Toolbar) findViewById(R.id.toolbar_theme_card);
         statusBar = findViewById(R.id.statusbar);
@@ -117,9 +108,9 @@ public class ThemeActivity extends AppCompatActivity {
             public boolean onLongClick(View view) {
                 helper.toggleToolbarIconsTranslucent();
                 if (helper.isToolbarIconsTranslucent()) {
-                    Toast.makeText(context, "Toolbar icons translucent", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ThemeActivity.this, "Toolbar icons translucent", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(context, "Toolbar icons not translucent", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ThemeActivity.this, "Toolbar icons not translucent", Toast.LENGTH_SHORT).show();
                 }
                 return true;
             }
@@ -133,15 +124,14 @@ public class ThemeActivity extends AppCompatActivity {
         //showInfoDialog();
     }
 
-    public ThemeActivity() {
-    }
+    public ThemeActivity() {}
 
     public void initRecyclerView() {
         mRecyclerView = (RecyclerView) findViewById(R.id.rv_theme);
         mRecyclerView.setHasFixedSize(true);
         addOnItemTouchListenerToRecyclerView();
 
-        mLinearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+        LinearLayoutManager mLinearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         mRecyclerView.setLayoutManager(mLinearLayoutManager);
 
         mAdapter = new Theme_RVAdapter(helper);
@@ -181,10 +171,10 @@ public class ThemeActivity extends AppCompatActivity {
 
         int color;
         if (helper.isToolbarIconsTranslucent()) {
-            int color_base = ContextCompat.getColor(context, R.color.black);
+            int color_base = helper.getDarkTextColor();
             color = Color.argb(95, Color.red(color_base), Color.green(color_base), Color.blue(color_base));
         } else {
-            color = ContextCompat.getColor(context, R.color.black);
+            color = helper.getDarkTextColor();
         }
         ChangeColorOfToolbarDrawerIcon(color);
         colorInfoIcon(color);
@@ -194,9 +184,9 @@ public class ThemeActivity extends AppCompatActivity {
 
         fab.setBackgroundTintList(ColorStateList.valueOf(helper.get("fab_color")));
         fab.getDrawable().setTint(helper.get("fab_textcolor"));
-        fab.setRippleColor(ContextCompat.getColor(context, R.color.white));
+        fab.setRippleColor(ContextCompat.getColor(ThemeActivity.this, R.color.white));
 
-        presetThemes.setTextColor(ContextCompat.getColor(context, R.color.black));
+        presetThemes.setTextColor(helper.getDarkTextColor());
 
         if (helper.get("cord_color") != helper.get("toolbar_color")) {
             toolbarAndBackgroundSameColor = false;
@@ -278,7 +268,7 @@ public class ThemeActivity extends AppCompatActivity {
         final CardView colorCard = (CardView) layout.findViewById(R.id.colorCard);
         final TextView colorTextView = (TextView) layout.findViewById(R.id.colorTextView);
         final EditText hexEditText = (EditText) layout.findViewById(R.id.edit_text);
-        hexEditText.setTextColor(ContextCompat.getColor(this, R.color.black));
+        hexEditText.setTextColor(helper.getDarkTextColor());
         CharSequence hexColor_argb = Integer.toHexString(oldColor);
         String hexColor = "#" + hexColor_argb.charAt(2) + hexColor_argb.charAt(3) + hexColor_argb.charAt(4) + hexColor_argb.charAt(5) + hexColor_argb.charAt(6) + hexColor_argb.charAt(7);
         hexEditText.setText(hexColor);
@@ -331,11 +321,11 @@ public class ThemeActivity extends AppCompatActivity {
             checkbox.setVisibility(View.GONE);
         } else {
             int color_checkbox = helper.get("fab_color");
-            if (helper.get("fab_color") == ContextCompat.getColor(context, R.color.white)) {
-                color_checkbox = ContextCompat.getColor(context, R.color.grey);
+            if (helper.get("fab_color") == ContextCompat.getColor(ThemeActivity.this, R.color.white)) {
+                color_checkbox = ContextCompat.getColor(ThemeActivity.this, R.color.grey);
             }
 
-            int color_grey = ContextCompat.getColor(context, R.color.grey);
+            int color_grey = ContextCompat.getColor(ThemeActivity.this, R.color.grey);
             final int[][] states = new int[3][];
             final int[] colors = new int[3];
             int k = 0;
@@ -354,7 +344,7 @@ public class ThemeActivity extends AppCompatActivity {
             colors[k] = color_grey;
 
             checkbox.setSupportButtonTintList(new ColorStateList(states, colors));
-            checkbox.setTextColor(ContextCompat.getColor(context, R.color.black));
+            checkbox.setTextColor(helper.getDarkTextColor());
 
             checkbox.setChecked(toolbarAndBackgroundSameColor);
             checkbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -512,8 +502,8 @@ public class ThemeActivity extends AppCompatActivity {
 
     public AlertDialog changeDialogButtonColor(AlertDialog dialog) {
         int color = helper.get("fab_color");
-        if (helper.get("fab_color") == ContextCompat.getColor(context, R.color.white)) {
-            color = ContextCompat.getColor(context, R.color.grey);
+        if (helper.get("fab_color") == ContextCompat.getColor(ThemeActivity.this, R.color.white)) {
+            color = ContextCompat.getColor(ThemeActivity.this, R.color.grey);
         }
 
         Button positive = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
@@ -534,8 +524,12 @@ public class ThemeActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        helper.saveData(context);
+        helper.saveData(ThemeActivity.this);
         overridePendingTransition(R.anim.fade_in_long, R.anim.fade_out_long);
+
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setAction(MainActivity.NEW_THEME);
+        startActivity(intent);
         this.finish();
     }
 
@@ -545,7 +539,7 @@ public class ThemeActivity extends AppCompatActivity {
         if (themePickerDialog != null) {
             themePickerDialog.dismiss();
         }
-        helper.saveData(context);
+        helper.saveData(ThemeActivity.this);
     }
 
     @Override
@@ -556,10 +550,10 @@ public class ThemeActivity extends AppCompatActivity {
                 infoIcon = toolbar.getMenu().getItem(i);
                 int color;
                 if (helper.isToolbarIconsTranslucent()) {
-                    int color_base = ContextCompat.getColor(context, R.color.black);
+                    int color_base = helper.getDarkTextColor();
                     color = Color.argb(95, Color.red(color_base), Color.green(color_base), Color.blue(color_base));
                 } else {
-                    color = ContextCompat.getColor(context, R.color.black);
+                    color = helper.getDarkTextColor();
                 }
                 infoIcon.getIcon().setColorFilter(color, PorterDuff.Mode.SRC_IN);
             }
@@ -638,8 +632,8 @@ public class ThemeActivity extends AppCompatActivity {
                 theme = "black";
                 break;
         }
-        helper.restoreDefaultTheme(context, theme);
-        helper.saveData(context);
+        helper.restoreDefaultTheme(ThemeActivity.this, theme);
+        helper.saveData(ThemeActivity.this);
         initTheme();
 
         if(helper.get("toolbar_color") == helper.get("cord_color")){
@@ -661,7 +655,7 @@ public class ThemeActivity extends AppCompatActivity {
         generateFileToShare(filename, data);
 
         File f = new File(getFilesDir().getAbsolutePath(), filename);
-        Uri uri = FileProvider.getUriForFile(context,
+        Uri uri = FileProvider.getUriForFile(ThemeActivity.this,
                 "us.koller.todolist.fileprovider", f);
 
         Intent shareIntent = ShareCompat.IntentBuilder.from(this)

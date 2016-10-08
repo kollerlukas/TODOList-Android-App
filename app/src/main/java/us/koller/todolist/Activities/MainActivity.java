@@ -148,10 +148,9 @@ public class MainActivity extends AppCompatActivity
     public static final String IMPORT = "IMPORT";
     public static final String NOTIFICATION_DONE_BUTTON = "NOTIFICATION_DONE_BUTTON";
     public static final String UPDATE_EVENT_ALARM = "UPDATE_EVENT_ALARM";
+    public static final String NEW_THEME = "NEW_THEME";
 
     public static boolean isRunning;
-
-    private Context context;
 
     private Todolist todolist;
 
@@ -167,7 +166,7 @@ public class MainActivity extends AppCompatActivity
     private SwipeRefreshLayout mSwipeRefreshLayout;
 
     private DrawerLayout mDrawerLayout;
-    private NavigationView navigationView;
+    private NavigationView mNavigationView;
     private ActionBarDrawerToggle mDrawerToggle;
     private View drawerIcon;
     private Drawable overflowIcon;
@@ -189,8 +188,7 @@ public class MainActivity extends AppCompatActivity
 
     private static Handler handler = new Handler();
 
-    private int selectedColor; //For Color selecting at the add Dialog
-    private boolean newTheme = true;
+    private int selectedColor; //For Color selecting on the add Dialog
 
     private boolean isEventDraged = false;
 
@@ -215,12 +213,10 @@ public class MainActivity extends AppCompatActivity
 
         setContentView(R.layout.activity_main);
 
-        context = this;
-
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
 
-        settings = new Settings(context);
+        settings = new Settings(MainActivity.this);
 
         settings.readSettings();
 
@@ -229,7 +225,7 @@ public class MainActivity extends AppCompatActivity
         buildGoogleApiClient();
         mGoogleApiClient.connect();
 
-        todolist.initData(context);
+        todolist.initData(MainActivity.this);
 
         initRecyclerView();
 
@@ -257,6 +253,8 @@ public class MainActivity extends AppCompatActivity
                 drawerIcon = mToolbar.getChildAt(i);
             }
         }
+
+        initTheme();
     }
 
     @Override
@@ -266,10 +264,6 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onResume() {
-        initTheme();
-
-        //checkIntent();
-
         checkEventRemoved();
 
         isRunning = true;
@@ -343,8 +337,8 @@ public class MainActivity extends AppCompatActivity
         setOnRefreshListener(false);
     }
 
-    public void setOnRefreshListener(boolean setListener){
-        if(!setListener){
+    public void setOnRefreshListener(boolean setListener) {
+        if (!setListener) {
             mSwipeRefreshLayout.setOnRefreshListener(null);
             mSwipeRefreshLayout.setEnabled(false);
             return;
@@ -470,7 +464,7 @@ public class MainActivity extends AppCompatActivity
                 RVAdapter.EventViewHolder viewHolder = (RVAdapter.EventViewHolder) holder;
                 if (shareEvents) {
                     viewHolder.setSemiTransparent(!viewHolder.semiTransparent);
-                    viewHolder.initCard();
+                    viewHolder.initCard(helper);
 
                     if (!eventsToShare.contains(mAdapter.getList().get(position))) {
                         eventsToShare.add(mAdapter.getList().get(position));
@@ -500,7 +494,7 @@ public class MainActivity extends AppCompatActivity
 
         RVAdapter.EventViewHolder holder
                 = (RVAdapter.EventViewHolder) mRecyclerView.findViewHolderForAdapterPosition(mAdapter.mExpandedPosition);
-        if(holder != null){
+        if (holder != null) {
             holder.collapse();
         }
         mAdapter.mExpandedPosition = -1;
@@ -512,10 +506,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void initDrawerLayout() {
-        mDrawerLayout
-                = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mDrawerToggle
-                = new ActionBarDrawerToggle(this, mDrawerLayout, mToolbar, R.string.drawer_open, R.string.drawer_close) {
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, mToolbar, R.string.drawer_open, R.string.drawer_close) {
             @Override
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
@@ -537,20 +529,20 @@ public class MainActivity extends AppCompatActivity
         });
         mDrawerToggle.setDrawerIndicatorEnabled(true);
         mDrawerLayout.addDrawerListener(mDrawerToggle);
-        navigationView
+        mNavigationView
                 = (NavigationView) findViewById(R.id.navigation_view);
         NavigationMenuView navigationMenuView
-                = (NavigationMenuView) navigationView.getChildAt(0);
+                = (NavigationMenuView) mNavigationView.getChildAt(0);
         if (navigationMenuView != null) {
             navigationMenuView.setVerticalScrollBarEnabled(false);
         }
         //find header Views
-        View headerLayout = navigationView.getHeaderView(0);
+        View headerLayout = mNavigationView.getHeaderView(0);
         personName = (TextView) headerLayout.findViewById(R.id.personName);
         personEmail = (TextView) headerLayout.findViewById(R.id.personEmail);
         personData = (RelativeLayout) headerLayout.findViewById(R.id.personData);
         navigationHeaders = new ArrayList<>();
-        Menu m = navigationView.getMenu();
+        Menu m = mNavigationView.getMenu();
         for (int i = 0; i < m.size(); i++) {
             MenuItem mi = m.getItem(i);
             navigationHeaders.add(mi);
@@ -562,34 +554,6 @@ public class MainActivity extends AppCompatActivity
                 for (int j = 0; j < subMenu.size(); j++) {
                     MenuItem subMenuItem = subMenu.getItem(j);
                     switch (subMenuItem.getItemId()) {
-                        case R.id.show_notification_toggle:
-                            notificationToggle = subMenuItem;
-                            final SwitchCompat notificationToggle
-                                    = (SwitchCompat) subMenu.getItem(j).getActionView();
-                            notificationToggle.setChecked((boolean) settings.get("notificationToggle"));
-                            notificationToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                                @Override
-                                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                                    notificationToggleClicked();
-                                    notificationToggle.setChecked((boolean) settings.get("notificationToggle"));
-                                }
-                            });
-                            break;
-                        case R.id.silence_all_alarms:
-                            silenceAllAlarmsToggle = subMenuItem;
-                            if (!todolist.isAlarmScheduled()) {
-                                subMenuItem.getActionView().setEnabled(false);
-                            }
-                            final SwitchCompat silenceAllAlarmsToggle
-                                    = (SwitchCompat) subMenu.getItem(j).getActionView();
-                            silenceAllAlarmsToggle.setChecked(!(boolean) settings.get("vibrate"));
-                            silenceAllAlarmsToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                                @Override
-                                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                                    silenceAlarmsToggleClicked();
-                                }
-                            });
-                            break;
                         case R.id.autoSync:
                             autoSyncToggle = subMenuItem;
                             final SwitchCompat autoSyncToggle
@@ -605,8 +569,51 @@ public class MainActivity extends AppCompatActivity
                     }
                 }
             }
+
+            switch (mi.getItemId()) {
+                case R.id.show_notification_toggle:
+                    notificationToggle = mi;
+                    final SwitchCompat notificationToggle
+                            = (SwitchCompat) mi.getActionView();
+                    notificationToggle.setChecked((boolean) settings.get("notificationToggle"));
+                    notificationToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                            notificationToggleClicked();
+                            notificationToggle.setChecked((boolean) settings.get("notificationToggle"));
+                        }
+                    });
+                    break;
+                case R.id.silence_all_alarms:
+                    silenceAllAlarmsToggle = mi;
+                    if (!todolist.isAlarmScheduled()) {
+                        mi.getActionView().setEnabled(false);
+                    }
+                    final SwitchCompat silenceAllAlarmsToggle
+                            = (SwitchCompat) mi.getActionView();
+                    silenceAllAlarmsToggle.setChecked(!(boolean) settings.get("vibrate"));
+                    silenceAllAlarmsToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                            silenceAlarmsToggleClicked();
+                        }
+                    });
+                    break;
+                case R.id.autoSync:
+                    autoSyncToggle = mi;
+                    final SwitchCompat autoSyncToggle
+                            = (SwitchCompat) mi.getActionView();
+                    autoSyncToggle.setChecked((boolean) settings.get("autoSync"));
+                    autoSyncToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                            autoSyncToggleClicked(isChecked);
+                        }
+                    });
+                    break;
+            }
         }
-        NavigationViewSetItemSelectedListener(navigationView);
+        NavigationViewSetItemSelectedListener(mNavigationView);
     }
 
     public void NavigationViewSetItemSelectedListener(NavigationView navigation_view) {
@@ -634,11 +641,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void initTheme() {
-        if (!newTheme) {
-            return;
-        }
-
-        helper = new ThemeHelper(context);
+        helper = new ThemeHelper(MainActivity.this);
         mAdapter.setThemeHelper(helper);
 
         mToolbar.setBackgroundColor(helper.get("toolbar_color"));
@@ -648,15 +651,51 @@ public class MainActivity extends AppCompatActivity
         mFab = (FloatingActionButton) findViewById(R.id.fab);
         mFab.setBackgroundTintList(ColorStateList.valueOf(helper.get("fab_color")));
         mFab.getDrawable().setTint(helper.get("fab_textcolor"));
-        mFab.setRippleColor(ContextCompat.getColor(context, R.color.white));
+        mFab.setRippleColor(ContextCompat.getColor(MainActivity.this, R.color.white));
 
         mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
         mCoordinatorLayout.setBackgroundColor(helper.get("cord_color"));
         ((ImageView) findViewById(R.id.nothing_todo))
                 .setColorFilter(helper.get("cord_textcolor"), PorterDuff.Mode.SRC_IN);
 
-        int color_grey = ContextCompat.getColor(context, R.color.grey);
-        int color_dark = ContextCompat.getColor(context, R.color.black_light);
+        int color;
+        if (helper.lightCoordColor()) {
+            mNavigationView.setBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.white));
+            color = helper.getDarkTextColor();
+        } else {
+            mNavigationView.setBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.dark));
+            color = ContextCompat.getColor(MainActivity.this, R.color.grey);
+        }
+
+        int[][] state = new int[][]{new int[]{-android.R.attr.state_enabled},
+                new int[]{android.R.attr.state_enabled},
+                new int[]{-android.R.attr.state_checked},
+                new int[]{android.R.attr.state_pressed}};
+
+        int[] colors = new int[]{color, color, color, color};
+
+        mNavigationView.setItemTextColor(new ColorStateList(state, colors));
+        mNavigationView.setItemIconTintList(new ColorStateList(state, colors));
+
+        for (int i = 0; i < navigationHeaders.size(); i++) {
+            SpannableString s = new SpannableString(navigationHeaders.get(i).getTitle());
+            s.setSpan(new ForegroundColorSpan(color), 0, s.length(), 0);
+            navigationHeaders.get(i).setTitle(s);
+        }
+
+        int fab_color = helper.get("fab_color");
+        int headerbg_color = Color.argb(200, Color.red(fab_color), Color.green(fab_color), Color.blue(fab_color));
+        mNavigationView.getHeaderView(0).findViewById(R.id.headerbg).setBackgroundColor(headerbg_color);
+
+        //ColorStateList for NavigationDrawer Switches
+        int color_grey = ContextCompat.getColor(MainActivity.this, R.color.grey);
+        int color_dark;
+        if (helper.lightCoordColor()) {
+            color_dark = ContextCompat.getColor(MainActivity.this, R.color.light_grey);
+        } else {
+            color_dark = ContextCompat.getColor(MainActivity.this, R.color.black_light);
+        }
+
         final int[][] states = new int[3][];
         final int[] thumbColors = new int[3];
         final int[] trackColors = new int[3];
@@ -681,16 +720,16 @@ public class MainActivity extends AppCompatActivity
         thumbColors[k] = color_grey;
         trackColors[k] = color_dark;
 
-        ((SwitchCompat) silenceAllAlarmsToggle.getActionView()).setHighlightColor(helper.get("fab_color"));
-
         DrawableCompat.setTintList(DrawableCompat.wrap(((SwitchCompat)
                 silenceAllAlarmsToggle.getActionView()).getThumbDrawable()), new ColorStateList(states, thumbColors));
         DrawableCompat.setTintList(DrawableCompat.wrap(((SwitchCompat)
                 silenceAllAlarmsToggle.getActionView()).getTrackDrawable()), new ColorStateList(states, trackColors));
+
         DrawableCompat.setTintList(DrawableCompat.wrap(((SwitchCompat)
                 autoSyncToggle.getActionView()).getThumbDrawable()), new ColorStateList(states, thumbColors));
         DrawableCompat.setTintList(DrawableCompat.wrap(((SwitchCompat)
                 autoSyncToggle.getActionView()).getTrackDrawable()), new ColorStateList(states, trackColors));
+
         DrawableCompat.setTintList(DrawableCompat.wrap(((SwitchCompat)
                 notificationToggle.getActionView()).getThumbDrawable()), new ColorStateList(states, thumbColors));
         DrawableCompat.setTintList(DrawableCompat.wrap(((SwitchCompat)
@@ -698,28 +737,20 @@ public class MainActivity extends AppCompatActivity
 
         setOverflowButtonColor(helper.getToolbarIconColor());
 
-        for (int i = 0; i < navigationHeaders.size(); i++) {
-            SpannableString s = new SpannableString(navigationHeaders.get(i).getTitle());
-            s.setSpan(new ForegroundColorSpan(helper.get("fab_color")), 0, s.length(), 0);
-            navigationHeaders.get(i).setTitle(s);
-        }
-
         mAdapter.allItemsChanged();
 
         checkToolbarElevation();
 
         this.setTaskDescription(new ActivityManager.TaskDescription(
                 getString(R.string.app_name),
-                ((BitmapDrawable) ContextCompat.getDrawable(context, R.mipmap.ic_launcher)).getBitmap(),
+                ((BitmapDrawable) ContextCompat.getDrawable(MainActivity.this, R.mipmap.ic_launcher)).getBitmap(),
                 helper.get("toolbar_color")));
-
-        newTheme = false;
     }
 
     //<DriveSync Methods>
 
     public void initSignInWithGoogle() {
-        navigationView.getHeaderView(0).findViewById(R.id.sign_in_button)
+        mNavigationView.getHeaderView(0).findViewById(R.id.sign_in_button)
                 .setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -740,9 +771,9 @@ public class MainActivity extends AppCompatActivity
 
         if (!(boolean) settings.get("syncEnabled")) {
             personData.setVisibility(View.GONE);
-            navigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
+            mNavigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
         } else {
-            navigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.GONE);
+            mNavigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.GONE);
             personData.setVisibility(View.VISIBLE);
             this.personName.setText("");
             this.personEmail.setText("...");
@@ -765,7 +796,7 @@ public class MainActivity extends AppCompatActivity
 
     public void signIn() {
         //show loading
-        navigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.GONE);
+        mNavigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.GONE);
         personData.setVisibility(View.VISIBLE);
         this.personName.setText("");
         this.personEmail.setText("...");
@@ -773,10 +804,10 @@ public class MainActivity extends AppCompatActivity
         startActivityForResult(Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient), RC_SIGN_IN);
     }
 
-    public void signOutDialog(){
+    public void signOutDialog() {
         mDrawerLayout.closeDrawers();
         String content = getString(R.string.signOutDialog_content);
-        AlertDialog.Builder builder = new AlertDialog.Builder(context, getDialogTheme());
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this, getDialogTheme());
         builder.setMessage(content)
                 .setTitle(getString(R.string.signOut))
                 .setPositiveButton(getString(R.string.yes), new DialogInterface.OnClickListener() {
@@ -836,11 +867,11 @@ public class MainActivity extends AppCompatActivity
             // Signed in successfully
             GoogleSignInAccount acct = result.getSignInAccount();
             String personName = "", personEmail = "";
-            if(acct != null){
+            if (acct != null) {
                 personName = acct.getDisplayName();
                 personEmail = acct.getEmail();
             }
-            navigationView.getHeaderView(0)
+            mNavigationView.getHeaderView(0)
                     .findViewById(R.id.sign_in_button).setVisibility(View.GONE);
             personData.setVisibility(View.VISIBLE);
             this.personName.setText(personName);
@@ -862,7 +893,7 @@ public class MainActivity extends AppCompatActivity
             // not Signed in
             personData.setOnClickListener(null);
             personData.setVisibility(View.GONE);
-            navigationView.getHeaderView(0)
+            mNavigationView.getHeaderView(0)
                     .findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
             syncDataMenuItem.setVisible(false);
             settings.set("syncEnabled", false);
@@ -1025,7 +1056,7 @@ public class MainActivity extends AppCompatActivity
             public void updateColors(int[] newColors, int[] newTextColors) {
                 helper.setColors(newColors);
                 helper.setTextColors(newTextColors);
-                helper.saveData(context);
+                helper.saveData(MainActivity.this);
             }
 
         }).execute();
@@ -1069,7 +1100,7 @@ public class MainActivity extends AppCompatActivity
         try {
             statusCode = new EditFileInAppFolder(mGoogleApiClient, data)
                     .execute(file).get();
-        } catch (InterruptedException|ExecutionException e) {
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
 
@@ -1080,7 +1111,7 @@ public class MainActivity extends AppCompatActivity
             settings.set("lastReceivedDataTimeStamp", modifiedDateTemp);
             settings.set("lastSyncTimeStamp", System.currentTimeMillis());
 
-            todolist.clearRemovedAndAddedEvents(context);
+            todolist.clearRemovedAndAddedEvents(MainActivity.this);
         }
     }
 
@@ -1170,7 +1201,7 @@ public class MainActivity extends AppCompatActivity
         todolist.addOrRemoveEventFromAdapter(mAdapter);
 
         try {
-            todolist.saveData(context);
+            todolist.saveData(MainActivity.this);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -1207,6 +1238,7 @@ public class MainActivity extends AppCompatActivity
                     }
                     fabClicked(findViewById(R.id.fab));
                     break;
+
                 case IMPORT:
                     //check if theme or TODOs
                     if (dialog != null) {
@@ -1214,44 +1246,26 @@ public class MainActivity extends AppCompatActivity
                     }
                     onImportIntent(intent.getStringExtra("events"));
                     break;
+
                 case NOTIFICATION_DONE_BUTTON:
                     removeEventNotificationDoneButton(intent.getLongExtra("eventId", 0));
                     break;
+
                 case UPDATE_EVENT_ALARM:
                     long eventId = intent.getLongExtra("eventId", 0);
                     long alarmTime = intent.getLongExtra("alarmTime", 0);
                     Alarm alarm = todolist.getEventById(eventId).getAlarm();
-                    if(alarm != null){
+                    if (alarm != null) {
                         alarm.setTime(alarmTime);
                     } else {
                         todolist.getEventById(eventId).setAlarm(eventId, alarmTime);
                     }
                     setAlarm(alarmTime, eventId);
                     break;
-                /*case "newEvent":
-                    showToast("new TODO");
-                    String whatToDo = intent.getStringExtra("whatToDo");
-                    int color = intent.getIntExtra("color", 0);
 
-                    if (todolist.getTodolistArray().size() == 0) {
-                        removeNothingTodo();
-                    }
-
-                    boolean[] possible_colors
-                            = new boolean[((boolean[]) settings.get("selected_categories")).length];
-                    for (int i = 1; i < possible_colors.length; i++) {
-                        if (settings.getCategory(i) || !todolist.doesCategoryContainEvents(i)) {
-                            possible_colors[i] = true;
-                        }
-                    }
-                    Event e = new Event(whatToDo, 0, color, 0, 0, possible_colors);
-                    todolist.addEvent(mAdapter, e);
-                    settings.setCategory(e.getColor(), true);
-                    closeOpenCard();
-                    todolist.addOrRemoveEventFromAdapter(mAdapter);
-                    mRecyclerView.scrollToPosition(mAdapter.getList().indexOf(e));
-                    checkForNotificationUpdate();
-                    break;*/
+                case NEW_THEME:
+                    initTheme();
+                    break;
             }
         }
     }
@@ -1260,7 +1274,7 @@ public class MainActivity extends AppCompatActivity
         if (todolist.getTodolistArray().size() != 0
                 && (boolean) settings.get("notificationToggle")) {
             showNotification();
-        } else if(!(boolean) settings.get("notificationToggle")){
+        } else if (!(boolean) settings.get("notificationToggle")) {
             cancelNotification();
         }
     }
@@ -1278,16 +1292,16 @@ public class MainActivity extends AppCompatActivity
         } else {
             content = getString(R.string.you_have) + " " + todolist.getTodolistArray().size() + " " + getString(R.string.events_in_your_todolist);
         }
-        Intent add_event_intent = new Intent(context, MainActivity.class);
+        Intent add_event_intent = new Intent(MainActivity.this, MainActivity.class);
         add_event_intent.setAction(ADD_EVENT);
         add_event_intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-        PendingIntent add_event_pendingIntent = PendingIntent.getActivity(context, 6, add_event_intent, 0); // PendingIntent.FLAG_IMMUTABLE
+        PendingIntent add_event_pendingIntent = PendingIntent.getActivity(MainActivity.this, 6, add_event_intent, 0); // PendingIntent.FLAG_IMMUTABLE
 
         NotificationCompat.Builder mBuilder = (NotificationCompat.Builder) new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ic_logo)
                 .setContentTitle(getString(R.string.app_name))
                 .addAction(R.drawable.ic_add, getString(R.string.add_event), add_event_pendingIntent)
-                .setColor(ContextCompat.getColor(context, R.color.button_color))
+                .setColor(ContextCompat.getColor(MainActivity.this, R.color.button_color))
                 .setContentText(content);
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         Intent resultIntent = new Intent(this, MainActivity.class);
@@ -1359,7 +1373,7 @@ public class MainActivity extends AppCompatActivity
 
                     int index = todolist.getAdapterListPosition(mAdapter, e);
                     ((RVAdapter.EventViewHolder) mRecyclerView.findViewHolderForAdapterPosition(index))
-                            .changeCardColorAnim(context, helper.getEventColor(colorIndex),
+                            .changeCardColorAnim(MainActivity.this, helper.getEventColor(colorIndex),
                                     helper.getEventTextColor(colorIndex));
 
                     if (!settings.getCategory(colorIndex)) {
@@ -1376,7 +1390,7 @@ public class MainActivity extends AppCompatActivity
 
                     if (e.getAlarm() != null) {
                         try {
-                            todolist.saveData(context);
+                            todolist.saveData(MainActivity.this);
                         } catch (JSONException e1) {
                             e1.printStackTrace();
                         }
@@ -1385,7 +1399,7 @@ public class MainActivity extends AppCompatActivity
             }
         };
 
-        dialog = new AlertDialog.Builder(context, getDialogTheme())
+        dialog = new AlertDialog.Builder(MainActivity.this, getDialogTheme())
                 .setView(inflateColorSelector())
                 .setTitle(getString(R.string.choose_a_color))
                 .setCancelable(true)
@@ -1409,7 +1423,7 @@ public class MainActivity extends AppCompatActivity
         editText.setSelection(e.getWhatToDo().length());
 
         AlertDialog.Builder input_dialog_builder =
-                new AlertDialog.Builder(context, getDialogTheme());
+                new AlertDialog.Builder(MainActivity.this, getDialogTheme());
         input_dialog_builder.setTitle(getString(R.string.edit_event))
                 .setView(inputDialog)
                 .setNegativeButton(getString(R.string.cancel), null)
@@ -1421,14 +1435,14 @@ public class MainActivity extends AppCompatActivity
                         checkForNotificationUpdate();
                         mAdapter.itemChanged(mAdapter.getList().indexOf(e));
                         try {
-                            todolist.saveData(context);
+                            todolist.saveData(MainActivity.this);
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
 
                         if (e.getAlarm() != null) {
                             try {
-                                todolist.saveData(context);
+                                todolist.saveData(MainActivity.this);
                             } catch (JSONException e1) {
                                 e1.printStackTrace();
                             }
@@ -1472,7 +1486,7 @@ public class MainActivity extends AppCompatActivity
 
     public void addEvent() {
         final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        Animation anim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_scale_down);
+        Animation anim = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fab_scale_down);
         anim.setDuration(100);
         anim.setAnimationListener(new Animation.AnimationListener() {
             @Override
@@ -1544,28 +1558,28 @@ public class MainActivity extends AppCompatActivity
                         buttons[selectedColor].setSelected(false);
                     }
                     selectedColor = index;
-                    helper.setDefaultColorIndex(context, colorIndex);
+                    helper.setDefaultColorIndex(MainActivity.this, colorIndex);
                     showToast("Default Color set");
                 } else {
                     buttons[index].setImageResource(android.R.color.transparent);
                     selectedColor = 0;
-                    helper.setDefaultColorIndex(context, 0);
+                    helper.setDefaultColorIndex(MainActivity.this, 0);
                     showToast("Default Color removed");
                 }
                 return true;
             }
         };
 
-        for(int i = 1; i < buttons.length; i++) {
+        for (int i = 1; i < buttons.length; i++) {
             buttons[i].setOnClickListener(onClickListener);
             buttons[i].setOnLongClickListener(onLongClickListener);
         }
         editText.setText("");
         editText.setTextColor(getDialogTextColor());
-        if (helper.lightCordColor()) {
-            editText.setHintTextColor(ContextCompat.getColor(getApplicationContext(), R.color.light_grey));
+        if (helper.lightCoordColor()) {
+            editText.setHintTextColor(ContextCompat.getColor(MainActivity.this, R.color.light_grey));
         } else {
-            editText.setHintTextColor(ContextCompat.getColor(getApplicationContext(), R.color.grey700));
+            editText.setHintTextColor(ContextCompat.getColor(MainActivity.this, R.color.grey700));
         }
 
         color_rb.setTextColor(getDialogTextColor());
@@ -1580,7 +1594,7 @@ public class MainActivity extends AppCompatActivity
         final String hint = getAddEventHint();
         editText.setHint(hint);
 
-        dialog = new AlertDialog.Builder(context, getDialogTheme())
+        dialog = new AlertDialog.Builder(MainActivity.this, getDialogTheme())
                 .setTitle(getString(R.string.add_event))
                 .setView(inputDialog)
                 .setNegativeButton(getString(R.string.cancel), null)
@@ -1615,7 +1629,7 @@ public class MainActivity extends AppCompatActivity
                 .setOnDismissListener(new DialogInterface.OnDismissListener() {
                     @Override
                     public void onDismiss(DialogInterface dialog) {
-                        Animation anim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_scale_up);
+                        Animation anim = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fab_scale_up);
                         anim.setDuration(100);
                         fab.startAnimation(anim);
                         fab.setVisibility(View.VISIBLE);
@@ -1725,7 +1739,7 @@ public class MainActivity extends AppCompatActivity
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 (int) DPCalc.dpIntoPx(getResources(), 100));
 
-        final MaterialNumberPicker numberPicker1 = new MaterialNumberPicker.Builder(context)
+        final MaterialNumberPicker numberPicker1 = new MaterialNumberPicker.Builder(MainActivity.this)
                 .minValue(1)
                 .maxValue(25)
                 .defaultValue(1)
@@ -1738,7 +1752,7 @@ public class MainActivity extends AppCompatActivity
                 .build();
         numberPicker1.setLayoutParams(params);
 
-        final MaterialNumberPicker numberPicker2 = new MaterialNumberPicker.Builder(context)
+        final MaterialNumberPicker numberPicker2 = new MaterialNumberPicker.Builder(MainActivity.this)
                 .minValue(1)
                 .maxValue(6)
                 .defaultValue(1)
@@ -1827,18 +1841,18 @@ public class MainActivity extends AppCompatActivity
         for (int i = 0; i < buttons.length; i++) {
             int color = helper.get("fab_color");
             int textcolor = helper.get("fab_textcolor");
-            if (helper.get("fab_color") == ContextCompat.getColor(context, R.color.white)) {
-                color = ContextCompat.getColor(context, R.color.grey);
-                textcolor = ContextCompat.getColor(context, R.color.white);
+            if (helper.get("fab_color") == ContextCompat.getColor(MainActivity.this, R.color.white)) {
+                color = ContextCompat.getColor(MainActivity.this, R.color.grey);
+                textcolor = ContextCompat.getColor(MainActivity.this, R.color.white);
             }
 
             if (e.getAlarm().getCertainDay(i)) {
                 buttons[i].setTextColor(textcolor);
                 buttons[i].getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
             } else {
-                buttons[i].setTextColor(ContextCompat.getColor(context, R.color.black));
+                buttons[i].setTextColor(ContextCompat.getColor(MainActivity.this, R.color.black));
                 buttons[i].getBackground().setColorFilter(
-                        ContextCompat.getColor(context, R.color.white), PorterDuff.Mode.SRC_IN);
+                        ContextCompat.getColor(MainActivity.this, R.color.white), PorterDuff.Mode.SRC_IN);
             }
         }
 
@@ -1848,9 +1862,9 @@ public class MainActivity extends AppCompatActivity
                 TextView clickedButton = (TextView) v;
                 boolean b;
                 if (clickedButton.getCurrentTextColor() == helper.get("fab_textcolor")) {
-                    clickedButton.setTextColor(ContextCompat.getColor(context, R.color.black));
+                    clickedButton.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.black));
                     clickedButton.getBackground().setColorFilter(
-                            ContextCompat.getColor(context, R.color.white), PorterDuff.Mode.SRC_IN);
+                            ContextCompat.getColor(MainActivity.this, R.color.white), PorterDuff.Mode.SRC_IN);
                     b = false;
                 } else {
                     clickedButton.setTextColor(helper.get("fab_textcolor"));
@@ -1865,7 +1879,7 @@ public class MainActivity extends AppCompatActivity
             buttons[i].setOnClickListener(onClickListener);
         }
 
-        AlertDialog alarmInfoDialog = new AlertDialog.Builder(context, getDialogTheme())
+        AlertDialog alarmInfoDialog = new AlertDialog.Builder(MainActivity.this, getDialogTheme())
                 .setTitle(getString(R.string.alarm))
                 .setView(alarm_info_dialog)
                 .setNeutralButton(getString(R.string.edit_time), new DialogInterface.OnClickListener() {
@@ -1925,7 +1939,7 @@ public class MainActivity extends AppCompatActivity
                             e.getAlarm().unRepeat();
                         }
                         try {
-                            todolist.saveData(context);
+                            todolist.saveData(MainActivity.this);
                         } catch (JSONException e1) {
                             e1.printStackTrace();
                         }
@@ -1933,7 +1947,7 @@ public class MainActivity extends AppCompatActivity
                 })
                 .create();
         Window w = alarmInfoDialog.getWindow();
-        if(w != null){
+        if (w != null) {
             w.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         }
         alarmInfoDialog.show();
@@ -1942,11 +1956,11 @@ public class MainActivity extends AppCompatActivity
 
     public ColorStateList getColorStateListForSpinner() {
         int color = helper.get("fab_color");
-        if (helper.get("fab_color") == ContextCompat.getColor(context, R.color.white)) {
-            color = ContextCompat.getColor(context, R.color.grey);
+        if (helper.get("fab_color") == ContextCompat.getColor(MainActivity.this, R.color.white)) {
+            color = ContextCompat.getColor(MainActivity.this, R.color.grey);
         }
 
-        int color_grey = ContextCompat.getColor(context, R.color.grey);
+        int color_grey = ContextCompat.getColor(MainActivity.this, R.color.grey);
         final int[][] states_spinner = new int[3][];
         final int[] colors_spinner = new int[3];
         int k_spinner = 0;
@@ -1966,11 +1980,11 @@ public class MainActivity extends AppCompatActivity
 
     public ColorStateList getColorStateListForCheckbox() {
         int color = helper.get("fab_color");
-        if (helper.get("fab_color") == ContextCompat.getColor(context, R.color.white)) {
-            color = ContextCompat.getColor(context, R.color.grey);
+        if (helper.get("fab_color") == ContextCompat.getColor(MainActivity.this, R.color.white)) {
+            color = ContextCompat.getColor(MainActivity.this, R.color.grey);
         }
 
-        int color_grey = ContextCompat.getColor(context, R.color.grey);
+        int color_grey = ContextCompat.getColor(MainActivity.this, R.color.grey);
         final int[][] states = new int[3][];
         final int[] colors = new int[3];
         int k = 0;
@@ -2033,9 +2047,9 @@ public class MainActivity extends AppCompatActivity
             textView.setTextColor(getDialogTextColor());
         } else {
             textView.setTextColor(Color.argb(72,
-                    Color.red(ContextCompat.getColor(context, R.color.grey)),
-                    Color.green(ContextCompat.getColor(context, R.color.grey)),
-                    Color.blue(ContextCompat.getColor(context, R.color.grey))));
+                    Color.red(ContextCompat.getColor(MainActivity.this, R.color.grey)),
+                    Color.green(ContextCompat.getColor(MainActivity.this, R.color.grey)),
+                    Color.blue(ContextCompat.getColor(MainActivity.this, R.color.grey))));
         }
     }
 
@@ -2044,14 +2058,14 @@ public class MainActivity extends AppCompatActivity
         Calendar calendar = Calendar.getInstance(TimeZone.getDefault());
         calendar.add(Calendar.MINUTE, 1);
         int theme;
-        if(android.os.Build.VERSION.SDK_INT > 21){
-            if (helper.lightCordColor()) {
+        if (android.os.Build.VERSION.SDK_INT > 21) {
+            if (helper.lightCoordColor()) {
                 theme = android.R.style.Theme_DeviceDefault_Light_Dialog_Alert;
             } else {
                 theme = android.R.style.Theme_DeviceDefault_Dialog_Alert;
             }
         } else {
-            if (helper.lightCordColor()) {
+            if (helper.lightCoordColor()) {
                 theme = TimePickerDialog.THEME_DEVICE_DEFAULT_LIGHT;
             } else {
                 theme = TimePickerDialog.THEME_DEVICE_DEFAULT_DARK;
@@ -2060,7 +2074,7 @@ public class MainActivity extends AppCompatActivity
 
         boolean timeFormat = android.text.format.DateFormat.is24HourFormat(this);
 
-        TimePickerDialog timePickerDialog = new TimePickerDialog(context, theme,
+        TimePickerDialog timePickerDialog = new TimePickerDialog(MainActivity.this, theme,
                 new TimePickerDialog.OnTimeSetListener() {
                     @Override
                     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
@@ -2082,14 +2096,14 @@ public class MainActivity extends AppCompatActivity
     public void showAlarmDatePicker(final Event e) {
         final Calendar calendar = Calendar.getInstance(TimeZone.getDefault());
         int theme;
-        if(android.os.Build.VERSION.SDK_INT > 21){
-            if (helper.lightCordColor()) {
+        if (android.os.Build.VERSION.SDK_INT > 21) {
+            if (helper.lightCoordColor()) {
                 theme = android.R.style.Theme_DeviceDefault_Light_Dialog_Alert;
             } else {
                 theme = android.R.style.Theme_DeviceDefault_Dialog_Alert;
             }
         } else {
-            if (helper.lightCordColor()) {
+            if (helper.lightCoordColor()) {
                 theme = TimePickerDialog.THEME_DEVICE_DEFAULT_LIGHT;
             } else {
                 theme = TimePickerDialog.THEME_DEVICE_DEFAULT_DARK;
@@ -2097,7 +2111,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         DatePickerDialog datePickerDialog =
-                new DatePickerDialog(context, theme, new DatePickerDialog.OnDateSetListener() {
+                new DatePickerDialog(MainActivity.this, theme, new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
                         calendar.set(Calendar.YEAR, year);
@@ -2128,12 +2142,12 @@ public class MainActivity extends AppCompatActivity
 
     public void setAlarm(long alarmTime, long id) {
         AlarmManager mAlarmManager
-                = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(context, BroadcastReceiver.class);
+                = (AlarmManager) MainActivity.this.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(MainActivity.this, BroadcastReceiver.class);
         intent.putExtra("EventId", id);
         intent.setAction(BroadcastReceiver.ALARM);
         PendingIntent pendingIntent
-                = PendingIntent.getBroadcast(context, (int) id, intent, 0);
+                = PendingIntent.getBroadcast(MainActivity.this, (int) id, intent, 0);
         mAlarmManager.setExact(AlarmManager.RTC_WAKEUP, alarmTime, pendingIntent);
         silenceAllAlarmsToggle.setEnabled(true);
         silenceAllAlarmsToggle.getActionView().setEnabled(true);
@@ -2148,12 +2162,12 @@ public class MainActivity extends AppCompatActivity
 
     public void removeAlarm(long id) {
         AlarmManager mAlarmManager
-                = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(context, BroadcastReceiver.class);
+                = (AlarmManager) MainActivity.this.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(MainActivity.this, BroadcastReceiver.class);
         intent.putExtra("EventId", id);
         intent.setAction(BroadcastReceiver.ALARM);
         PendingIntent pendingIntent
-                = PendingIntent.getBroadcast(context, (int) id, intent, 0);
+                = PendingIntent.getBroadcast(MainActivity.this, (int) id, intent, 0);
         mAlarmManager.cancel(pendingIntent);
         if (!todolist.isAlarmScheduled()) {
             silenceAllAlarmsToggle.setEnabled(false);
@@ -2244,7 +2258,7 @@ public class MainActivity extends AppCompatActivity
             }
         };
 
-        dialog = new AlertDialog.Builder(context, getDialogTheme())
+        dialog = new AlertDialog.Builder(MainActivity.this, getDialogTheme())
                 .setView(layout)
                 .setTitle(getString(R.string.choose_a_category))
                 .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
@@ -2279,7 +2293,6 @@ public class MainActivity extends AppCompatActivity
 
     public void appThemeClicked() {
         mDrawerLayout.closeDrawers();
-        newTheme = true;
         Intent intent = new Intent(this, ThemeActivity.class);
         startActivity(intent);
     }
@@ -2298,13 +2311,13 @@ public class MainActivity extends AppCompatActivity
 
     public void InfoButtonClicked() {
         mDrawerLayout.closeDrawers();
-        Intent intent = new Intent(getApplicationContext(), InfoActivity.class);
+        Intent intent = new Intent(MainActivity.this, InfoActivity.class);
         startActivity(intent);
     }
 
     public void showNothingTodo(boolean withAnim) {
         final ImageView illustration = (ImageView) findViewById(R.id.nothing_todo);
-        illustration.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_ntd_illustration_vector));
+        illustration.setImageDrawable(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_ntd_illustration_vector));
         illustration.setColorFilter(helper.get("cord_textcolor"), PorterDuff.Mode.SRC_IN);
         illustration.setAlpha(0.5f);
 
@@ -2393,8 +2406,8 @@ public class MainActivity extends AppCompatActivity
 
     public AlertDialog changeDialogButtonColor(AlertDialog dialog) {
         int color = helper.get("fab_color");
-        if (helper.get("fab_color") == ContextCompat.getColor(context, R.color.white)) {
-            color = ContextCompat.getColor(context, R.color.grey);
+        if (helper.get("fab_color") == ContextCompat.getColor(MainActivity.this, R.color.white)) {
+            color = ContextCompat.getColor(MainActivity.this, R.color.grey);
         }
 
         Button positive = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
@@ -2413,14 +2426,14 @@ public class MainActivity extends AppCompatActivity
     }
 
     public int getDialogTextColor() {
-        if (helper.lightCordColor()) {
-            return ContextCompat.getColor(context, R.color.black);
+        if (helper.lightCoordColor()) {
+            return helper.getDarkTextColor();
         }
-        return ContextCompat.getColor(context, R.color.white);
+        return helper.getLightTextColor();
     }
 
     public int getDialogTheme() {
-        if (helper.lightCordColor()) {
+        if (helper.lightCoordColor()) {
             return R.style.DialogTheme_light;
         }
         return R.style.DialogTheme_dark;
@@ -2583,7 +2596,7 @@ public class MainActivity extends AppCompatActivity
         String content = getString(R.string.signin_dialog_experimental_feature);
 
         AlertDialog dialog
-                = new AlertDialog.Builder(context, getDialogTheme())
+                = new AlertDialog.Builder(MainActivity.this, getDialogTheme())
                 .setTitle(getString(R.string.experimental_feature))
                 .setMessage(content)
                 .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
@@ -2606,9 +2619,9 @@ public class MainActivity extends AppCompatActivity
         final int draw_res_final = draw_res;
 
         final Animation anim1
-                = AnimationUtils.loadAnimation(context, R.anim.fab_scale_down);
+                = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fab_scale_down);
         final Animation anim2
-                = AnimationUtils.loadAnimation(context, R.anim.fab_scale_up);
+                = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fab_scale_up);
 
         anim1.setDuration(300);
         anim2.setDuration(300);
@@ -2687,8 +2700,8 @@ public class MainActivity extends AppCompatActivity
     public void updateWidget() {
         Intent intent = new Intent(this, WidgetProvider_List.class);
         intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-        int[] ids = AppWidgetManager.getInstance(context)
-                .getAppWidgetIds(new ComponentName(context, WidgetProvider_List.class));
+        int[] ids = AppWidgetManager.getInstance(MainActivity.this)
+                .getAppWidgetIds(new ComponentName(MainActivity.this, WidgetProvider_List.class));
         intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
         sendBroadcast(intent);
     }
@@ -2700,7 +2713,7 @@ public class MainActivity extends AppCompatActivity
             for (int i = 0; i < eventsToRemove.size(); i++) {
                 removeEventNotificationDoneButton(eventsToRemove.get(i));
             }
-        } catch (JSONException| FileNotFoundException e) {
+        } catch (JSONException | FileNotFoundException e) {
             e.printStackTrace();
         }
     }
@@ -2755,7 +2768,7 @@ public class MainActivity extends AppCompatActivity
         View layout = getLayoutInflater().inflate(R.layout.import_theme_dialog, mCoordinatorLayout, false);
 
         ListView list = (ListView) layout.findViewById(R.id.import_theme_list);
-        ImportListViewAdapter adapter = new ImportListViewAdapter(context, colors, importHelper);
+        ImportListViewAdapter adapter = new ImportListViewAdapter(MainActivity.this, colors, importHelper);
         adapter.eventsImport = false;
         list.setAdapter(adapter);
 
@@ -2778,7 +2791,7 @@ public class MainActivity extends AppCompatActivity
             statusBar.setBackgroundColor(importHelper.get("toolbar_color"));
         }
 
-        dialog = new AlertDialog.Builder(context, getDialogTheme())
+        dialog = new AlertDialog.Builder(MainActivity.this, getDialogTheme())
                 .setView(layout)
                 .setTitle("Import Theme")
                 .setCancelable(true)
@@ -2786,8 +2799,7 @@ public class MainActivity extends AppCompatActivity
                 .setPositiveButton("Import", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        importHelper.saveData(context);
-                        newTheme = true;
+                        importHelper.saveData(MainActivity.this);
                         initTheme();
                     }
                 })
@@ -2834,8 +2846,8 @@ public class MainActivity extends AppCompatActivity
         View layout = getLayoutInflater().inflate(R.layout.import_events_list_view, mCoordinatorLayout, false);
 
         ListView list = (ListView) layout.findViewById(R.id.widget_list);
-        ImportListViewAdapter adapter = new ImportListViewAdapter(context, events,
-                new ThemeHelper(context));
+        ImportListViewAdapter adapter = new ImportListViewAdapter(MainActivity.this, events,
+                new ThemeHelper(MainActivity.this));
         list.setAdapter(adapter);
 
         final boolean[] whichEventsToImport = new boolean[events.size()];
@@ -2859,7 +2871,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        dialog = new AlertDialog.Builder(context, getDialogTheme())
+        dialog = new AlertDialog.Builder(MainActivity.this, getDialogTheme())
                 .setView(layout)
                 .setTitle("Import TODOs")
                 .setCancelable(true)

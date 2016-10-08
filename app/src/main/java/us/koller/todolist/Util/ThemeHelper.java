@@ -86,7 +86,7 @@ public class ThemeHelper {
         return Color.argb(60, Color.red(textColor), Color.green(textColor), Color.blue(textColor));
     }
 
-    public boolean lightCordColor() {
+    public boolean lightCoordColor() {
         return isColorLight(cord_color);
     }
 
@@ -221,11 +221,11 @@ public class ThemeHelper {
         return textColor;
     }
 
-    private int getLightTextColor(){
+    public int getLightTextColor(){
         return Color.argb(255, 255, 255, 255);
     }
 
-    private int getDarkTextColor(){
+    public int getDarkTextColor(){
         return Color.argb(138, 0, 0, 0);
     }
 

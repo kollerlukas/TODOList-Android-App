@@ -4,26 +4,21 @@
         <item name="android:colorPrimary">@color/white</item>
         <item name="android:colorPrimaryDark">@color/white</item>
         <item name="android:colorAccent">@color/accent</item>
-        <item name="android:textColorSecondary">@color/button_color</item>
         <item name="android:windowTranslucentStatus">true</item>
         <item name="navigationIcon">@drawable/ic_arrow_back_white_24dp</item>
         <item name="android:windowDisablePreview">false</item>
-        <item name="android:windowContentTransitions">true</item>
-        <!--<item name="android:windowTranslucentNavigation">true</item>-->
     </style>
 
     <style name="InfoActivityTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:colorPrimary">@color/white</item>
         <item name="android:colorPrimaryDark">@color/white</item>
         <item name="android:windowTranslucentStatus">true</item>
-        <!--<item name="android:windowTranslucentNavigation">true</item>-->
     </style>
 
     <style name="ThemeActivityTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:colorPrimary">@color/white</item>
         <item name="android:colorPrimaryDark">@color/white</item>
         <item name="android:windowTranslucentStatus">true</item>
-        <!--<item name="android:windowTranslucentNavigation">true</item>-->
     </style>
 
     <style name="SwitchTheme" parent="Base.Widget.AppCompat.CompoundButton.Switch">

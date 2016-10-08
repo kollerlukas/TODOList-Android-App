@@ -10,7 +10,6 @@
             android:id="@+id/coordinatorLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-        <!--android:paddingBottom="48dp"-->
 
         <ImageView
                 android:id="@+id/nothing_todo"
@@ -67,5 +66,4 @@
             app:itemIconTint="@color/grey"
             app:itemTextColor="@color/grey"
             app:menu="@menu/drawer"/>
-    <!--android:paddingBottom="48dp"-->
 </android.support.v4.widget.DrawerLayout>

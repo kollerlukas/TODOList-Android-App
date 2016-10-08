@@ -6,7 +6,6 @@
         android:layout_height="match_parent"
         android:onClick="CoordinatorLayoutClicked"
         android:foreground="?android:attr/selectableItemBackground">
-    <!--android:paddingBottom="48dp"-->
 
     <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar_theme"
