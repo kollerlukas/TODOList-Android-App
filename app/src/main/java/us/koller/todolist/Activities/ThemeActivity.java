@@ -90,6 +90,7 @@ public class ThemeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_theme);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar_theme);
+        toolbar.setTitleTextColor(helper.getDarkTextColor());
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null){

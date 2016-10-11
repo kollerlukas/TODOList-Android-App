@@ -25,9 +25,9 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import us.koller.todolist.Activities.MainActivity;
 import us.koller.todolist.R;
 import us.koller.todolist.Todolist.Event;
-import us.koller.todolist.Util.Callbacks.CardActionButtonOnClickCallback;
 import us.koller.todolist.Util.DPCalc;
 import us.koller.todolist.Util.ThemeHelper;
 
@@ -53,10 +53,11 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
         public boolean semiTransparent = false;
         boolean isAnimationRunning = false;
 
-        private CardActionButtonOnClickCallback onClickCallback;
+        //private CardActionButtonOnClickCallback onClickCallback;
 
-        EventViewHolder(View v, CardActionButtonOnClickCallback onClickCallback, AnimatedVectorDrawableCompat color_anim,
-                        AnimatedVectorDrawableCompat edit_anim, AnimatedVectorDrawableCompat alarm_anim) {
+        private static float CARD_ACTION_VIEW_HEIGHT = 0;
+
+        EventViewHolder(View v) {
             super(v);
 
             card = (CardView) v.findViewById(R.id.card);
@@ -71,13 +72,16 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             alarm_button = (ImageView) v.findViewById(R.id.alarm_button);
 
             color_button.setBackground(null);
-            color_button.setImageDrawable(color_anim);
+            color_button.setImageDrawable(AnimatedVectorDrawableCompat
+                    .create(this.itemView.getContext(), R.drawable.ic_color_animatable));
 
             edit_button.setBackground(null);
-            edit_button.setImageDrawable(edit_anim);
+            edit_button.setImageDrawable(AnimatedVectorDrawableCompat
+                    .create(this.itemView.getContext(), R.drawable.ic_edit_animatable));
 
             alarm_button.setBackground(null);
-            alarm_button.setImageDrawable(alarm_anim);
+            alarm_button.setImageDrawable(AnimatedVectorDrawableCompat
+                    .create(this.itemView.getContext(), R.drawable.ic_alarm_animatable));
 
             color_button.setOnClickListener(this);
             edit_button.setOnClickListener(this);
@@ -85,7 +89,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
 
             card_action_view.setVisibility(View.GONE);
 
-            this.onClickCallback = onClickCallback;
+            CARD_ACTION_VIEW_HEIGHT = DPCalc.dpIntoPx(this.itemView.getContext().getResources(), 45);
         }
 
         void setEvent(Event event) {
@@ -136,7 +140,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             new Handler().postDelayed(new Runnable() {
                 public void run() {
                     isAnimationRunning = false;
-                    onClickCallback.actionButtonClicked(color_button, event);
+                    ((MainActivity) itemView.getContext()).actionButtonClicked(color_button, event);
                 }
             }, 350);
         }
@@ -148,7 +152,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             new Handler().postDelayed(new Runnable() {
                 public void run() {
                     isAnimationRunning = false;
-                    onClickCallback.actionButtonClicked(edit_button, event);
+                    ((MainActivity) itemView.getContext()).actionButtonClicked(edit_button, event);
                 }
             }, 550);
         }
@@ -160,7 +164,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             new Handler().postDelayed(new Runnable() {
                 public void run() {
                     isAnimationRunning = false;
-                    onClickCallback.actionButtonClicked(alarm_button, event);
+                    ((MainActivity) itemView.getContext()).actionButtonClicked(alarm_button, event);
                 }
             }, 350);
         }
@@ -307,26 +311,20 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
                     card_action_view.setLayoutParams(layoutParams);
 
                     float animatedFraction = valueAnimator.getAnimatedFraction();
-
-                    int color = textview.getTextColors().getDefaultColor();
-                    int alpha;
-
+                    float alpha;
                     if ((valueAnimator.getAnimatedFraction() > 0.5f && expanding)
                             || (valueAnimator.getAnimatedFraction() < 0.5f && !expanding)) {
                         if(expanding){
-                            alpha = (int) (255 * (animatedFraction - 0.5f)*2);
+                            alpha = (animatedFraction - 0.5f)*2;
                         } else {
-                            alpha = (int) (255 * (1 - animatedFraction*2));
+                            alpha = (1 - animatedFraction*2);
                         }
                     } else {
                         alpha = 0;
                     }
-
-                    int color_a = Color.argb(alpha, Color.red(color), Color.green(color), Color.blue(color));
-
-                    color_button.getDrawable().setTint(color_a);
-                    edit_button.getDrawable().setTint(color_a);
-                    alarm_button.getDrawable().setTint(color_a);
+                    color_button.setAlpha(alpha);
+                    edit_button.setAlpha(alpha);
+                    alarm_button.setAlpha(alpha);
                 }
             });
             return animator;
@@ -334,7 +332,6 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
     }
 
     private ArrayList<Event> events;
-    private CardActionButtonOnClickCallback onClickCallback;
 
     private ThemeHelper helper;
 
@@ -342,19 +339,11 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
 
     private ArrayList<Long> semiTransparentEventIds;
 
-    private static float CARD_ACTION_VIEW_HEIGHT = 0;
 
-    private Context context;
 
-    public RVAdapter(ArrayList<Event> events, CardActionButtonOnClickCallback onClickCallback, Context context) {
+    public RVAdapter(ArrayList<Event> events) {
         this.events = events;
-        this.onClickCallback = onClickCallback;
-
-        this.context = context;
-
         semiTransparentEventIds = new ArrayList<>();
-
-        CARD_ACTION_VIEW_HEIGHT = DPCalc.dpIntoPx(context.getResources(), 45);
     }
 
     @Override
@@ -383,10 +372,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
     public EventViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         View v = LayoutInflater.from(viewGroup.getContext())
                 .inflate(R.layout.one_event, viewGroup, false);
-        return new EventViewHolder(v, onClickCallback,
-                AnimatedVectorDrawableCompat.create(context, R.drawable.ic_color_animatable),
-                AnimatedVectorDrawableCompat.create(context, R.drawable.ic_edit_animatable),
-                AnimatedVectorDrawableCompat.create(context, R.drawable.ic_alarm_animatable));
+        return new EventViewHolder(v);
     }
 
     public void addItem(int index, Event e) {

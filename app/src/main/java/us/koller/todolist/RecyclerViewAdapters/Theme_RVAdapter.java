@@ -51,7 +51,7 @@ public class Theme_RVAdapter extends RecyclerView.Adapter {
 
     @Override
     public int getItemCount() {
-        return 12;/*colors.length;*/
+        return 12;
     }
 
     public void itemChanged(int index) {

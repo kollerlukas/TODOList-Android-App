@@ -17,20 +17,20 @@ import us.koller.todolist.R;
 
 public class Info_RVAdapter extends RecyclerView.Adapter {
 
-    public class InfoViewHolder extends RecyclerView.ViewHolder {
+    public static class InfoViewHolder extends RecyclerView.ViewHolder {
 
         private View v;
 
-        public InfoViewHolder(View v) {
+        InfoViewHolder(View v) {
             super(v);
             this.v = v;
         }
 
-        public void initItem(String text, String text_small, Drawable drawable){
+        void initItem(String text, String text_small, Drawable drawable){
             TextView textView = (TextView) v.findViewById(R.id.textView);
             textView.setText(text);
             if(text_small.equals("")){
-                ((TextView) v.findViewById(R.id.textView_small)).setVisibility(View.GONE);
+                v.findViewById(R.id.textView_small).setVisibility(View.GONE);
 
                 RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) textView.getLayoutParams();
                 layoutParams.addRule(RelativeLayout.CENTER_VERTICAL, RelativeLayout.TRUE);

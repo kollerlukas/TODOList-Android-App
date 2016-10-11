@@ -6,7 +6,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingTop="24dp"
-        android:background="@color/grey700_transparent">
+        android:background="@color/transparent">
 
     <com.google.android.gms.common.SignInButton
             android:id="@+id/sign_in_button"
@@ -16,7 +16,7 @@
             android:layout_marginBottom="16dp"
             android:layout_marginTop="16dp"/>
 
-    <RelativeLayout
+    <LinearLayout
             android:id="@+id/personData"
             android:layout_gravity="center_vertical"
             android:layout_width="match_parent"
@@ -24,7 +24,9 @@
             android:layout_marginBottom="16dp"
             android:paddingTop="16dp"
             android:paddingStart="16dp"
-            android:visibility="gone">
+            android:paddingEnd="16dp"
+            android:visibility="gone"
+            android:orientation="vertical">
 
         <TextView
                 android:id="@+id/personName"
@@ -38,9 +40,12 @@
                 android:id="@+id/personEmail"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/personName"
                 android:fontFamily="sans-serif"
                 android:textColor="@color/white"
                 android:textSize="14sp"/>
-    </RelativeLayout>
+    </LinearLayout>
+
+    <View android:layout_width="match_parent"
+          android:layout_height="1dp"
+          android:background="@color/separator_color"/>
 </LinearLayout>

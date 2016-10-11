@@ -93,7 +93,6 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.NumberPicker;
 import android.widget.RadioButton;
-import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -127,7 +126,6 @@ import us.koller.todolist.Settings;
 import us.koller.todolist.Todolist.Alarm;
 import us.koller.todolist.Todolist.Event;
 import us.koller.todolist.Todolist.Todolist;
-import us.koller.todolist.Util.Callbacks.CardActionButtonOnClickCallback;
 import us.koller.todolist.Util.Callbacks.ColorSelectedCallback;
 import us.koller.todolist.Util.Callbacks.DriveIdCallback;
 import us.koller.todolist.Util.Callbacks.ModifiedDateCallback;
@@ -201,7 +199,7 @@ public class MainActivity extends AppCompatActivity
     private GoogleApiClient mGoogleApiClient;
     private TextView personName;
     private TextView personEmail;
-    private RelativeLayout personData;
+    private LinearLayout personData;
     private static final int RC_SIGN_IN = 9001;
     private MenuItem syncDataMenuItem;
     private long modifiedDateTemp = 0;
@@ -239,11 +237,8 @@ public class MainActivity extends AppCompatActivity
         super.onPostCreate(savedInstanceState);
 
         tablet = getResources().getBoolean(R.bool.tablet);
-        if (getResources().getBoolean(R.bool.tablet)) {
-            tablet = true;
-        } else {
+        if (!tablet) {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-            tablet = false;
         }
 
         mDrawerToggle.syncState();
@@ -313,13 +308,7 @@ public class MainActivity extends AppCompatActivity
 
         }*/
 
-        mAdapter = new RVAdapter(todolist.initAdapterList(),
-                new CardActionButtonOnClickCallback() {
-                    @Override
-                    public void actionButtonClicked(View v, Event e) {
-                        MainActivity.this.actionButtonClicked(v, e);
-                    }
-                }, this);
+        mAdapter = new RVAdapter(todolist.initAdapterList());
 
         LinearLayoutManager mLinearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         mRecyclerView.setLayoutManager(mLinearLayoutManager);
@@ -540,7 +529,7 @@ public class MainActivity extends AppCompatActivity
         View headerLayout = mNavigationView.getHeaderView(0);
         personName = (TextView) headerLayout.findViewById(R.id.personName);
         personEmail = (TextView) headerLayout.findViewById(R.id.personEmail);
-        personData = (RelativeLayout) headerLayout.findViewById(R.id.personData);
+        personData = (LinearLayout) headerLayout.findViewById(R.id.personData);
         navigationHeaders = new ArrayList<>();
         Menu m = mNavigationView.getMenu();
         for (int i = 0; i < m.size(); i++) {
@@ -663,8 +652,8 @@ public class MainActivity extends AppCompatActivity
             mNavigationView.setBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.white));
             color = helper.getDarkTextColor();
         } else {
-            mNavigationView.setBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.dark));
-            color = ContextCompat.getColor(MainActivity.this, R.color.grey);
+            mNavigationView.setBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.dark_dialog));
+            color = helper.getLightTextColor();
         }
 
         int[][] state = new int[][]{new int[]{-android.R.attr.state_enabled},
@@ -683,9 +672,8 @@ public class MainActivity extends AppCompatActivity
             navigationHeaders.get(i).setTitle(s);
         }
 
-        int fab_color = helper.get("fab_color");
-        int headerbg_color = Color.argb(200, Color.red(fab_color), Color.green(fab_color), Color.blue(fab_color));
-        mNavigationView.getHeaderView(0).findViewById(R.id.headerbg).setBackgroundColor(headerbg_color);
+        personName.setTextColor(getDialogTextColor());
+        personEmail.setTextColor(getDialogTextColor());
 
         //ColorStateList for NavigationDrawer Switches
         int color_grey = ContextCompat.getColor(MainActivity.this, R.color.grey);
@@ -2475,6 +2463,7 @@ public class MainActivity extends AppCompatActivity
         int[] sortedColors = helper.getSortedColorsColorSelect();
         for (int i = 1; i < buttons.length; i++) {
             buttons[i].getBackground().setColorFilter(helper.getEventColor(sortedColors[i]), PorterDuff.Mode.SRC_IN);
+            buttons[i].setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_color_select).mutate());
             buttons[i].getDrawable().setColorFilter(helper.getEventTextColor(sortedColors[i]), PorterDuff.Mode.SRC_IN);
         }
 
