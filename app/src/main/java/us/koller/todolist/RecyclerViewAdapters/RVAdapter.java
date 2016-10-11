@@ -53,9 +53,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
         public boolean semiTransparent = false;
         boolean isAnimationRunning = false;
 
-        //private CardActionButtonOnClickCallback onClickCallback;
-
-        private static float CARD_ACTION_VIEW_HEIGHT = 0;
+        private float CARD_ACTION_VIEW_HEIGHT = 0;
 
         EventViewHolder(View v) {
             super(v);
