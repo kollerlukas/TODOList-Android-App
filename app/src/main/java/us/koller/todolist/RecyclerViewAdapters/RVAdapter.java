@@ -118,16 +118,18 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
 
         @Override
         public void onClick(View v) {
-            switch (v.getId()) {
-                case R.id.color_button:
-                    colorButtonClicked();
-                    break;
-                case R.id.edit_button:
-                    editButtonClicked();
-                    break;
-                case R.id.alarm_button:
-                    alarmButtonClicked();
-                    break;
+            if(!isAnimationRunning){
+                switch (v.getId()) {
+                    case R.id.color_button:
+                        colorButtonClicked();
+                        break;
+                    case R.id.edit_button:
+                        editButtonClicked();
+                        break;
+                    case R.id.alarm_button:
+                        alarmButtonClicked();
+                        break;
+                }
             }
         }
 
@@ -137,8 +139,8 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             ((AnimatedVectorDrawableCompat) color_button.getDrawable()).start();
             new Handler().postDelayed(new Runnable() {
                 public void run() {
-                    isAnimationRunning = false;
                     ((MainActivity) itemView.getContext()).actionButtonClicked(color_button, event);
+                    isAnimationRunning = false;
                 }
             }, 350);
         }
@@ -149,8 +151,8 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             ((AnimatedVectorDrawableCompat) edit_button.getDrawable()).start();
             new Handler().postDelayed(new Runnable() {
                 public void run() {
-                    isAnimationRunning = false;
                     ((MainActivity) itemView.getContext()).actionButtonClicked(edit_button, event);
+                    isAnimationRunning = false;
                 }
             }, 550);
         }
@@ -161,8 +163,8 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             ((AnimatedVectorDrawableCompat) alarm_button.getDrawable()).start();
             new Handler().postDelayed(new Runnable() {
                 public void run() {
-                    isAnimationRunning = false;
                     ((MainActivity) itemView.getContext()).actionButtonClicked(alarm_button, event);
+                    isAnimationRunning = false;
                 }
             }, 350);
         }
@@ -336,8 +338,6 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
     public int mExpandedPosition = -1;
 
     private ArrayList<Long> semiTransparentEventIds;
-
-
 
     public RVAdapter(ArrayList<Event> events) {
         this.events = events;

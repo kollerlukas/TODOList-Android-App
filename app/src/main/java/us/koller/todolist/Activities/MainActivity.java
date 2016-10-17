@@ -230,6 +230,9 @@ public class MainActivity extends AppCompatActivity
         initDrawerLayout();
 
         initSignInWithGoogle();
+
+        //App might been started through AddEvent-Widget
+        checkIntent(this.getIntent());
     }
 
     @Override
