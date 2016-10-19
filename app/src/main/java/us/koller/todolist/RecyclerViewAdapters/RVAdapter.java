@@ -7,6 +7,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Handler;
 import android.support.graphics.drawable.AnimatedVectorDrawableCompat;
 import android.support.v4.content.ContextCompat;
@@ -69,17 +70,28 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
 
             alarm_button = (ImageView) v.findViewById(R.id.alarm_button);
 
-            color_button.setBackground(null);
-            color_button.setImageDrawable(AnimatedVectorDrawableCompat
-                    .create(this.itemView.getContext(), R.drawable.ic_color_animatable));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                color_button.setBackground(null);
+                color_button.setImageDrawable(AnimatedVectorDrawableCompat
+                        .create(this.itemView.getContext(), R.drawable.ic_color_animatable));
 
-            edit_button.setBackground(null);
-            edit_button.setImageDrawable(AnimatedVectorDrawableCompat
-                    .create(this.itemView.getContext(), R.drawable.ic_edit_animatable));
+                edit_button.setBackground(null);
+                edit_button.setImageDrawable(AnimatedVectorDrawableCompat
+                        .create(this.itemView.getContext(), R.drawable.ic_edit_animatable));
 
-            alarm_button.setBackground(null);
-            alarm_button.setImageDrawable(AnimatedVectorDrawableCompat
-                    .create(this.itemView.getContext(), R.drawable.ic_alarm_animatable));
+                alarm_button.setBackground(null);
+                alarm_button.setImageDrawable(AnimatedVectorDrawableCompat
+                        .create(this.itemView.getContext(), R.drawable.ic_alarm_animatable));
+            } else {
+                color_button.setBackground(null);
+                color_button.setImageDrawable(ContextCompat.getDrawable(this.itemView.getContext(), R.drawable.ic_color_vector));
+
+                edit_button.setBackground(null);
+                edit_button.setImageDrawable(ContextCompat.getDrawable(this.itemView.getContext(), R.drawable.ic_edit_vector));
+
+                alarm_button.setBackground(null);
+                alarm_button.setImageDrawable(ContextCompat.getDrawable(this.itemView.getContext(), R.drawable.ic_alarm_vector));
+            }
 
             color_button.setOnClickListener(this);
             edit_button.setOnClickListener(this);
@@ -134,39 +146,52 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
         }
 
         private void colorButtonClicked() {
-            isAnimationRunning = true;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                isAnimationRunning = true;
 
-            ((AnimatedVectorDrawableCompat) color_button.getDrawable()).start();
-            new Handler().postDelayed(new Runnable() {
-                public void run() {
-                    ((MainActivity) itemView.getContext()).actionButtonClicked(color_button, event);
-                    isAnimationRunning = false;
-                }
-            }, 350);
+                ((AnimatedVectorDrawableCompat) color_button.getDrawable()).start();
+                new Handler().postDelayed(new Runnable() {
+                    public void run() {
+                        ((MainActivity) itemView.getContext()).actionButtonClicked(color_button, event);
+                        isAnimationRunning = false;
+                    }
+                }, 350);
+            } else {
+                ((MainActivity) itemView.getContext()).actionButtonClicked(color_button, event);
+            }
         }
 
         private void editButtonClicked() {
-            isAnimationRunning = true;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+                isAnimationRunning = true;
 
-            ((AnimatedVectorDrawableCompat) edit_button.getDrawable()).start();
-            new Handler().postDelayed(new Runnable() {
-                public void run() {
-                    ((MainActivity) itemView.getContext()).actionButtonClicked(edit_button, event);
-                    isAnimationRunning = false;
-                }
-            }, 550);
+                ((AnimatedVectorDrawableCompat) edit_button.getDrawable()).start();
+                new Handler().postDelayed(new Runnable() {
+                    public void run() {
+                        ((MainActivity) itemView.getContext()).actionButtonClicked(edit_button, event);
+                        isAnimationRunning = false;
+                    }
+                }, 550);
+            } else {
+                ((MainActivity) itemView.getContext()).actionButtonClicked(edit_button, event);
+            }
+
         }
 
         private void alarmButtonClicked() {
-            isAnimationRunning = true;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+                isAnimationRunning = true;
 
-            ((AnimatedVectorDrawableCompat) alarm_button.getDrawable()).start();
-            new Handler().postDelayed(new Runnable() {
-                public void run() {
-                    ((MainActivity) itemView.getContext()).actionButtonClicked(alarm_button, event);
-                    isAnimationRunning = false;
-                }
-            }, 350);
+                ((AnimatedVectorDrawableCompat) alarm_button.getDrawable()).start();
+                new Handler().postDelayed(new Runnable() {
+                    public void run() {
+                        ((MainActivity) itemView.getContext()).actionButtonClicked(alarm_button, event);
+                        isAnimationRunning = false;
+                    }
+                }, 350);
+            } else {
+                ((MainActivity) itemView.getContext()).actionButtonClicked(alarm_button, event);
+            }
         }
 
         public void changeCardColorAnim(final Context context, final int color, final int textColor) {

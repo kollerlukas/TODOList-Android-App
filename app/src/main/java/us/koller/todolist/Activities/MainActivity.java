@@ -39,6 +39,7 @@ import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -1477,21 +1478,23 @@ public class MainActivity extends AppCompatActivity
 
     public void addEvent() {
         final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        Animation anim = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fab_scale_down);
-        anim.setDuration(100);
-        anim.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {/*nothing*/}
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Animation anim = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fab_scale_down);
+            anim.setDuration(100);
+            anim.setAnimationListener(new Animation.AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation animation) {/*nothing*/}
 
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                fab.setVisibility(View.INVISIBLE);
-            }
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    fab.setVisibility(View.INVISIBLE);
+                }
 
-            @Override
-            public void onAnimationRepeat(Animation animation) {/*nothing*/}
-        });
-        fab.startAnimation(anim);
+                @Override
+                public void onAnimationRepeat(Animation animation) {/*nothing*/}
+            });
+            fab.startAnimation(anim);
+        }
 
         final View inputDialog = getLayoutInflater().inflate(R.layout.add_event_dialog, mCoordinatorLayout, false);
         final TextInputEditText editText = (TextInputEditText) inputDialog.findViewById(R.id.edit_text);
@@ -1620,23 +1623,31 @@ public class MainActivity extends AppCompatActivity
                 .setOnDismissListener(new DialogInterface.OnDismissListener() {
                     @Override
                     public void onDismiss(DialogInterface dialog) {
-                        Animation anim = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fab_scale_up);
-                        anim.setDuration(100);
-                        fab.startAnimation(anim);
-                        fab.setVisibility(View.VISIBLE);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            Animation anim = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fab_scale_up);
+                            anim.setDuration(100);
+                            fab.startAnimation(anim);
+                            fab.setVisibility(View.VISIBLE);
+                        }
 
                         MainActivity.this.dialog = null;
                     }
                 })
                 .create();
 
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                dialog.show();
-                changeDialogButtonColor(dialog);
-            }
-        }, 100);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    dialog.show();
+                    changeDialogButtonColor(dialog);
+                }
+            }, 100);
+        } else {
+            dialog.show();
+            changeDialogButtonColor(dialog);
+        }
+
     }
 
     public Todolist getTodolist() {
