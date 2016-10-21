@@ -1,6 +1,7 @@
 package us.koller.todolist.Todolist;
 
 import android.content.Context;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,14 +27,19 @@ import us.koller.todolist.Settings;
 
 public class Todolist {
 
+    public static final String EVENTS_FILENAME = "events";
+    private static final String ADDED_EVENTS_FILENAME = "removedEvents";
+    private static final String REMOVED_EVENTS_FILENAME = "addedEvents";
+
     private Settings settings;
-
     private ArrayList<Event> todolist;
+    private ArrayList<Event> adapter_list;
 
+    //only needed for sync
     private ArrayList<Long> removedEvents;
-
     private ArrayList<Long> addedEvents;
 
+    //to restore last deleted Event
     private Event lastRemovedEvent;
     private int lastRemovedEventPosition;
 
@@ -41,6 +47,7 @@ public class Todolist {
         this.settings = settings;
 
         todolist = new ArrayList<>();
+
         removedEvents = new ArrayList<>();
         addedEvents = new ArrayList<>();
     }
@@ -49,13 +56,12 @@ public class Todolist {
         todolist.add(e);
         mAdapter.addItem(e);
 
-        if ((boolean) settings.get("syncEnabled")) {
+        if ((boolean) settings.get(Settings.SYNC_ENABLED)) {
             addedEvents.add(e.getId());
         }
     }
 
     public void initData(Context context) {
-        //readSettings(context);
         try {
             readData(context);
         } catch (JSONException|FileNotFoundException e) {
@@ -63,10 +69,20 @@ public class Todolist {
         }
     }
 
+    public ArrayList<Event> initAdapterList() {
+        adapter_list = new ArrayList<>();
+        for (int i = 0; i < todolist.size(); i++) {
+            if (settings.getCategory(todolist.get(i).getColor())) {
+                adapter_list.add(todolist.get(i));
+            }
+        }
+        return adapter_list;
+    }
+
     public void restoreLastRemovedEvent() {
         if (lastRemovedEvent != null) {
             todolist.add(lastRemovedEventPosition, lastRemovedEvent);
-            if ((boolean) settings.get("syncEnabled")) {
+            if ((boolean) settings.get(Settings.SYNC_ENABLED)) {
                 removedEvents.remove(lastRemovedEvent.getId());
             }
             lastRemovedEvent = null;
@@ -79,20 +95,20 @@ public class Todolist {
         lastRemovedEvent = e;
         todolist.remove(e);
 
-        if ((boolean) settings.get("syncEnabled")) {
+        if ((boolean) settings.get(Settings.SYNC_ENABLED)) {
             removedEvents.add(e.getId());
         }
     }
 
     public void removeEvent(RVAdapter mAdapter, int index) {
-        Event e = mAdapter.getList().get(index);
+        Event e = adapter_list.get(index);
         removeEvent(e);
         mAdapter.removeItem(index);
     }
 
-    public int getIndexOfEventInAdapterListById(RVAdapter mAdapter, long id) {
-        for (int i = 0; i < mAdapter.getList().size(); i++) {
-            if (mAdapter.getList().get(i).getId() == id) {
+    public int getIndexOfEventInAdapterListById(long id) {
+        for (int i = 0; i < adapter_list.size(); i++) {
+            if (adapter_list.get(i).getId() == id) {
                 return i;
             }
         }
@@ -129,46 +145,40 @@ public class Todolist {
         return false;
     }
 
-    public ArrayList<Event> initAdapterList() {
-        ArrayList<Event> adapter_list = new ArrayList<>();
-        for (int i = 0; i < todolist.size(); i++) {
-            if (settings.getCategory(todolist.get(i).getColor())) {
-                adapter_list.add(todolist.get(i));
-            }
-        }
-        return adapter_list;
-    }
-
     public void addOrRemoveEventFromAdapter(RVAdapter mAdapter) {
-        Event[] tempAdapterList = new Event[mAdapter.getList().size()];
+        Event[] tempAdapterList = new Event[adapter_list.size()];
         //Needed for running through the whole mAdapterlist
-        for (int i = 0; i < mAdapter.getList().size(); i++) {
-            tempAdapterList[i] = mAdapter.getList().get(i);
+        for (int i = 0; i < adapter_list.size(); i++) {
+            tempAdapterList[i] = adapter_list.get(i);
         }
         for (int i = tempAdapterList.length - 1; i >= 0; i--) {
             if (!settings.getCategory(tempAdapterList[i].getColor())) {
-                mAdapter.removeItem(mAdapter.getList().indexOf(tempAdapterList[i]));
+                mAdapter.removeItem(adapter_list.indexOf(tempAdapterList[i]));
             }
         }
         for (int i = 0; i < todolist.size(); i++) {
             if (settings.getCategory(todolist.get(i).getColor())
-                    && !isEventInAdapterList(mAdapter, todolist.get(i))) {
-                int index = getAdapterListPosition(mAdapter, todolist.get(i));
-                mAdapter.addItem(index, todolist.get(i));
+                    && !isEventInAdapterList(todolist.get(i))) {
+                int index = getExpectedAdapterListPosition(todolist.get(i));
+                if(index > -1){
+                    mAdapter.addItem(index, todolist.get(i));
+                } else {
+                    Log.d("Todolist", "adapter index = -1");
+                }
             }
         }
     }
 
-    public boolean isEventInAdapterList(RVAdapter mAdapter, Event e) {
-        for (int i = 0; i < mAdapter.getList().size(); i++) {
-            if (e.getId() == mAdapter.getList().get(i).getId()) {
+    public boolean isEventInAdapterList(Event e) {
+        for (int i = 0; i < adapter_list.size(); i++) {
+            if (e.getId() == adapter_list.get(i).getId()) {
                 return true;
             }
         }
         return false;
     }
 
-    public int getAdapterListPosition(RVAdapter mAdapter, Event e) {
+    private int getExpectedAdapterListPosition(Event e) {
         int adapterListPosition = 0;
         for (int i = 0; i < todolist.size(); i++) {
             if (todolist.get(i).getId() == e.getId()) {
@@ -178,15 +188,15 @@ public class Todolist {
                 adapterListPosition++;
             }
         }
-        return mAdapter.getList().size();
+        return adapter_list.size();
     }
 
-    public boolean isAdapterListTodolist(RVAdapter mAdapter) {
-        if (mAdapter.getList().size() != todolist.size()) {
+    public boolean isAdapterListTodolist() {
+        if (adapter_list.size() != todolist.size()) {
             return false;
         }
         for (int i = 0; i < todolist.size(); i++) {
-            if (mAdapter.getList().get(i).getId() != todolist.get(i).getId()) {
+            if (adapter_list.get(i).getId() != todolist.get(i).getId()) {
                 return false;
             }
         }
@@ -225,9 +235,9 @@ public class Todolist {
     }
 
     public void saveData(Context context) throws JSONException {
-        saveFile(context, "events", getData());
+        saveFile(context, EVENTS_FILENAME, getData());
         //save removed Todos for sync
-        if ((boolean) settings.get("syncEnabled")) {
+        if ((boolean) settings.get(Settings.SYNC_ENABLED)) {
             saveRemovedEvents(context);
 
             saveAddedEvents(context);
@@ -235,11 +245,11 @@ public class Todolist {
     }
 
     private void saveRemovedEvents(Context context) throws JSONException {
-        saveFile(context, "removedEvents", getRemovedEventsString());
+        saveFile(context, REMOVED_EVENTS_FILENAME, getRemovedEventsString());
     }
 
     private void saveAddedEvents(Context context) throws JSONException {
-        saveFile(context, "addedEvents", getAddedEventsString());
+        saveFile(context, ADDED_EVENTS_FILENAME, getAddedEventsString());
     }
 
     public void clearRemovedAndAddedEvents(Context context) {
@@ -277,21 +287,21 @@ public class Todolist {
     }
 
     private void readData(Context context) throws JSONException, FileNotFoundException {
-        String data = readFile(context, "events");
+        String data = readFile(context, EVENTS_FILENAME);
         JSONArray array = new JSONArray(data);
         for (int i = 0; i < array.length(); i++) {
             todolist.add(new Event(array.getJSONObject(i)));
         }
 
         // read removedEvents and addedEvents
-        if ((boolean) settings.get("syncEnabled")) {
-            String data_removedEvents = readFile(context, "removedEvents");
+        if ((boolean) settings.get(Settings.SYNC_ENABLED)) {
+            String data_removedEvents = readFile(context, REMOVED_EVENTS_FILENAME);
             JSONArray array_removedEvents = new JSONArray(data_removedEvents);
             for (int i = 0; i < array_removedEvents.length(); i++) {
                 removedEvents.add(array_removedEvents.getLong(i));
             }
 
-            String data_addedEvents = readFile(context, "addedEvents");
+            String data_addedEvents = readFile(context, ADDED_EVENTS_FILENAME);
             JSONArray array_addedEvents = new JSONArray(data_addedEvents);
             for (int i = 0; i < array_addedEvents.length(); i++) {
                 addedEvents.add(array_addedEvents.getLong(i));
@@ -301,7 +311,7 @@ public class Todolist {
 
     public ArrayList<Long> eventRemovedThroughNotificationButton(Context context)
             throws JSONException, FileNotFoundException {
-        String data = readFile(context, "events");
+        String data = readFile(context, EVENTS_FILENAME);
         JSONArray array = new JSONArray(data);
         ArrayList<Long> newList = new ArrayList<>();
         for (int i = 0; i < array.length(); i++) {
@@ -364,12 +374,10 @@ public class Todolist {
     public String getSyncData() {
         JSONArray array = new JSONArray();
         long timeStamp = System.currentTimeMillis();
-        array.put(timeStamp);
-
         try {
-            array.put(new JSONArray(getData()));
-            //array.put(new JSONArray(getRemovedEventsString()));
-            //maybe Colors
+            array.put(0, timeStamp);
+            array.put(1, new JSONArray(getData()));
+            array.put(2, settings.getSelectedCategoriesJSON());
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -386,7 +394,7 @@ public class Todolist {
     }
 
     public boolean hasAlarmFired(Event e) {
-        return (long) e.getAlarm().get("time") < System.currentTimeMillis();
+        return (long) e.getAlarm().get(Alarm.TIME) < System.currentTimeMillis();
     }
 
     public Event getLastRemovedEvent() {

@@ -133,10 +133,10 @@ public class InfoActivity extends AppCompatActivity {
         helper = new ThemeHelper(this);
         RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.info_activity_layout);
 
-        relativeLayout.setBackgroundColor(helper.get("cord_color"));
-        toolbar.setBackgroundColor(helper.get("toolbar_color"));
-        toolbar.setTitleTextColor(helper.get("toolbar_textcolor"));
-        if (helper.get("cord_color") != helper.get("toolbar_color")) {
+        relativeLayout.setBackgroundColor(helper.get(ThemeHelper.CORD_COLOR));
+        toolbar.setBackgroundColor(helper.get(ThemeHelper.TOOLBAR_COLOR));
+        toolbar.setTitleTextColor(helper.get(ThemeHelper.TOOLBAR_TEXT_COLOR));
+        if (helper.get(ThemeHelper.CORD_COLOR) != helper.get(ThemeHelper.TOOLBAR_COLOR)) {
             toolbar.setSelected(true);
         }
 
@@ -151,7 +151,7 @@ public class InfoActivity extends AppCompatActivity {
         String title = getString(R.string.app_name);
         BitmapDrawable icon = (BitmapDrawable) ContextCompat.getDrawable(InfoActivity.this, R.mipmap.ic_launcher);
 
-        ActivityManager.TaskDescription tDesc = new ActivityManager.TaskDescription(title, icon.getBitmap(), helper.get("toolbar_color"));
+        ActivityManager.TaskDescription tDesc = new ActivityManager.TaskDescription(title, icon.getBitmap(), helper.get(ThemeHelper.TOOLBAR_COLOR));
         this.setTaskDescription(tDesc);
     }
 
@@ -241,7 +241,8 @@ public class InfoActivity extends AppCompatActivity {
     public void openGPlus(String profile) {
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setClassName("com.google.android.apps.plus", "com.google.android.apps.plus.phone.UrlGatewayActivity");
+            intent.setClassName("com.google.android.apps.plus",
+                    "com.google.android.apps.plus.phone.UrlGatewayActivity");
             intent.putExtra("customAppUri", profile);
             startActivity(intent);
         } catch (ActivityNotFoundException e) {

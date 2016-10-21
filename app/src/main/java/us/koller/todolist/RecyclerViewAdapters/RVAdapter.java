@@ -418,7 +418,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
         notifyItemRemoved(index);
     }
 
-    public void itemChanged(int index) {
+    private void itemChanged(int index) {
         notifyItemChanged(index);
     }
 
@@ -463,5 +463,9 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
 
     public void setThemeHelper(ThemeHelper helper) {
         this.helper = helper;
+    }
+
+    public void setList(ArrayList<Event> events){
+        this.events = events;
     }
 }

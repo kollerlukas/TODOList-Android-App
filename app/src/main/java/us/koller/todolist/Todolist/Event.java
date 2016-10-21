@@ -11,7 +11,21 @@ import java.util.Random;
  * @version (1.0)
  */
 public class Event {
-    private long id;
+    private static final String ID = "id";
+    private static final String WHAT_TO_DO = "whatToDo";
+    private static final String COLOR = "Color";
+    private static final String WHAT_TO_DO_TIMESTAMP = "whatToDo_timeStamp";
+    private static final String COLOR_TIMESTAMP = "color_timeStamp";
+    private static final String MOVE_TIMESTAMP = "move_timeStamp";
+    private static final String ALARM_TIMESTAMP = "alarm_timeStamp";
+    private static final String ALARM = "alarm";
+    private static final String ALARM_ID = "AlarmId";
+    private static final String ALARM_TIME = "AlarmTime";
+    private static final String ALARM_CHANGE_TIMESTAMP = "lastChange_timeStamp";
+    private static final String ALARM_CERTAIN_DAYS = "certainDays";
+    private static final String ALARM_CUSTOM_INTERVALL = "customIntervall";
+
+    private final long id;
 
     private String whatToDo;
     private long whatToDo_timeStamp = 0;
@@ -25,34 +39,34 @@ public class Event {
     private long alarm_timeStamp = 0;
 
     public Event(JSONObject json) throws JSONException {
-        id = json.getLong("Id");
-        whatToDo = json.getString("whatToDo");
-        color = json.getInt("Color");
+        id = json.getLong(ID);
+        whatToDo = json.getString(WHAT_TO_DO);
+        color = json.getInt(COLOR);
 
         try {
-            whatToDo_timeStamp = json.getLong("whatToDo_timeStamp");
-            color_timeStamp = json.getLong("color_timeStamp");
-            move_timeStamp = json.getLong("move_timeStamp");
-            alarm_timeStamp = json.getLong("alarm_timeStamp");
+            whatToDo_timeStamp = json.getLong(WHAT_TO_DO_TIMESTAMP);
+            color_timeStamp = json.getLong(COLOR_TIMESTAMP);
+            move_timeStamp = json.getLong(MOVE_TIMESTAMP);
+            alarm_timeStamp = json.getLong(ALARM_TIMESTAMP);
         } catch (JSONException exception) {
             exception.printStackTrace();
         }
 
-        if (json.getBoolean("alarm")) {
+        if (json.getBoolean(ALARM)) {
 
-            this.alarm = new Alarm(json.getLong("AlarmId"), json.getLong("AlarmTime"));
-            this.alarm.set("lastChange_timeStamp", json.getLong("alarmTime_timeStamp"));
+            this.alarm = new Alarm(json.getLong(ALARM_ID), json.getLong(ALARM_TIME));
+            this.alarm.set(ALARM_CHANGE_TIMESTAMP, json.getLong(ALARM_TIMESTAMP));
 
-            if (json.getBoolean("repeating")) {
-                int repeatMode = json.getInt("repeatMode");
+            if (json.getBoolean(Alarm.REPEATING)) {
+                int repeatMode = json.getInt(Alarm.REPEAT_MODE);
                 this.alarm.setRepeating(repeatMode);
                 try {
                     if (repeatMode == 3) {
-                        this.alarm.restoreCertainDays(json.getString("certainDays"));
+                        this.alarm.restoreCertainDays(json.getString(ALARM_CERTAIN_DAYS));
                     } else if (repeatMode == 4) {
-                        this.alarm.set("custom_intervall", json.getLong("customIntervall"));
-                        this.alarm.set("numberPicker1_value", json.getInt("numberPicker1_value"));
-                        this.alarm.set("numberPicker2_value", json.getInt("numberPicker2_value"));
+                        this.alarm.set(Alarm.CUSTOM_INTERVALL, json.getLong(ALARM_CUSTOM_INTERVALL));
+                        this.alarm.set(Alarm.NUMBER_PICKER_1_VALUE, json.getInt(Alarm.NUMBER_PICKER_1_VALUE));
+                        this.alarm.set(Alarm.NUMBER_PICKER_2_VALUE, json.getInt(Alarm.NUMBER_PICKER_2_VALUE));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -164,7 +178,7 @@ public class Event {
         return alarm_timeStamp;
     }
 
-    public void setMove_timeStamp(long move_timeStamp) {
+    void setMove_timeStamp(long move_timeStamp) {
         this.move_timeStamp = move_timeStamp;
     }
 
@@ -174,38 +188,38 @@ public class Event {
 
     public JSONObject saveData() throws JSONException {
         JSONObject json = new JSONObject();
-        json.put("Id", getId());
-        json.put("whatToDo", getWhatToDo());
-        json.put("whatToDo_timeStamp", getWhatToDo_timeStamp());
-        json.put("Color", getColor());
-        json.put("color_timeStamp", getColor_timeStamp());
+        json.put(ID, getId());
+        json.put(WHAT_TO_DO, getWhatToDo());
+        json.put(WHAT_TO_DO_TIMESTAMP, getWhatToDo_timeStamp());
+        json.put(COLOR, getColor());
+        json.put(COLOR_TIMESTAMP, getColor_timeStamp());
 
-        json.put("move_timeStamp", getMove_timeStamp());
-        json.put("alarm_timeStamp", getAlarm_timeStamp());
+        json.put(MOVE_TIMESTAMP, getMove_timeStamp());
+        json.put(ALARM_TIMESTAMP, getAlarm_timeStamp());
         if (alarm != null) {
-            if ((long) alarm.get("time") > System.currentTimeMillis()) {
-                json.put("alarm", true);
+            if ((long) alarm.get(Alarm.TIME) > System.currentTimeMillis()) {
+                json.put(ALARM, true);
 
-                json.put("AlarmId", (long) alarm.get("id"));
-                json.put("AlarmTime", (long) alarm.get("time"));
-                json.put("alarmTime_timeStamp", (long) alarm.get("lastChange_timeStamp"));
+                json.put(ALARM_ID, (long) alarm.get(Alarm.ID));
+                json.put(ALARM_TIME, (long) alarm.get(Alarm.TIME));
+                json.put(ALARM_TIMESTAMP, (long) alarm.get(Alarm.LAST_CHANGE_TIMESTAMP));
 
-                json.put("repeating", (boolean) alarm.get("repeating"));
-                if ((boolean) alarm.get("repeating")) {
-                    json.put("repeatMode", (int) alarm.get("repeatMode"));
-                    if ((int) alarm.get("repeatMode") == 3) {
-                        json.put("certainDays", alarm.getCertainDaysString());
-                    } else if ((int) alarm.get("repeatMode") == 4) {
-                        json.put("customIntervall", (long) alarm.get("custom_intervall"));
-                        json.put("numberPicker1_value", (int) alarm.get("numberPicker1_value"));
-                        json.put("numberPicker2_value", (int) alarm.get("numberPicker2_value"));
+                json.put(Alarm.REPEATING, (boolean) alarm.get(Alarm.REPEATING));
+                if ((boolean) alarm.get(Alarm.REPEATING)) {
+                    json.put(Alarm.REPEAT_MODE, (int) alarm.get(Alarm.REPEAT_MODE));
+                    if ((int) alarm.get(Alarm.REPEAT_MODE) == 3) {
+                        json.put(ALARM_CERTAIN_DAYS, alarm.getCertainDaysString());
+                    } else if ((int) alarm.get(Alarm.REPEAT_MODE) == 4) {
+                        json.put(ALARM_CUSTOM_INTERVALL, (long) alarm.get(Alarm.CUSTOM_INTERVALL));
+                        json.put(Alarm.NUMBER_PICKER_1_VALUE, (int) alarm.get(Alarm.NUMBER_PICKER_1_VALUE));
+                        json.put(Alarm.NUMBER_PICKER_2_VALUE, (int) alarm.get(Alarm.NUMBER_PICKER_2_VALUE));
                     }
                 }
             } else {
-                json.put("alarm", false);
+                json.put(ALARM, false);
             }
         } else {
-            json.put("alarm", false);
+            json.put(ALARM, false);
         }
         return json;
     }

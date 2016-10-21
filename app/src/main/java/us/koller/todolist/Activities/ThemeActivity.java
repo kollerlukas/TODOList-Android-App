@@ -165,10 +165,10 @@ public class ThemeActivity extends AppCompatActivity {
     }
 
     public void initTheme() {
-        toolbar_card.setBackgroundColor(helper.get("toolbar_color"));
-        toolbar_card.setTitleTextColor(helper.get("toolbar_textcolor"));
+        toolbar_card.setBackgroundColor(helper.get(ThemeHelper.TOOLBAR_COLOR));
+        toolbar_card.setTitleTextColor(helper.get(ThemeHelper.TOOLBAR_TEXT_COLOR));
 
-        statusBar.setBackgroundColor(helper.get("toolbar_color"));
+        statusBar.setBackgroundColor(helper.get(ThemeHelper.TEXT_COLOR));
 
         int color;
         if (helper.isToolbarIconsTranslucent()) {
@@ -181,15 +181,15 @@ public class ThemeActivity extends AppCompatActivity {
         colorInfoIcon(color);
         setOverflowButtonColor(color);
 
-        card.setCardBackgroundColor(helper.get("cord_color"));
+        card.setCardBackgroundColor(helper.get(ThemeHelper.CORD_COLOR));
 
-        fab.setBackgroundTintList(ColorStateList.valueOf(helper.get("fab_color")));
-        fab.getDrawable().setTint(helper.get("fab_textcolor"));
+        fab.setBackgroundTintList(ColorStateList.valueOf(helper.get(ThemeHelper.FAB_COLOR)));
+        fab.getDrawable().setTint(helper.get(ThemeHelper.FAB_TEXT_COLOR));
         fab.setRippleColor(ContextCompat.getColor(ThemeActivity.this, R.color.white));
 
         presetThemes.setTextColor(helper.getDarkTextColor());
 
-        if (helper.get("cord_color") != helper.get("toolbar_color")) {
+        if (helper.get(ThemeHelper.CORD_COLOR) != helper.get(ThemeHelper.TOOLBAR_COLOR)) {
             toolbarAndBackgroundSameColor = false;
             elevateToolbar();
         }
@@ -206,11 +206,11 @@ public class ThemeActivity extends AppCompatActivity {
                 fab.setBackgroundTintList(ColorStateList.valueOf(Color.rgb(red, green, blue)));
                 fab.getDrawable().setTint(textColor);
 
-                helper.set("fab_color", Color.rgb(red, green, blue));
-                helper.set("fab_textcolor", textColor);
+                helper.set(ThemeHelper.FAB_COLOR, Color.rgb(red, green, blue));
+                helper.set(ThemeHelper.FAB_TEXT_COLOR, textColor);
             }
         };
-        showColorPickerDialog(colorPickerDialogCallback, true, helper.get("fab_color"), helper.get("fab_textcolor"), false);
+        showColorPickerDialog(colorPickerDialogCallback, true, helper.get(ThemeHelper.FAB_COLOR), helper.get(ThemeHelper.FAB_TEXT_COLOR), false);
     }
 
     public void ToolbarClicked(View v) {
@@ -223,7 +223,7 @@ public class ThemeActivity extends AppCompatActivity {
                 colorToolbarAndCoord(red, green, blue, textColor, toolbarAndBackgroundSameColor, true);
             }
         };
-        showColorPickerDialog(colorPickerDialogCallback, true, helper.get("toolbar_color"), helper.get("toolbar_textcolor"), true);
+        showColorPickerDialog(colorPickerDialogCallback, true, helper.get(ThemeHelper.TOOLBAR_COLOR), helper.get(ThemeHelper.TOOLBAR_TEXT_COLOR), true);
     }
 
     public void CoordinatorLayoutClicked(View v) {
@@ -233,26 +233,26 @@ public class ThemeActivity extends AppCompatActivity {
                 colorToolbarAndCoord(red, green, blue, textColor, true, toolbarAndBackgroundSameColor);
             }
         };
-        showColorPickerDialog(colorPickerDialogCallback, true, helper.get("cord_color"), helper.get("cord_textcolor"), true);
+        showColorPickerDialog(colorPickerDialogCallback, true, helper.get(ThemeHelper.CORD_COLOR), helper.get(ThemeHelper.CORD_TEXT_COLOR), true);
     }
 
     public void colorToolbarAndCoord(int red, int green, int blue, int textColor, boolean colorCord, boolean colorToolbar) {
         if (colorCord) {
-            helper.set("cord_color", Color.rgb(red, green, blue));
-            helper.set("cord_textcolor", textColor);
+            helper.set(ThemeHelper.CORD_COLOR, Color.rgb(red, green, blue));
+            helper.set(ThemeHelper.CORD_TEXT_COLOR, textColor);
 
             card.setCardBackgroundColor(Color.rgb(red, green, blue));
         }
         if (colorToolbar) {
-            helper.set("toolbar_color", Color.rgb(red, green, blue));
-            helper.set("toolbar_textcolor", textColor);
+            helper.set(ThemeHelper.TOOLBAR_COLOR, Color.rgb(red, green, blue));
+            helper.set(ThemeHelper.TOOLBAR_TEXT_COLOR, textColor);
 
             toolbar_card.setBackgroundColor(Color.rgb(red, green, blue));
             toolbar_card.setTitleTextColor(textColor);
 
-            statusBar.setBackgroundColor(helper.get("toolbar_color"));
+            statusBar.setBackgroundColor(helper.get(ThemeHelper.TOOLBAR_COLOR));
         }
-        if (helper.get("cord_color") == helper.get("toolbar_color")) {
+        if (helper.get(ThemeHelper.CORD_COLOR) == helper.get(ThemeHelper.TOOLBAR_COLOR)) {
             toolbarAndBackgroundSameColor = true;
         }
         if (!toolbarAndBackgroundSameColor) {
@@ -262,7 +262,8 @@ public class ThemeActivity extends AppCompatActivity {
         }
     }
 
-    public void showColorPickerDialog(final ColorPickerDialogCallback colorPickerDialogCallback, boolean eventColor, int oldColor, int oldTextColor, boolean showCheckbox) {
+    public void showColorPickerDialog(final ColorPickerDialogCallback colorPickerDialogCallback, boolean eventColor,
+                                      int oldColor, int oldTextColor, boolean showCheckbox) {
         View layout = View.inflate(this, R.layout.color_picker, null);
         final String format = "%1$03d";
 
@@ -321,8 +322,8 @@ public class ThemeActivity extends AppCompatActivity {
         if (!showCheckbox) {
             checkbox.setVisibility(View.GONE);
         } else {
-            int color_checkbox = helper.get("fab_color");
-            if (helper.get("fab_color") == ContextCompat.getColor(ThemeActivity.this, R.color.white)) {
+            int color_checkbox = helper.get(ThemeHelper.FAB_COLOR);
+            if (color_checkbox == ContextCompat.getColor(ThemeActivity.this, R.color.white)) {
                 color_checkbox = ContextCompat.getColor(ThemeActivity.this, R.color.grey);
             }
 
@@ -502,8 +503,8 @@ public class ThemeActivity extends AppCompatActivity {
     }
 
     public AlertDialog changeDialogButtonColor(AlertDialog dialog) {
-        int color = helper.get("fab_color");
-        if (helper.get("fab_color") == ContextCompat.getColor(ThemeActivity.this, R.color.white)) {
+        int color = helper.get(ThemeHelper.FAB_COLOR);
+        if (color == ContextCompat.getColor(ThemeActivity.this, R.color.white)) {
             color = ContextCompat.getColor(ThemeActivity.this, R.color.grey);
         }
 
@@ -621,23 +622,23 @@ public class ThemeActivity extends AppCompatActivity {
     }
 
     public void restoreTheme(View v) {
-        String theme = "dark";
+        String theme = ThemeHelper.LIGHT;
         switch (v.getId()) {
             case R.id.light_cardview:
-                theme = "light";
+                theme = ThemeHelper.LIGHT;
                 break;
             case R.id.dark_cardview:
-                theme = "dark";
+                theme = ThemeHelper.DARK;
                 break;
             case R.id.black_cardview:
-                theme = "black";
+                theme = ThemeHelper.BLACK;
                 break;
         }
         helper.restoreDefaultTheme(ThemeActivity.this, theme);
         helper.saveData(ThemeActivity.this);
         initTheme();
 
-        if(helper.get("toolbar_color") == helper.get("cord_color")){
+        if(helper.get(ThemeHelper.TOOLBAR_COLOR) == helper.get(ThemeHelper.CORD_COLOR)){
             toolbarAndBackgroundSameColor = true;
         }
         checkToolbarElevation();
@@ -683,21 +684,21 @@ public class ThemeActivity extends AppCompatActivity {
     }
 
     public String getShareData() throws JSONException {
-        JSONObject json = new JSONObject();
+        JSONObject json = new JSONObject()
 
-        json.put("fab_color", helper.get("fab_color"));
-        json.put("fab_textcolor", helper.get("fab_textcolor"));
-        json.put("toolbar_color", helper.get("toolbar_color"));
-        json.put("toolbar_textcolor", helper.get("toolbar_textcolor"));
-        json.put("cord_color", helper.get("cord_color"));
-        json.put("cord_textcolor", helper.get("cord_textcolor"));
+        .put(ThemeHelper.FAB_COLOR, helper.get(ThemeHelper.FAB_COLOR))
+        .put(ThemeHelper.FAB_TEXT_COLOR, helper.get(ThemeHelper.FAB_TEXT_COLOR))
+        .put(ThemeHelper.TOOLBAR_COLOR, helper.get(ThemeHelper.TOOLBAR_COLOR))
+        .put(ThemeHelper.TOOLBAR_TEXT_COLOR, helper.get(ThemeHelper.TOOLBAR_TEXT_COLOR))
+        .put(ThemeHelper.CORD_COLOR, helper.get(ThemeHelper.CORD_COLOR))
+        .put(ThemeHelper.CORD_TEXT_COLOR, helper.get(ThemeHelper.CORD_TEXT_COLOR));
 
         for (int i = 1; i < 13; i++) {
-            json.put("color" + i, helper.getEventColor(i));
+            json.put(ThemeHelper.COLOR + i, helper.getEventColor(i));
         }
 
         for (int i = 1; i < 13; i++) {
-            json.put("textcolor" + i, helper.getEventTextColor(i));
+            json.put(ThemeHelper.TEXT_COLOR + i, helper.getEventTextColor(i));
         }
 
         return json.toString();
@@ -715,7 +716,7 @@ public class ThemeActivity extends AppCompatActivity {
     }
 
     public void checkToolbarElevation() {
-        if(helper.get("cord_color") != helper.get("toolbar_color")){
+        if(helper.get(ThemeHelper.CORD_COLOR) != helper.get(ThemeHelper.TOOLBAR_COLOR)){
             elevateToolbar();
             return;
         }

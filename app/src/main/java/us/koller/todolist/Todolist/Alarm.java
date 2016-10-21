@@ -8,6 +8,15 @@ import java.util.TimeZone;
  */
 public class Alarm {
 
+    public static final String ID = "id";
+    public static final String TIME = "time";
+    public static final String LAST_CHANGE_TIMESTAMP = "lastChange_timeStamp";
+    public static final String REPEATING = "repeating";
+    public static final String REPEAT_MODE = "repeatMode";
+    public static final String CUSTOM_INTERVALL = "custom_intervall";
+    public static final String NUMBER_PICKER_1_VALUE = "numberPicker1_value";
+    public static final String NUMBER_PICKER_2_VALUE = "numberPicker2_value";
+
     private long id;
     private long time;
     private long lastChange_timeStamp;
@@ -21,7 +30,7 @@ public class Alarm {
     private int numberPicker1_value;
     private int numberPicker2_value;
 
-    public Alarm(long id, long time) {
+    Alarm(long id, long time) {
         this.id = id;
         this.time = time;
 
@@ -50,7 +59,7 @@ public class Alarm {
         this.lastChange_timeStamp = System.currentTimeMillis();
     }
 
-    public void restoreCertainDays(String s) {
+    void restoreCertainDays(String s) {
         String[] strings = s.split(";");
         if (strings.length == 7) {
             for (int i = 0; i < certain_days.length; i++) {
@@ -59,7 +68,7 @@ public class Alarm {
         }
     }
 
-    public String getCertainDaysString() {
+    String getCertainDaysString() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < certain_days.length; i++) {
             sb.append(certain_days[i]);
@@ -120,7 +129,7 @@ public class Alarm {
         return calendar.getTimeInMillis();
     }
 
-    public int getDayOfTheWeekIndex() {
+    private int getDayOfTheWeekIndex() {
         int day = Calendar.getInstance(TimeZone.getDefault()).get(Calendar.DAY_OF_WEEK);
         switch (day) {
             case Calendar.MONDAY:
@@ -149,7 +158,7 @@ public class Alarm {
                 this.custom_intervall == alarm.custom_intervall;
     }
 
-    public boolean equalsCertainDays(boolean[] certain_days){
+    private boolean equalsCertainDays(boolean[] certain_days){
         for (int i = 0; i < this.certain_days.length; i++){
             if(this.certain_days[i] != certain_days[i]){
                 return false;
@@ -160,13 +169,13 @@ public class Alarm {
 
     public void set(String key, Object o){
         switch (key){
-            case "custom_intervall":
+            case CUSTOM_INTERVALL:
                 custom_intervall = (long) o;
                 break;
-            case "numberPicker1_value":
+            case NUMBER_PICKER_1_VALUE:
                 numberPicker1_value = (int) o;
                 break;
-            case "numberPicker2_value":
+            case NUMBER_PICKER_2_VALUE:
                 numberPicker2_value = (int) o;
                 break;
         }
@@ -174,21 +183,21 @@ public class Alarm {
 
     public Object get(String key){
         switch (key){
-            case "id":
+            case ID:
                 return id;
-            case "time":
+            case TIME:
                 return time;
-            case "lastChange_timeStamp":
+            case LAST_CHANGE_TIMESTAMP:
                 return lastChange_timeStamp;
-            case "repeating":
+            case REPEATING:
                 return repeating;
-            case "repeatMode":
+            case REPEAT_MODE:
                 return repeatMode;
-            case "custom_intervall":
+            case CUSTOM_INTERVALL:
                 return custom_intervall;
-            case "numberPicker1_value":
+            case NUMBER_PICKER_1_VALUE:
                 return numberPicker1_value;
-            case "numberPicker2_value":
+            case NUMBER_PICKER_2_VALUE:
                 return numberPicker2_value;
         }
         return "Error";
@@ -200,11 +209,8 @@ public class Alarm {
         }
     }
 
-    public boolean getCertainDay(int index){
-        if(index < 7){
-            return certain_days[index];
-        }
-        return false;
+    public boolean getCertainDay(int index) {
+        return index < 7 && certain_days[index];
     }
 
     public boolean noDaySelected(){

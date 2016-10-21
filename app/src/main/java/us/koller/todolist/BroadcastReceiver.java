@@ -15,6 +15,8 @@ import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
+import android.util.Log;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -24,10 +26,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.jar.Manifest;
 
 import us.koller.todolist.Activities.MainActivity;
+import us.koller.todolist.Todolist.Alarm;
 import us.koller.todolist.Todolist.Event;
+import us.koller.todolist.Todolist.Todolist;
 import us.koller.todolist.Util.ThemeHelper;
 import us.koller.todolist.Widget.WidgetProvider_List;
 
@@ -49,6 +52,7 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
         long id = intent.getLongExtra("EventId", 0L);
         switch (intent.getAction()) {
             case "ALARM":
+                Toast.makeText(context, "ALARM", Toast.LENGTH_SHORT).show();
                 SharedPreferences sharedpreferences
                         = context.getSharedPreferences("todolist", Context.MODE_PRIVATE);
 
@@ -57,7 +61,7 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
                     return;
                 }
                 sendAlarmNotification(context, event.getWhatToDo(), event.getId(),
-                        sharedpreferences.getBoolean("vibrate", true), event.getColor());
+                        sharedpreferences.getBoolean(Settings.VIBRATE, true), event.getColor());
                 checkIfEventIsRepeating(context);
                 break;
 
@@ -202,7 +206,7 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
                 }
                 String data = array.toString();
                 try {
-                    FileOutputStream fos = context.openFileOutput("events", Context.MODE_PRIVATE);
+                    FileOutputStream fos = context.openFileOutput(Todolist.EVENTS_FILENAME, Context.MODE_PRIVATE);
                     fos.write(data.getBytes());
                     fos.close();
                 } catch (IOException exception) {
@@ -215,12 +219,14 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
     }
 
     private Event lookForEvent(long id) {
+        Log.d("BroadcastReceiver", "Event to find: " + String.valueOf(id));
         try {
             if (array == null) {
                 return null;
             }
             for (int i = 0; i < array.length(); i++) {
                 Event e = new Event(array.getJSONObject(i));
+                Log.d("BroadcastReceiver", "Event: " + String.valueOf(e.getId()));
                 if (id == e.getId()) {
                     return e;
                 }
@@ -239,7 +245,7 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
             for (int i = 0; i < array.length(); i++) {
                 Event e = new Event(array.getJSONObject(i));
                 if (e.getAlarm() != null) {
-                    long alarmTime = (long) e.getAlarm().get("time");
+                    long alarmTime = (long) e.getAlarm().get(Alarm.TIME);
                     if (alarmTime > System.currentTimeMillis()) {
                         setAlarm(context, e.getId(), alarmTime);
                     } else if (alarmTime > context.getSharedPreferences("todolist",
@@ -248,7 +254,7 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
                                 e.getWhatToDo(),
                                 intent.getIntExtra("EventId", 0),
                                 context.getSharedPreferences("todolist",
-                                        Context.MODE_PRIVATE).getBoolean("vibrate", true),
+                                        Context.MODE_PRIVATE).getBoolean(Settings.VIBRATE, true),
                                 e.getColor());
                     }
                 }
@@ -260,7 +266,7 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
     }
 
     public boolean checkForShowingNotification(Context context) {
-        return context.getSharedPreferences("todolist", Context.MODE_PRIVATE).getBoolean("notificationToggle", true);
+        return context.getSharedPreferences("todolist", Context.MODE_PRIVATE).getBoolean(Settings.NOTIFICATION_TOGGLE, true);
     }
 
     public void showNotification(Context context) {
@@ -334,7 +340,7 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
     private JSONArray readFile(Context context) {
         StringBuilder sb = new StringBuilder();
         try {
-            FileInputStream fis = context.openFileInput("events");
+            FileInputStream fis = context.openFileInput(Todolist.EVENTS_FILENAME);
             BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
             String line;
             while ((line = reader.readLine()) != null) {

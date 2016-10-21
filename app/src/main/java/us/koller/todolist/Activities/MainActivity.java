@@ -5,17 +5,22 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.OptionalPendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
-import com.google.android.gms.drive.Drive;
-import com.google.android.gms.drive.DriveApi;
-import com.google.android.gms.drive.DriveFile;
-import com.google.android.gms.drive.DriveFolder;
-import com.google.android.gms.drive.DriveId;
-import com.google.android.gms.drive.DriveStatusCodes;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import android.app.ActivityManager;
 import android.app.AlarmManager;
@@ -48,7 +53,6 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
-import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.ShareCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
@@ -60,8 +64,6 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
-import android.support.v7.widget.AppCompatCheckBox;
-import android.support.v7.widget.AppCompatSpinner;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -69,9 +71,9 @@ import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.text.Html;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -82,19 +84,13 @@ import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.HorizontalScrollView;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.NumberPicker;
-import android.widget.RadioButton;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -109,17 +105,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Random;
 import java.util.TimeZone;
-import java.util.concurrent.ExecutionException;
 
-import biz.kasual.materialnumberpicker.MaterialNumberPicker;
 import us.koller.todolist.BroadcastReceiver;
-import us.koller.todolist.DriveSync.CreateFile;
-import us.koller.todolist.DriveSync.EditFileInAppFolder;
-import us.koller.todolist.DriveSync.RetrieveDataFromAppFolder;
-import us.koller.todolist.DriveSync.RetrieveDriveId;
-import us.koller.todolist.DriveSync.SyncDataAsyncTask;
+import us.koller.todolist.FirebaseSync.SyncDataAsyncTask;
 import us.koller.todolist.ImportListViewAdapter;
 import us.koller.todolist.R;
 import us.koller.todolist.RecyclerViewAdapters.RVAdapter;
@@ -128,14 +117,13 @@ import us.koller.todolist.Todolist.Alarm;
 import us.koller.todolist.Todolist.Event;
 import us.koller.todolist.Todolist.Todolist;
 import us.koller.todolist.Util.Callbacks.ColorSelectedCallback;
-import us.koller.todolist.Util.Callbacks.DriveIdCallback;
-import us.koller.todolist.Util.Callbacks.ModifiedDateCallback;
 import us.koller.todolist.Util.Callbacks.OnItemClickInterface;
-import us.koller.todolist.Util.Callbacks.RetrievedDataFromAppFolderCallback;
 import us.koller.todolist.Util.Callbacks.ShareEventCallback;
 import us.koller.todolist.Util.Callbacks.SyncDataCallback;
+import us.koller.todolist.Util.Callbacks.AlarmInfoDialogOnPositiveCallback;
 import us.koller.todolist.Util.ClickHelper.OnItemClickHelper;
 import us.koller.todolist.Util.DPCalc;
+import us.koller.todolist.Util.DialogBuilder;
 import us.koller.todolist.Util.ThemeHelper;
 import us.koller.todolist.Widget.WidgetProvider_List;
 
@@ -187,8 +175,6 @@ public class MainActivity extends AppCompatActivity
 
     private static Handler handler = new Handler();
 
-    private int selectedColor; //For Color selecting on the add Dialog
-
     private boolean isEventDraged = false;
 
     private ArrayList<Event> eventsToShare;
@@ -198,13 +184,19 @@ public class MainActivity extends AppCompatActivity
     private boolean tablet;
 
     private GoogleApiClient mGoogleApiClient;
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+    private DatabaseReference mDatabase;
+    private ValueEventListener mValueEventListener;
+
+    private boolean updateWithDataFromFirebase = true; // the device that send data should not update
+    private boolean wasItemMoved = false;
+
     private TextView personName;
     private TextView personEmail;
     private LinearLayout personData;
-    private static final int RC_SIGN_IN = 9001;
+    private static final int RC_SIGN_IN = 66;
     private MenuItem syncDataMenuItem;
-    private long modifiedDateTemp = 0;
-    private boolean completeSync = false; // should directly write after done syncing
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -216,20 +208,16 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(mToolbar);
 
         settings = new Settings(MainActivity.this);
-
         settings.readSettings();
 
         todolist = new Todolist(settings);
-
-        buildGoogleApiClient();
-        mGoogleApiClient.connect();
-
         todolist.initData(MainActivity.this);
 
         initRecyclerView();
-
         initDrawerLayout();
 
+        initFirebase();
+        buildGoogleApiClient();
         initSignInWithGoogle();
 
         //App might been started through AddEvent-Widget
@@ -259,6 +247,12 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onStart() {
         super.onStart();
+        if (mAuth != null && mAuthListener != null) {
+            mAuth.addAuthStateListener(mAuthListener);
+        }
+        if (mDatabase != null && mValueEventListener != null) {
+            mDatabase.addValueEventListener(mValueEventListener);
+        }
     }
 
     @Override
@@ -280,24 +274,6 @@ public class MainActivity extends AppCompatActivity
 
         mGoogleApiClient.connect();
         super.onResume();
-    }
-
-    public void buildGoogleApiClient() {
-        // For Google Drive Api
-        GoogleSignInOptions gso
-                = new GoogleSignInOptions.Builder(
-                GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail()
-                .requestScopes(Drive.SCOPE_APPFOLDER)
-                .build();
-
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this, this)
-                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-                .addApi(Drive.API)
-                .addScope(Drive.SCOPE_APPFOLDER)
-                .addConnectionCallbacks(this)
-                .build();
     }
 
     public void initRecyclerView() {
@@ -331,7 +307,9 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void setOnRefreshListener(boolean setListener) {
-        if (!setListener) {
+        mSwipeRefreshLayout.setOnRefreshListener(null);
+        mSwipeRefreshLayout.setEnabled(false);
+        /*if (!setListener) {
             mSwipeRefreshLayout.setOnRefreshListener(null);
             mSwipeRefreshLayout.setEnabled(false);
             return;
@@ -340,12 +318,11 @@ public class MainActivity extends AppCompatActivity
         SwipeRefreshLayout.OnRefreshListener mRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                completeSync = true;
                 lookForSync();
             }
         };
         mSwipeRefreshLayout.setOnRefreshListener(mRefreshListener);
-        mSwipeRefreshLayout.setEnabled(true);
+        mSwipeRefreshLayout.setEnabled(true);*/
     }
 
     public void addOnItemTouchListenerToRecyclerView() {
@@ -357,6 +334,7 @@ public class MainActivity extends AppCompatActivity
                 todolist.eventMoved(viewHolder.getAdapterPosition(), target.getAdapterPosition());
                 mAdapter.itemMoved(viewHolder.getAdapterPosition(), target.getAdapterPosition());
                 checkForNotificationUpdate();
+                wasItemMoved = true;
                 return true;
             }
 
@@ -377,7 +355,7 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void onChildDraw(Canvas c, RecyclerView recyclerView, final ViewHolder viewHolder,
-                                    float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                                    float dX, float dY, final int actionState, boolean isCurrentlyActive) {
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
 
                 if (isCurrentlyActive) {
@@ -390,7 +368,7 @@ public class MainActivity extends AppCompatActivity
                             viewHolder.itemView.setHovered(true);
 
                             isEventDraged = true;
-                            if (!todolist.isAdapterListTodolist(mAdapter)) {
+                            if (!todolist.isAdapterListTodolist()) {
                                 boolean[] all_categories_selected = new boolean[13];
                                 for (int i = 1; i < all_categories_selected.length; i++) {
                                     all_categories_selected[i] = true;
@@ -399,7 +377,7 @@ public class MainActivity extends AppCompatActivity
                                 //adding all Events to adapter List
                                 ArrayList<Event> itemToBeSetSemiTransparent = new ArrayList<>();
                                 for (int i = 0; i < todolist.getTodolistArray().size(); i++) {
-                                    if (!todolist.isEventInAdapterList(mAdapter, todolist.getTodolistArray().get(i))) {
+                                    if (!todolist.isEventInAdapterList(todolist.getTodolistArray().get(i))) {
                                         mAdapter.addItem(i, todolist.getTodolistArray().get(i));
 
                                         itemToBeSetSemiTransparent.add(todolist.getTodolistArray().get(i));
@@ -437,6 +415,10 @@ public class MainActivity extends AppCompatActivity
                         @Override
                         public void run() {
                             resetAllSemiTransparentEvents();
+                            if (actionState == ItemTouchHelper.ACTION_STATE_DRAG && wasItemMoved) {
+                                wasItemMoved = false;
+                                updateFirebaseData();
+                            }
                         }
                     }, 500);
                     handler.postDelayed(new Runnable() {
@@ -551,7 +533,7 @@ public class MainActivity extends AppCompatActivity
                             autoSyncToggle = subMenuItem;
                             final SwitchCompat autoSyncToggle
                                     = (SwitchCompat) subMenu.getItem(j).getActionView();
-                            autoSyncToggle.setChecked((boolean) settings.get("autoSync"));
+                            autoSyncToggle.setChecked((boolean) settings.get(Settings.AUTO_SYNC));
                             autoSyncToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                                 @Override
                                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -568,12 +550,12 @@ public class MainActivity extends AppCompatActivity
                     notificationToggle = mi;
                     final SwitchCompat notificationToggle
                             = (SwitchCompat) mi.getActionView();
-                    notificationToggle.setChecked((boolean) settings.get("notificationToggle"));
+                    notificationToggle.setChecked((boolean) settings.get(Settings.NOTIFICATION_TOGGLE));
                     notificationToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                         @Override
                         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                             notificationToggleClicked();
-                            notificationToggle.setChecked((boolean) settings.get("notificationToggle"));
+                            notificationToggle.setChecked((boolean) settings.get(Settings.NOTIFICATION_TOGGLE));
                         }
                     });
                     break;
@@ -584,7 +566,7 @@ public class MainActivity extends AppCompatActivity
                     }
                     final SwitchCompat silenceAllAlarmsToggle
                             = (SwitchCompat) mi.getActionView();
-                    silenceAllAlarmsToggle.setChecked(!(boolean) settings.get("vibrate"));
+                    silenceAllAlarmsToggle.setChecked(!(boolean) settings.get(Settings.VIBRATE));
                     silenceAllAlarmsToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                         @Override
                         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -596,7 +578,7 @@ public class MainActivity extends AppCompatActivity
                     autoSyncToggle = mi;
                     final SwitchCompat autoSyncToggle
                             = (SwitchCompat) mi.getActionView();
-                    autoSyncToggle.setChecked((boolean) settings.get("autoSync"));
+                    autoSyncToggle.setChecked((boolean) settings.get(Settings.AUTO_SYNC));
                     autoSyncToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                         @Override
                         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -637,19 +619,19 @@ public class MainActivity extends AppCompatActivity
         helper = new ThemeHelper(MainActivity.this);
         mAdapter.setThemeHelper(helper);
 
-        mToolbar.setBackgroundColor(helper.get("toolbar_color"));
-        mToolbar.setTitleTextColor(helper.get("toolbar_textcolor"));
+        mToolbar.setBackgroundColor(helper.get(ThemeHelper.TOOLBAR_COLOR));
+        mToolbar.setTitleTextColor(helper.get(ThemeHelper.TOOLBAR_TEXT_COLOR));
         changeColorOfToolbarDrawerIcon(helper.getToolbarIconColor());
 
         mFab = (FloatingActionButton) findViewById(R.id.fab);
-        mFab.setBackgroundTintList(ColorStateList.valueOf(helper.get("fab_color")));
-        mFab.getDrawable().setTint(helper.get("fab_textcolor"));
+        mFab.setBackgroundTintList(ColorStateList.valueOf(helper.get(ThemeHelper.FAB_COLOR)));
+        mFab.getDrawable().setTint(helper.get(ThemeHelper.FAB_TEXT_COLOR));
         mFab.setRippleColor(ContextCompat.getColor(MainActivity.this, R.color.white));
 
         mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
-        mCoordinatorLayout.setBackgroundColor(helper.get("cord_color"));
+        mCoordinatorLayout.setBackgroundColor(helper.get(ThemeHelper.CORD_COLOR));
         ((ImageView) findViewById(R.id.nothing_todo))
-                .setColorFilter(helper.get("cord_textcolor"), PorterDuff.Mode.SRC_IN);
+                .setColorFilter(helper.get(ThemeHelper.CORD_TEXT_COLOR), PorterDuff.Mode.SRC_IN);
 
         int color;
         if (helper.lightCoordColor()) {
@@ -701,10 +683,11 @@ public class MainActivity extends AppCompatActivity
                 Color.green(color_dark), Color.blue(color_dark));
         k++;
 
+        int fab_color = helper.get(ThemeHelper.FAB_COLOR);
         states[k] = new int[]{android.R.attr.state_checked};
-        thumbColors[k] = helper.get("fab_color");
-        trackColors[k] = Color.argb(72, Color.red(helper.get("fab_color")),
-                Color.green(helper.get("fab_color")), Color.blue(helper.get("fab_color")));
+        thumbColors[k] = fab_color;
+        trackColors[k] = Color.argb(72, Color.red(fab_color),
+                Color.green(fab_color), Color.blue(fab_color));
         k++;
 
         // Default enabled state
@@ -736,12 +719,26 @@ public class MainActivity extends AppCompatActivity
         this.setTaskDescription(new ActivityManager.TaskDescription(
                 getString(R.string.app_name),
                 ((BitmapDrawable) ContextCompat.getDrawable(MainActivity.this, R.mipmap.ic_launcher)).getBitmap(),
-                helper.get("toolbar_color")));
+                helper.get(ThemeHelper.TOOLBAR_COLOR)));
     }
 
-    //<DriveSync Methods>
+    //<FirebaseSync Methods>
+
+    public void buildGoogleApiClient() {
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this, this)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .addConnectionCallbacks(this)
+                .build();
+    }
 
     public void initSignInWithGoogle() {
+        //onClickListener to SignInButton
         mNavigationView.getHeaderView(0).findViewById(R.id.sign_in_button)
                 .setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -761,10 +758,12 @@ public class MainActivity extends AppCompatActivity
                     }
                 });
 
-        if (!(boolean) settings.get("syncEnabled")) {
+        //check if user previouly signed in
+        if (!(boolean) settings.get(Settings.SYNC_ENABLED)) {
             personData.setVisibility(View.GONE);
             mNavigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
         } else {
+            //try silent sign in
             mNavigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.GONE);
             personData.setVisibility(View.VISIBLE);
             this.personName.setText("");
@@ -784,6 +783,106 @@ public class MainActivity extends AppCompatActivity
                 });
             }
         }
+    }
+
+    public void initFirebase() {
+        mAuth = FirebaseAuth.getInstance();
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user != null) {
+                    // User is signed in
+                    Log.d("MainActivity", "signed in");
+                    mDatabase = FirebaseDatabase.getInstance().getReference().child("accounts").child(mAuth.getCurrentUser().getUid());
+                    personEmail.setText(user.getEmail());
+                    personName.setText(user.getDisplayName());
+                } else {
+                    // User is signed out
+                    Log.d("MainActivity", "signed out");
+                }
+            }
+        };
+
+        //mDatabase = FirebaseDatabase.getInstance().getReference().child("accounts").child(mAuth.getCurrentUser().getUid());
+    }
+
+    public void showSyncExperimentalFeatureDialog() {
+        String content = getString(R.string.signin_dialog_experimental_feature);
+
+        AlertDialog dialog
+                = new AlertDialog.Builder(MainActivity.this, getDialogTheme())
+                .setTitle(getString(R.string.experimental_feature))
+                .setMessage(content)
+                .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        signIn();
+                    }
+                })
+                .setNegativeButton(getString(R.string.cancel), null)
+                .create();
+        dialog.show();
+        changeDialogButtonColor(dialog);
+    }
+
+    private void handleSignInResult(GoogleSignInResult result) {
+        if (result.isSuccess()) {
+            // Signed in successfully
+            GoogleSignInAccount acct = result.getSignInAccount();
+            firebaseAuthWithGoogle(acct);
+            String personName = "", personEmail = "";
+            if (acct != null) {
+                personName = acct.getDisplayName();
+                personEmail = acct.getEmail();
+            }
+            mNavigationView.getHeaderView(0)
+                    .findViewById(R.id.sign_in_button).setVisibility(View.GONE);
+            personData.setVisibility(View.VISIBLE);
+            this.personName.setText(personName);
+            this.personEmail.setText(personEmail);
+
+            personData.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    signOutDialog();
+                }
+            });
+            //syncDataMenuItem.setVisible(true);
+            settings.set(Settings.SYNC_ENABLED, true);
+            settings.set(Settings.SIGNED_IN, true);
+
+            setOnRefreshListener(true);
+        } else {
+            showToast("SignIn not successful!");
+            // not Signed in
+            personData.setOnClickListener(null);
+            personData.setVisibility(View.GONE);
+            mNavigationView.getHeaderView(0)
+                    .findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
+            syncDataMenuItem.setVisible(false);
+            settings.set(Settings.SYNC_ENABLED, false);
+            settings.set(Settings.SIGNED_IN, false);
+
+            setOnRefreshListener(false);
+        }
+    }
+
+    private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
+        AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
+        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (!task.isSuccessful()) {
+                            //failed
+                            return;
+                        }
+                        if (mValueEventListener == null) {
+                            addFirebaseDataListener();
+                        }
+                    }
+                });
     }
 
     public void signIn() {
@@ -806,7 +905,6 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         if (mGoogleApiClient.isConnected()) {
-                            //revokeAccess();
                             signOut();
                         }
                     }
@@ -823,23 +921,20 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onResult(@NonNull Status status) {
                         // signed out!
-                        settings.set("signedIn", false);
-                        settings.set("syncEnabled", false);
-                        settings.set("lastSyncTimeStamp", (long) 0);
+                        settings.set(Settings.SIGNED_IN, false);
+                        settings.set(Settings.SYNC_ENABLED, false);
+                        settings.set(Settings.WAS_EVER_SNYCED, false);
+
+                        mDatabase.removeEventListener(mValueEventListener);
+                        mValueEventListener = null;
+
+                        updateFirebaseData();
+                        mAuth.signOut();
 
                         setOnRefreshListener(false);
                         syncDataMenuItem.setVisible(false);
                         initSignInWithGoogle();
                     }
-                });
-    }
-
-    //for removing Account from App
-    private void revokeAccess() {
-        Auth.GoogleSignInApi.revokeAccess(mGoogleApiClient).setResultCallback(
-                new ResultCallback<Status>() {
-                    @Override
-                    public void onResult(@NonNull Status status) {/*noting*/}
                 });
     }
 
@@ -854,117 +949,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void handleSignInResult(GoogleSignInResult result) {
-        if (result.isSuccess()) {
-            // Signed in successfully
-            GoogleSignInAccount acct = result.getSignInAccount();
-            String personName = "", personEmail = "";
-            if (acct != null) {
-                personName = acct.getDisplayName();
-                personEmail = acct.getEmail();
-            }
-            mNavigationView.getHeaderView(0)
-                    .findViewById(R.id.sign_in_button).setVisibility(View.GONE);
-            personData.setVisibility(View.VISIBLE);
-            this.personName.setText(personName);
-            this.personEmail.setText(personEmail);
-
-            personData.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    signOutDialog();
-                }
-            });
-            //syncDataMenuItem.setVisible(true);
-            settings.set("syncEnabled", true);
-            settings.set("signedIn", true);
-
-            setOnRefreshListener(true);
-        } else {
-            showToast("SignIn not successful!");
-            // not Signed in
-            personData.setOnClickListener(null);
-            personData.setVisibility(View.GONE);
-            mNavigationView.getHeaderView(0)
-                    .findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
-            syncDataMenuItem.setVisible(false);
-            settings.set("syncEnabled", false);
-            settings.set("signedIn", false);
-
-            setOnRefreshListener(false);
-        }
-    }
-
-    public void lookForSync() {
-        mSwipeRefreshLayout.setRefreshing(true);
-
-        settings.preventDriveChangeListener();
-
-        if (!(boolean) settings.get("signedIn") && !mGoogleApiClient.isConnected()) {
-            showToast("Api Client not connected");
-            mSwipeRefreshLayout.setRefreshing(false);
-            return;
-        }
-
-        if (!isNetworkAvailable()) {
-            showSnackbar("no Internet Connection");
-        }
-
-        Drive.DriveApi.requestSync(mGoogleApiClient)
-                .setResultCallback(new ResultCallback<Status>() {
-                    @Override
-                    public void onResult(@NonNull Status result) {
-                        if (!result.isSuccess()) {
-                            mSwipeRefreshLayout.setRefreshing(false);
-                            if (result.getStatusCode()
-                                    == DriveStatusCodes.DRIVE_RATE_LIMIT_EXCEEDED) {
-                                showToast("Sync currently not possible. Please try again later");
-                                return;
-                            }
-                            showToast("MainActivity.syncData(), Error: "
-                                    + DriveStatusCodes.getStatusCodeString(result.getStatusCode()));
-                            return;
-                        }
-
-                        new RetrieveDriveId(mGoogleApiClient, new ModifiedDateCallback() {
-                            @Override
-                            public void noFilesFound() {
-                                createNewFile();
-                            }
-
-                            @Override
-                            public void getModifiedDate(long timeStamp, DriveId driveId) {
-                                Calendar cal = Calendar.getInstance();
-                                cal.setTimeInMillis(timeStamp);
-
-                                if (timeStamp > (long) settings.get("lastReceivedDataTimeStamp")) {
-                                    if (mGoogleApiClient.isConnected()) {
-                                        modifiedDateTemp = timeStamp;
-                                        settings.set("driveId", driveId);
-
-                                        tryToRetrieveData(driveId);
-                                    } else {
-                                        mSwipeRefreshLayout.setRefreshing(false);
-                                        showToast("Api Client not connected");
-                                    }
-                                } else {
-                                    settings.set("lastReceivedDataTimeStamp", timeStamp);
-                                    settings.set("driveId", driveId);
-
-                                    writeToGoogleDrive();
-                                }
-                            }
-
-                            @Override
-                            public void error(int statusCode) {
-                                mSwipeRefreshLayout.setRefreshing(false);
-                                showToast("MainActivity: modifiedDateCallback, error");
-                            }
-                        }).execute();
-                    }
-                });
-    }
-
     private boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager
                 = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -972,187 +956,76 @@ public class MainActivity extends AppCompatActivity
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
-    public void tryToRetrieveData(DriveId driveId) {
-        mSwipeRefreshLayout.setRefreshing(true);
+    public void updateFirebaseData() {
+        if (mAuth.getCurrentUser() == null) {
+            return;
+        }
+        if(isNetworkAvailable()){
+            updateWithDataFromFirebase = false;
 
-        new RetrieveDataFromAppFolder(mGoogleApiClient, new RetrievedDataFromAppFolderCallback() {
-            @Override
-            public void error(String error) {
-                switch (error) {
-                    case "no data":
-                        createNewFile();
-                        break;
-                    case "file.open() not successful":
-                        showToast(error);
-                        mSwipeRefreshLayout.setRefreshing(false);
-                        break;
-                    case "no data written":
-                        showToast(error);
-                        mSwipeRefreshLayout.setRefreshing(false);
-                        break;
-                    case "driveId Error":
-                        showToast(error);
-                        mSwipeRefreshLayout.setRefreshing(false);
-                        break;
-                    case "empty file":
-                        showToast(error);
-
-                        writeToGoogleDrive();
-                        break;
-                }
-            }
-
-            @Override
-            public void retrievedDataFromAppFolder(String data) {
-                showToast("data successfully received");
-                syncData(data);
-            }
-        }).execute(driveId);
+            String data = todolist.getSyncData();
+            mDatabase.setValue(data);
+        }
     }
 
-    public void syncData(String data) {
-        new SyncDataAsyncTask(todolist, data,
-                (long) settings.get("lastSyncTimeStamp"), new SyncDataCallback() {
-            @Override
-            public void DoneSyncingData(ArrayList<Long> eventsToUpdate) {
-                MainActivity.this.DoneSyncingData(eventsToUpdate);
+    public void addFirebaseDataListener() {
+        if (mAuth.getCurrentUser() == null) {
+            return;
+        }
 
-                if (completeSync) {
-                    writeToGoogleDrive();
-                    completeSync = false;
-                    return;
+        mValueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                //mSwipeRefreshLayout.setRefreshing(true);
+                if (updateWithDataFromFirebase) {
+                    String data = dataSnapshot.getValue(String.class);
+                    showToast("onDataChange()");
+                    interpretDataFromFirebase(data);
+                } else {
+                    updateWithDataFromFirebase = true;
                 }
 
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
                 mSwipeRefreshLayout.setRefreshing(false);
             }
-
-            @Override
-            public void updateAlarms(ArrayList<Long> alarmsToCancel, ArrayList<Alarm> alarmsToSet) {
-                MainActivity.this.updateAlarms(alarmsToCancel, alarmsToSet);
-            }
-
-            @Override
-            public void error(String error) {
-                showToast("SyncDataAsyncTask: " + error);
-
-                if (error.equals("JSONException") && completeSync) {
-                    mSwipeRefreshLayout.setRefreshing(false);
-                    completeSync = false;
-                    return;
-                }
-
-                mSwipeRefreshLayout.setRefreshing(false);
-            }
-
-            @Override
-            public void updateColors(int[] newColors, int[] newTextColors) {
-                helper.setColors(newColors);
-                helper.setTextColors(newTextColors);
-                helper.saveData(MainActivity.this);
-            }
-
-        }).execute();
+        };
+        mDatabase.addValueEventListener(mValueEventListener);
     }
 
-    public void writeToGoogleDrive() {
-        mDrawerLayout.closeDrawers();
-        if (mGoogleApiClient.isConnected()) {
-            if (settings.driveIdStored()) {
-                writeToFile((DriveId) settings.get("driveId"));
-            } else {
-                new RetrieveDriveId(mGoogleApiClient, new DriveIdCallback() {
+    public void interpretDataFromFirebase(String data) {
+        if (data == null) {
+            mSwipeRefreshLayout.setRefreshing(false);
+            return;
+        }
+        new SyncDataAsyncTask(todolist, data, (boolean) settings.get(Settings.WAS_EVER_SNYCED),
+                new SyncDataCallback() {
                     @Override
-                    public void noFilesFound() {
-                        createNewFile();
+                    public void doneSyncingData(JSONObject selected_categories) {
+                        settings.readSelectedCategories(selected_categories.toString());
+                        MainActivity.this.doneSyncingData();
+                        mSwipeRefreshLayout.setRefreshing(false);
                     }
 
                     @Override
-                    public void gotDriveId(DriveId driveId) {
-                        writeToFile(driveId);
+                    public void updateAlarms(ArrayList<Long> alarmsToCancel,
+                                             ArrayList<Alarm> alarmsToSet) {
+                        MainActivity.this.updateAlarms(alarmsToCancel, alarmsToSet);
                     }
 
                     @Override
-                    public void error(int statusCode) {
-                        DriveIdError(statusCode);
+                    public void error(String error) {
+                        showToast("SyncDataAsyncTask: " + error);
+                        mSwipeRefreshLayout.setRefreshing(false);
                     }
+
                 }).execute();
-            }
-        } else {
-            showToast("Client not connected!");
-            mSwipeRefreshLayout.setRefreshing(false);
-        }
     }
 
-    public void writeToFile(DriveId driveId) {
-        DriveFile file = driveId.asDriveFile();
-
-        String data = todolist.getSyncData();
-
-        int statusCode = 0;
-        try {
-            statusCode = new EditFileInAppFolder(mGoogleApiClient, data)
-                    .execute(file).get();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-
-        mSwipeRefreshLayout.setRefreshing(false);
-        showToast("Sync: " + CommonStatusCodes.getStatusCodeString(statusCode));
-
-        if (statusCode == CommonStatusCodes.SUCCESS) {
-            settings.set("lastReceivedDataTimeStamp", modifiedDateTemp);
-            settings.set("lastSyncTimeStamp", System.currentTimeMillis());
-
-            todolist.clearRemovedAndAddedEvents(MainActivity.this);
-        }
-    }
-
-    public void createNewFile() {
-        mDrawerLayout.closeDrawers();
-        if (mGoogleApiClient.isConnected()) {
-            Drive.DriveApi.newDriveContents(mGoogleApiClient).setResultCallback(
-                    new ResultCallback<DriveApi.DriveContentsResult>() {
-                        @Override
-                        public void onResult(@NonNull DriveApi.DriveContentsResult result) {
-                            if (!result.getStatus().isSuccess()) {
-                                showToast("Error while trying to create new file contents");
-                                mSwipeRefreshLayout.setRefreshing(false);
-                                return;
-                            }
-                            new CreateFile(mGoogleApiClient,
-                                    new ResultCallback<DriveFolder.DriveFileResult>() {
-                                        @Override
-                                        public void onResult(@NonNull DriveFolder.DriveFileResult result) {
-                                            if (!result.getStatus().isSuccess()) {
-                                                showToast("Error while trying to create a file; Status-Code: "
-                                                        + result.getStatus().getStatusMessage());
-                                                mSwipeRefreshLayout.setRefreshing(false);
-                                                return;
-                                            }
-                                            settings.set("driveId", result.getDriveFile().getDriveId());
-                                            writeToFile(result.getDriveFile().getDriveId());
-                                        }
-                                    }, result).execute();
-                        }
-                    });
-        } else {
-            showToast("Client not connected!");
-            mSwipeRefreshLayout.setRefreshing(false);
-        }
-    }
-
-    public void DriveIdError(int statusCode) {
-        if (statusCode == DriveStatusCodes.SUCCESS) {
-            //File not found
-            createNewFile();
-        } else {
-            mSwipeRefreshLayout.setRefreshing(false);
-            showToast("Error while retrieving DriveId; Status-Code: "
-                    + DriveStatusCodes.getStatusCodeString(statusCode));
-        }
-    }
-
-    public void DoneSyncingData(ArrayList<Long> eventsToUpdate) {
+    public void doneSyncingData() {
+        todolist.clearRemovedAndAddedEvents(MainActivity.this);
         checkForNotificationUpdate();
         if (todolist.getTodolistArray().size() != 0) {
             removeNothingTodo();
@@ -1160,43 +1033,16 @@ public class MainActivity extends AppCompatActivity
             showNothingTodo(true);
         }
 
-        for (int i = 0; i < mAdapter.getList().size(); i++) {
-            if (!todolist.isEventInTodolist(mAdapter.getList().get(i).getId())) {
-                mAdapter.removeItem(i);
-            }
-        }
-
-        for (int i = 0; i < eventsToUpdate.size(); i++) {
-            Event e = todolist.getEventById(eventsToUpdate.get(i));
-            if (todolist.isEventInAdapterList(mAdapter, e)) {
-                int index = todolist.getAdapterListPosition(mAdapter, e);
-                mAdapter.itemChanged(index);
-            }
-        }
-
-        for (int i = 0; i < mAdapter.getList().size(); i++) {
-            int newIndex = todolist.getAdapterListPosition(mAdapter, mAdapter.getList().get(i));
-            if (i != newIndex) {
-                if (newIndex < mAdapter.getList().size()) {
-                    mAdapter.itemMoved(i, newIndex);
-                } else {
-                    mAdapter.itemMoved(i, mAdapter.getList().size() - 1);
-                }
-            }
-        }
-
-        boolean[] selected_categories = (boolean[]) settings.get("selected_categories");
-        for (int i = 0; i < selected_categories.length; i++) {
-            selected_categories[i] = true;
-        }
-
-        todolist.addOrRemoveEventFromAdapter(mAdapter);
+        mAdapter.setList(todolist.initAdapterList());
+        mAdapter.notifyDataSetChanged();
 
         try {
             todolist.saveData(MainActivity.this);
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
+        settings.set(Settings.WAS_EVER_SNYCED, true);
     }
 
     public void updateAlarms(ArrayList<Long> alarmsToCancel, ArrayList<Alarm> alarmsToSet) {
@@ -1206,15 +1052,13 @@ public class MainActivity extends AppCompatActivity
         }
 
         for (int i = 0; i < alarmsToSet.size(); i++) {
-            long time = (long) alarmsToSet.get(i).get("time");
-            long alarmId = (long) alarmsToSet.get(i).get("id");
-            //Log.d("MainActivity", "alarmId: " + String.valueOf(alarmId));
-            int id = (int) alarmId;
-            setAlarm(time, id);
+            long time = (long) alarmsToSet.get(i).get(Alarm.TIME);
+            long alarmId = (long) alarmsToSet.get(i).get(Alarm.ID);
+            setAlarm(time, alarmId);
         }
     }
 
-    //</DriveSync Methods>
+    //</FirebaseSync Methods>
 
     public void showToast(String s) {
         Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
@@ -1244,6 +1088,7 @@ public class MainActivity extends AppCompatActivity
                     break;
 
                 case UPDATE_EVENT_ALARM:
+                    //called when alarm is repeating, to schedule next alarm
                     long eventId = intent.getLongExtra("eventId", 0);
                     long alarmTime = intent.getLongExtra("alarmTime", 0);
                     Alarm alarm = todolist.getEventById(eventId).getAlarm();
@@ -1253,6 +1098,7 @@ public class MainActivity extends AppCompatActivity
                         todolist.getEventById(eventId).setAlarm(eventId, alarmTime);
                     }
                     setAlarm(alarmTime, eventId);
+                    updateFirebaseData();
                     break;
 
                 case NEW_THEME:
@@ -1264,9 +1110,9 @@ public class MainActivity extends AppCompatActivity
 
     public void checkForNotificationUpdate() {
         if (todolist.getTodolistArray().size() != 0
-                && (boolean) settings.get("notificationToggle")) {
+                && (boolean) settings.get(Settings.NOTIFICATION_TOGGLE)) {
             showNotification();
-        } else if (!(boolean) settings.get("notificationToggle")) {
+        } else if (!(boolean) settings.get(Settings.NOTIFICATION_TOGGLE)) {
             cancelNotification();
         }
     }
@@ -1331,10 +1177,15 @@ public class MainActivity extends AppCompatActivity
         }
         checkToolbarElevation();
         eventRemovedSnackbar();
+        updateFirebaseData();
 
         if (mAdapter.mExpandedPosition == index) {
             mAdapter.mExpandedPosition = -1;
         }
+    }
+
+    public void notifAdapterItemChanged(Event e) {
+        mAdapter.notifyItemChanged(mAdapter.getList().indexOf(e));
     }
 
     public void actionButtonClicked(View v, Event e) {
@@ -1359,15 +1210,18 @@ public class MainActivity extends AppCompatActivity
                     dialog.dismiss();
                     colorSelectedCallback = null;
                 }
-
                 if (colorIndex != e.getColor()) {
                     e.setColor(colorIndex);
-
-                    int index = todolist.getAdapterListPosition(mAdapter, e);
+                    int index = mAdapter.getList().indexOf(e);
                     ((RVAdapter.EventViewHolder) mRecyclerView.findViewHolderForAdapterPosition(index))
                             .changeCardColorAnim(MainActivity.this, helper.getEventColor(colorIndex),
                                     helper.getEventTextColor(colorIndex));
-
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            updateFirebaseData();
+                        }
+                    }, 1000);
                     if (!settings.getCategory(colorIndex)) {
                         int number_of_event_with_color_index = 0;
                         for (int i = 0; i < todolist.getTodolistArray().size(); i++) {
@@ -1379,7 +1233,6 @@ public class MainActivity extends AppCompatActivity
                             settings.setCategory(colorIndex, true);
                         }
                     }
-
                     if (e.getAlarm() != null) {
                         try {
                             todolist.saveData(MainActivity.this);
@@ -1391,11 +1244,8 @@ public class MainActivity extends AppCompatActivity
             }
         };
 
-        dialog = new AlertDialog.Builder(MainActivity.this, getDialogTheme())
-                .setView(inflateColorSelector())
-                .setTitle(getString(R.string.choose_a_color))
-                .setCancelable(true)
-                .setNegativeButton(getString(R.string.cancel), null)
+        View layout = getLayoutInflater().inflate(R.layout.color_selector, mCoordinatorLayout, false);
+        dialog = DialogBuilder.getColorEventDialog(layout, getDialogTheme(), helper)
                 .setOnDismissListener(new DialogInterface.OnDismissListener() {
                     @Override
                     public void onDismiss(DialogInterface dialog) {
@@ -1408,44 +1258,21 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void EditButtonClicked(final Event e) {
-        final View inputDialog = getLayoutInflater().inflate(R.layout.input_dialog, mCoordinatorLayout, false);
-        final EditText editText = (EditText) inputDialog.findViewById(R.id.edit_text);
-        editText.setTextColor(getDialogTextColor());
-        editText.setText(e.getWhatToDo());
-        editText.setSelection(e.getWhatToDo().length());
-
-        AlertDialog.Builder input_dialog_builder =
-                new AlertDialog.Builder(MainActivity.this, getDialogTheme());
-        input_dialog_builder.setTitle(getString(R.string.edit_event))
-                .setView(inputDialog)
-                .setNegativeButton(getString(R.string.cancel), null)
-                .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
+        final View dialogView = getLayoutInflater().inflate(R.layout.input_dialog, mCoordinatorLayout, false);
+        AlertDialog dialog = DialogBuilder.getEditEventDialog(dialogView, getDialogTheme(), getDialogTextColor(), e)
+                .setPositiveButton(dialogView.getContext().getString(R.string.ok), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        String s = editText.getText().toString();
+                        String s = ((EditText) dialogView.findViewById(R.id.edit_text)).getText().toString();
                         e.editWhatToDo(s);
                         checkForNotificationUpdate();
-                        mAdapter.itemChanged(mAdapter.getList().indexOf(e));
-                        try {
-                            todolist.saveData(MainActivity.this);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
+                        notifAdapterItemChanged(e);
 
-                        if (e.getAlarm() != null) {
-                            try {
-                                todolist.saveData(MainActivity.this);
-                            } catch (JSONException e1) {
-                                e1.printStackTrace();
-                            }
-                        }
-
+                        updateFirebaseData();
                     }
-                });
-
-        final AlertDialog input_dialog = input_dialog_builder.create();
-        input_dialog.show();
-        changeDialogButtonColor(input_dialog);
+                }).create();
+        dialog.show();
+        changeDialogButtonColor(dialog);
     }
 
     public void AlarmButtonClicked(Event e) {
@@ -1496,116 +1323,23 @@ public class MainActivity extends AppCompatActivity
             fab.startAnimation(anim);
         }
 
-        final View inputDialog = getLayoutInflater().inflate(R.layout.add_event_dialog, mCoordinatorLayout, false);
-        final TextInputEditText editText = (TextInputEditText) inputDialog.findViewById(R.id.edit_text);
-        final RadioButton color_rb = (RadioButton) inputDialog.findViewById(R.id.radio_button_color);
-        final HorizontalScrollView horizontalScrollView
-                = (HorizontalScrollView) inputDialog.findViewById(R.id.color_scroll_view);
-        horizontalScrollView.setVisibility(View.GONE);
-
-        final ImageButton[] buttons = getColorButtons(inputDialog);
-        final int[] sortedColors = helper.getSortedColors();
-        for (int i = 1; i < buttons.length; i++) {
-            buttons[i].getBackground().setColorFilter(helper.getEventColor(sortedColors[i]), PorterDuff.Mode.SRC_IN);
-            buttons[i].getDrawable().setColorFilter(helper.getEventTextColor(sortedColors[i]), PorterDuff.Mode.SRC_IN);
-        }
-
-        if (helper.getDefaultColorIndex() != 0) {
-            int index = 0;
-            int defaultColor = helper.getDefaultColorIndex();
-            for (int i = 1; i < sortedColors.length; i++) {
-                if (defaultColor == sortedColors[i]) {
-                    index = i;
-                    break;
-                }
-            }
-            buttons[index].setSelected(true);
-            selectedColor = index;
-        } else {
-            selectedColor = 0;
-        }
-        Button.OnClickListener onClickListener = new Button.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int index = getColorIndexByButtonId(v.getId());
-                if (selectedColor != 0 || index == selectedColor) {
-                    buttons[selectedColor].setSelected(false);
-                }
-                if (index != selectedColor) {
-                    v.setSelected(true);
-                    selectedColor = index;
-                } else {
-                    selectedColor = 0;
-                }
-            }
-        };
-
-        Button.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                int index = getColorIndexByButtonId(v.getId());
-                int colorIndex = sortedColors[index];
-                int default_color = helper.getDefaultColorIndex();
-                if (default_color != colorIndex) {
-                    v.setSelected(true);
-                    if (selectedColor != 0 && selectedColor != index) {
-                        buttons[selectedColor].setSelected(false);
-                    }
-                    selectedColor = index;
-                    helper.setDefaultColorIndex(MainActivity.this, colorIndex);
-                    showToast("Default Color set");
-                } else {
-                    buttons[index].setImageResource(android.R.color.transparent);
-                    selectedColor = 0;
-                    helper.setDefaultColorIndex(MainActivity.this, 0);
-                    showToast("Default Color removed");
-                }
-                return true;
-            }
-        };
-
-        for (int i = 1; i < buttons.length; i++) {
-            buttons[i].setOnClickListener(onClickListener);
-            buttons[i].setOnLongClickListener(onLongClickListener);
-        }
-        editText.setText("");
-        editText.setTextColor(getDialogTextColor());
-        if (helper.lightCoordColor()) {
-            editText.setHintTextColor(ContextCompat.getColor(MainActivity.this, R.color.light_grey));
-        } else {
-            editText.setHintTextColor(ContextCompat.getColor(MainActivity.this, R.color.grey700));
-        }
-
-        color_rb.setTextColor(getDialogTextColor());
-        color_rb.setChecked(false);
-        color_rb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                horizontalScrollView.setVisibility(View.VISIBLE);
-            }
-        });
-
-        final String hint = getAddEventHint();
-        editText.setHint(hint);
-
-        dialog = new AlertDialog.Builder(MainActivity.this, getDialogTheme())
-                .setTitle(getString(R.string.add_event))
-                .setView(inputDialog)
-                .setNegativeButton(getString(R.string.cancel), null)
-                .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
+        final View layout = getLayoutInflater().inflate(R.layout.add_event_dialog, mCoordinatorLayout, false);
+        dialog = DialogBuilder.getAddEventDialog(layout, helper, getDialogTheme(), getDialogTextColor())
+                .setPositiveButton(layout.getContext().getString(R.string.ok), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if (todolist.getTodolistArray().size() == 0) {
+                        String s = ((EditText) layout.findViewById(R.id.edit_text)).getText().toString();
+                        if (s.length() == 0) {
+                            s = DialogBuilder.addEventHint;
+                        }
+                        int[] sortedColors = helper.getSortedColors();
+                        int color = sortedColors[DialogBuilder.selectedColor];
+
+                        if (getTodolist().getTodolistArray().size() == 0) {
                             removeNothingTodo();
                         }
-                        String s = editText.getText().toString();
-                        if (s.length() == 0) {
-                            s = hint;
-                        }
-                        //int color = selectedColor;
-                        int color = sortedColors[selectedColor];
-                        boolean[] possible_colors
-                                = new boolean[((boolean[]) settings.get("selected_categories")).length];
+
+                        boolean[] possible_colors = new boolean[((boolean[]) settings.get(Settings.SELECTED_CATEGORIES)).length];
                         for (int i = 1; i < possible_colors.length; i++) {
                             if (settings.getCategory(i) || !todolist.doesCategoryContainEvents(i)) {
                                 possible_colors[i] = true;
@@ -1618,22 +1352,24 @@ public class MainActivity extends AppCompatActivity
                         todolist.addOrRemoveEventFromAdapter(mAdapter);
                         mRecyclerView.scrollToPosition(mAdapter.getList().indexOf(e));
                         checkForNotificationUpdate();
-                    }
-                })
-                .setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    @Override
-                    public void onDismiss(DialogInterface dialog) {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                            Animation anim = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fab_scale_up);
-                            anim.setDuration(100);
-                            fab.startAnimation(anim);
-                            fab.setVisibility(View.VISIBLE);
-                        }
 
-                        MainActivity.this.dialog = null;
+                        updateFirebaseData();
                     }
                 })
-                .create();
+                .setOnDismissListener(
+                        new DialogInterface.OnDismissListener() {
+                            @Override
+                            public void onDismiss(DialogInterface dialog) {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                    Animation anim = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fab_scale_up);
+                                    anim.setDuration(100);
+                                    fab.startAnimation(anim);
+                                    fab.setVisibility(View.VISIBLE);
+                                }
+                                MainActivity.this.dialog = null;
+                            }
+                        }
+                ).create();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             handler.postDelayed(new Runnable() {
@@ -1647,475 +1383,55 @@ public class MainActivity extends AppCompatActivity
             dialog.show();
             changeDialogButtonColor(dialog);
         }
-
     }
 
     public Todolist getTodolist() {
         return todolist;
     }
 
-    public String getAddEventHint() {
-        Random rand = new Random();
-        String string;
-        switch (rand.nextInt(3)) {
-            case 0:
-                string = getString(R.string.do_homework);
-                break;
-            case 1:
-                string = getString(R.string.clean_kitchen);
-                break;
-            default:
-                string = getString(R.string.do_laundry);
-                break;
-        }
-        return string;
-        //return "test";
-    }
-
     public void showAlarmInfoDialog(final Event e) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis((long) e.getAlarm().get("time"));
-
-        boolean timeFormat = android.text.format.DateFormat.is24HourFormat(this);
-
-        int Hour = calendar.get(Calendar.HOUR_OF_DAY);
-
-        String am_pm = "";
-
-        if (!timeFormat) {
-            am_pm = " am";
-        }
-
-        if (Hour > 12 && !timeFormat) {
-            Hour = Hour - 12;
-            am_pm = " pm";
-        }
-
-        int Minutes = calendar.get(Calendar.MINUTE);
-        Calendar currentTime = Calendar.getInstance(TimeZone.getDefault());
-        String s;
-        String month = calendar.getDisplayName(Calendar.MONTH, Calendar.LONG, getResources().getConfiguration().locale);
-        if (calendar.get(Calendar.YEAR) == currentTime.get(Calendar.YEAR) && calendar.get(Calendar.MONTH) == currentTime.get(Calendar.MONTH)) {
-            if (calendar.get(Calendar.DATE) == currentTime.get(Calendar.DATE)) {
-                s = getString(R.string.today);
-            } else if (currentTime.getTimeInMillis() + 24 * 60 * 60 * 1000 > calendar.getTimeInMillis()) {
-                s = getString(R.string.tomorrow);
-            } else {
-                s = String.valueOf(calendar.get(Calendar.DATE)) + ". " + month + " " + calendar.get(Calendar.YEAR);
-            }
-        } else {
-            s = String.valueOf(calendar.get(Calendar.DATE)) + ". " + month + " " + calendar.get(Calendar.YEAR);
-        }
-
-        String content = "<b>" + s + " "
-                + getString(R.string.at)
-                + " " + Hour + ":"
-                + String.format(getResources().getConfiguration().locale, "%02d", Minutes) + am_pm + "</b>";
-
-        final View alarm_info_dialog = getLayoutInflater().inflate(R.layout.alarm_info_dialog, mCoordinatorLayout, false);
-
-        final TextView alarmInfoText1 = (TextView) alarm_info_dialog.findViewById(R.id.alarmInfoText1);
-        alarmInfoText1.setText(Html.fromHtml(getString(R.string.alarm_scheduled_for)));
-        alarmInfoText1.setTextColor(getDialogTextColor());
-
-        final TextView alarmInfoText2 = (TextView) alarm_info_dialog.findViewById(R.id.alarmInfoText2);
-        alarmInfoText2.setText(Html.fromHtml(content));
-        alarmInfoText2.setTextColor(getDialogTextColor());
-
-        final AppCompatCheckBox checkbox = (AppCompatCheckBox) alarm_info_dialog.findViewById(R.id.checkbox);
-        checkbox.setSupportButtonTintList(getColorStateListForCheckbox());
-        checkbox.setTextColor(getDialogTextColor());
-        checkbox.setChecked((boolean) e.getAlarm().get("repeating"));
-
-        final ScrollView certain_days = (ScrollView) alarm_info_dialog.findViewById(R.id.certain_days);
-        if ((int) e.getAlarm().get("repeatMode") != 3) {
-            certain_days.setVisibility(View.GONE);
-        }
-
-        final LinearLayout numberPickers = (LinearLayout) alarm_info_dialog.findViewById(R.id.numberPickers);
-        if ((int) e.getAlarm().get("repeatMode") != 4) {
-            numberPickers.setVisibility(View.GONE);
-        }
-
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                (int) DPCalc.dpIntoPx(getResources(), 100));
-
-        final MaterialNumberPicker numberPicker1 = new MaterialNumberPicker.Builder(MainActivity.this)
-                .minValue(1)
-                .maxValue(25)
-                .defaultValue(1)
-                .backgroundColor(Color.TRANSPARENT)
-                .separatorColor(Color.TRANSPARENT)
-                .textColor(getDialogTextColor())
-                .textSize(16)
-                .enableFocusability(false)
-                .wrapSelectorWheel(false)
-                .build();
-        numberPicker1.setLayoutParams(params);
-
-        final MaterialNumberPicker numberPicker2 = new MaterialNumberPicker.Builder(MainActivity.this)
-                .minValue(1)
-                .maxValue(6)
-                .defaultValue(1)
-                .backgroundColor(Color.TRANSPARENT)
-                .separatorColor(Color.TRANSPARENT)
-                .textColor(getDialogTextColor())
-                .textSize(16)
-                .enableFocusability(false)
-                .wrapSelectorWheel(true)
-                .formatter(new NumberPicker.Formatter() {
+        final View layout = getLayoutInflater().inflate(R.layout.alarm_info_dialog, mCoordinatorLayout, false);
+        dialog = DialogBuilder.getAlarmInfoDialog(layout, helper, getDialogTheme(), getDialogTextColor(), e,
+                new AlarmInfoDialogOnPositiveCallback() {
                     @Override
-                    public String format(int i) {
-                        switch (i) {
-                            case 1:
-                                return getString(R.string.hours);
-                            case 2:
-                                return getString(R.string.days);
-                            case 3:
-                                return getString(R.string.weeks);
-                            //needed for wheelWrap
-                            case 4:
-                                return getString(R.string.hours);
-                            case 5:
-                                return getString(R.string.days);
-                            case 6:
-                                return getString(R.string.weeks);
+                    public void onPositive() {
+                        try {
+                            todolist.saveData(MainActivity.this);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
                         }
-                        return "";
+                        updateFirebaseData();
                     }
                 })
-                .build();
-        numberPicker2.setLayoutParams(params);
-
-        numberPickers.addView(numberPicker1);
-        numberPickers.addView(numberPicker2);
-
-        if ((int) e.getAlarm().get("repeatMode") == 4) {
-            numberPicker1.setValue((int) e.getAlarm().get("numberPicker1_value"));
-            numberPicker2.setValue((int) e.getAlarm().get("numberPicker2_value"));
-        }
-
-        final String[] state = {getString(R.string.daily),
-                getString(R.string.weekly),
-                getString(R.string.monthly),
-                getString(R.string.certain_days),
-                getString(R.string.custom)};
-
-        final AppCompatSpinner spinner = (AppCompatSpinner) alarm_info_dialog.findViewById(R.id.spinner);
-        spinner.setEnabled((boolean) e.getAlarm().get("repeating"));
-
-        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, state);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
-        spinner.setSupportBackgroundTintList(getColorStateListForSpinner());
-        final AdapterView.OnItemSelectedListener onItemSelectedListener = new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                boolean showCustomIntervall = false;
-                boolean showCertainDays = false;
-                if (checkbox.isChecked()) {
-                    showCertainDays = i == 3;
-                    showCustomIntervall = i == 4;
-                }
-                hideOrShowView(certain_days, showCertainDays);
-                hideOrShowView(numberPickers, showCustomIntervall);
-                colorSpinnerTextView(((TextView) spinner.getSelectedView()), checkbox.isChecked());
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-            }
-        };
-        spinner.setOnItemSelectedListener(onItemSelectedListener);
-        spinner.setSelection((int) e.getAlarm().get("repeatMode"));
-
-        checkbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                onItemSelectedListener.onItemSelected(null, null, spinner.getSelectedItemPosition(), 0);
-                spinner.setEnabled(b);
-                colorSpinnerTextView(((TextView) spinner.getSelectedView()), b);
-            }
-        });
-
-        final Button[] buttons = getWeekButtons(alarm_info_dialog);
-        for (int i = 0; i < buttons.length; i++) {
-            int color = helper.get("fab_color");
-            int textcolor = helper.get("fab_textcolor");
-            if (helper.get("fab_color") == ContextCompat.getColor(MainActivity.this, R.color.white)) {
-                color = ContextCompat.getColor(MainActivity.this, R.color.grey);
-                textcolor = ContextCompat.getColor(MainActivity.this, R.color.white);
-            }
-
-            if (e.getAlarm().getCertainDay(i)) {
-                buttons[i].setTextColor(textcolor);
-                buttons[i].getBackground().setColorFilter(color, PorterDuff.Mode.SRC_IN);
-            } else {
-                buttons[i].setTextColor(ContextCompat.getColor(MainActivity.this, R.color.black));
-                buttons[i].getBackground().setColorFilter(
-                        ContextCompat.getColor(MainActivity.this, R.color.white), PorterDuff.Mode.SRC_IN);
-            }
-        }
-
-        Button.OnClickListener onClickListener = new Button.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                TextView clickedButton = (TextView) v;
-                boolean b;
-                if (clickedButton.getCurrentTextColor() == helper.get("fab_textcolor")) {
-                    clickedButton.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.black));
-                    clickedButton.getBackground().setColorFilter(
-                            ContextCompat.getColor(MainActivity.this, R.color.white), PorterDuff.Mode.SRC_IN);
-                    b = false;
-                } else {
-                    clickedButton.setTextColor(helper.get("fab_textcolor"));
-                    clickedButton.getBackground().setColorFilter(helper.get("fab_color"), PorterDuff.Mode.SRC_IN);
-                    b = true;
-                }
-                e.getAlarm().setCertainDay(getWeekButtonsIndexById(v), b);
-            }
-        };
-
-        for (int i = 0; i < buttons.length; i++) {
-            buttons[i].setOnClickListener(onClickListener);
-        }
-
-        AlertDialog alarmInfoDialog = new AlertDialog.Builder(MainActivity.this, getDialogTheme())
-                .setTitle(getString(R.string.alarm))
-                .setView(alarm_info_dialog)
-                .setNeutralButton(getString(R.string.edit_time), new DialogInterface.OnClickListener() {
+                .setNeutralButton(layout.getContext().getString(R.string.edit_time), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         showAlarmDatePicker(e);
                     }
                 })
-                .setNegativeButton(getString(R.string.remove), new DialogInterface.OnClickListener() {
+                .setNegativeButton(layout.getContext().getString(R.string.remove), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         removeAlarm(e);
                     }
                 })
-                .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        if (checkbox.isChecked()) {
-                            int index = spinner.getSelectedItemPosition();
-                            if (e.getAlarm() == null) {
-                                return;
-                            }
-                            e.getAlarm().setRepeating(index);
-                            if (index == 4) {
-                                int multiplier = 0;
-                                switch (numberPicker2.getValue()) {
-                                    case 1:
-                                        multiplier = 60 * 60 * 1000;
-                                        e.getAlarm().set("numberPicker2_value", 1);
-                                        break;
-                                    case 2:
-                                        multiplier = 24 * 60 * 60 * 1000;
-                                        e.getAlarm().set("numberPicker2_value", 2);
-                                        break;
-                                    case 3:
-                                        multiplier = 7 * 24 * 60 * 60 * 1000;
-                                        e.getAlarm().set("numberPicker2_value", 3);
-                                        break;
-                                    //needed for wheelwrapping
-                                    case 4:
-                                        multiplier = 60 * 60 * 1000;
-                                        e.getAlarm().set("numberPicker2_value", 1);
-                                        break;
-                                    case 5:
-                                        multiplier = 24 * 60 * 60 * 1000;
-                                        e.getAlarm().set("numberPicker2_value", 2);
-                                        break;
-                                    case 6:
-                                        multiplier = 7 * 24 * 60 * 60 * 1000;
-                                        e.getAlarm().set("numberPicker2_value", 3);
-                                        break;
-                                }
-                                e.getAlarm().set("custom_intervall", (long) numberPicker1.getValue() * multiplier);
-                                e.getAlarm().set("numberPicker1_value", numberPicker1.getValue());
-                            }
-                        } else {
-                            e.getAlarm().unRepeat();
-                        }
-                        try {
-                            todolist.saveData(MainActivity.this);
-                        } catch (JSONException e1) {
-                            e1.printStackTrace();
-                        }
-                    }
-                })
                 .create();
-        Window w = alarmInfoDialog.getWindow();
+
+        Window w = dialog.getWindow();
         if (w != null) {
             w.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         }
-        alarmInfoDialog.show();
-        changeDialogButtonColor(alarmInfoDialog);
-    }
-
-    public ColorStateList getColorStateListForSpinner() {
-        int color = helper.get("fab_color");
-        if (helper.get("fab_color") == ContextCompat.getColor(MainActivity.this, R.color.white)) {
-            color = ContextCompat.getColor(MainActivity.this, R.color.grey);
-        }
-
-        int color_grey = ContextCompat.getColor(MainActivity.this, R.color.grey);
-        final int[][] states_spinner = new int[3][];
-        final int[] colors_spinner = new int[3];
-        int k_spinner = 0;
-        // Disabled state
-        states_spinner[k_spinner] = new int[]{-android.R.attr.state_enabled};
-        colors_spinner[k_spinner] = Color.argb(72, Color.red(color_grey), Color.green(color_grey), Color.blue(color_grey));
-        k_spinner++;
-        states_spinner[k_spinner] = new int[]{android.R.attr.state_checked};
-        colors_spinner[k_spinner] = color;
-        k_spinner++;
-        // Default enabled state
-        states_spinner[k_spinner] = new int[0];
-        colors_spinner[k_spinner] = color;
-
-        return new ColorStateList(states_spinner, colors_spinner);
-    }
-
-    public ColorStateList getColorStateListForCheckbox() {
-        int color = helper.get("fab_color");
-        if (helper.get("fab_color") == ContextCompat.getColor(MainActivity.this, R.color.white)) {
-            color = ContextCompat.getColor(MainActivity.this, R.color.grey);
-        }
-
-        int color_grey = ContextCompat.getColor(MainActivity.this, R.color.grey);
-        final int[][] states = new int[3][];
-        final int[] colors = new int[3];
-        int k = 0;
-        // Disabled state
-        states[k] = new int[]{-android.R.attr.state_enabled};
-        colors[k] = Color.argb(72, Color.red(color_grey), Color.green(color_grey), Color.blue(color_grey));
-        k++;
-        states[k] = new int[]{android.R.attr.state_checked};
-        colors[k] = color;
-        k++;
-        // Default enabled state
-        states[k] = new int[0];
-        colors[k] = color_grey;
-        return new ColorStateList(states, colors);
-    }
-
-    public void hideOrShowView(View v, boolean show) {
-        if (show) {
-            v.setVisibility(View.VISIBLE);
-        } else {
-            v.setVisibility(View.GONE);
-        }
-    }
-
-    public Button[] getWeekButtons(View layout) {
-        Button[] buttons = new Button[7];
-        buttons[0] = (Button) layout.findViewById(R.id.monday_button);
-        buttons[1] = (Button) layout.findViewById(R.id.tuesday_button);
-        buttons[2] = (Button) layout.findViewById(R.id.wednesday_button);
-        buttons[3] = (Button) layout.findViewById(R.id.thursday_button);
-        buttons[4] = (Button) layout.findViewById(R.id.friday_button);
-        buttons[5] = (Button) layout.findViewById(R.id.saturday_button);
-        buttons[6] = (Button) layout.findViewById(R.id.sunday_button);
-        return buttons;
-    }
-
-    public int getWeekButtonsIndexById(View v) {
-        int id = v.getId();
-        switch (id) {
-            case R.id.monday_button:
-                return 0;
-            case R.id.tuesday_button:
-                return 1;
-            case R.id.wednesday_button:
-                return 2;
-            case R.id.thursday_button:
-                return 3;
-            case R.id.friday_button:
-                return 4;
-            case R.id.saturday_button:
-                return 5;
-            case R.id.sunday_button:
-                return 6;
-        }
-        return 0;
-    }
-
-    public void colorSpinnerTextView(TextView textView, boolean enabled) {
-        if (enabled) {
-            textView.setTextColor(getDialogTextColor());
-        } else {
-            textView.setTextColor(Color.argb(72,
-                    Color.red(ContextCompat.getColor(MainActivity.this, R.color.grey)),
-                    Color.green(ContextCompat.getColor(MainActivity.this, R.color.grey)),
-                    Color.blue(ContextCompat.getColor(MainActivity.this, R.color.grey))));
-        }
-    }
-
-    @SuppressWarnings("deprecation")
-    public void ShowAlarmTimePicker(final Event e, final Calendar alarmDate) {
-        Calendar calendar = Calendar.getInstance(TimeZone.getDefault());
-        calendar.add(Calendar.MINUTE, 1);
-        int theme;
-        if (android.os.Build.VERSION.SDK_INT > 21) {
-            if (helper.lightCoordColor()) {
-                theme = android.R.style.Theme_DeviceDefault_Light_Dialog_Alert;
-            } else {
-                theme = android.R.style.Theme_DeviceDefault_Dialog_Alert;
-            }
-        } else {
-            if (helper.lightCoordColor()) {
-                theme = TimePickerDialog.THEME_DEVICE_DEFAULT_LIGHT;
-            } else {
-                theme = TimePickerDialog.THEME_DEVICE_DEFAULT_DARK;
-            }
-        }
-
-        boolean timeFormat = android.text.format.DateFormat.is24HourFormat(this);
-
-        TimePickerDialog timePickerDialog = new TimePickerDialog(MainActivity.this, theme,
-                new TimePickerDialog.OnTimeSetListener() {
-                    @Override
-                    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                        alarmDate.set(Calendar.HOUR_OF_DAY, hourOfDay);
-                        alarmDate.set(Calendar.MINUTE, minute);
-                        alarmDate.set(Calendar.SECOND, 0);
-                        alarmDate.set(Calendar.MILLISECOND, 0);
-                        if (alarmDate.getTimeInMillis() < System.currentTimeMillis()) {
-                            showToast("Your Date lies in the past");
-                        } else {
-                            setAlarm(alarmDate.getTimeInMillis(), e);
-                        }
-                    }
-                }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), timeFormat);
-        timePickerDialog.show();
+        dialog.show();
+        changeDialogButtonColor(dialog);
     }
 
     @SuppressWarnings("deprecation")
     public void showAlarmDatePicker(final Event e) {
-        final Calendar calendar = Calendar.getInstance(TimeZone.getDefault());
-        int theme;
-        if (android.os.Build.VERSION.SDK_INT > 21) {
-            if (helper.lightCoordColor()) {
-                theme = android.R.style.Theme_DeviceDefault_Light_Dialog_Alert;
-            } else {
-                theme = android.R.style.Theme_DeviceDefault_Dialog_Alert;
-            }
-        } else {
-            if (helper.lightCoordColor()) {
-                theme = TimePickerDialog.THEME_DEVICE_DEFAULT_LIGHT;
-            } else {
-                theme = TimePickerDialog.THEME_DEVICE_DEFAULT_DARK;
-            }
-        }
-
-        DatePickerDialog datePickerDialog =
-                new DatePickerDialog(MainActivity.this, theme, new DatePickerDialog.OnDateSetListener() {
+        DialogBuilder.getDatePickerDialog(this, helper,
+                new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                        Calendar calendar = Calendar.getInstance(TimeZone.getDefault());
                         calendar.set(Calendar.YEAR, year);
                         calendar.set(Calendar.MONTH, monthOfYear);
                         calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
@@ -2130,9 +1446,33 @@ public class MainActivity extends AppCompatActivity
                             ShowAlarmTimePicker(e, calendar);
                         }
                     }
-                }, calendar.get(Calendar.YEAR),
-                        calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
-        datePickerDialog.show();
+                }).show();
+    }
+
+    @SuppressWarnings("deprecation")
+    public void ShowAlarmTimePicker(final Event e, final Calendar alarmDate) {
+        DialogBuilder.getTimePickerDialog(this, helper,
+                new TimePickerDialog.OnTimeSetListener() {
+                    @Override
+                    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                        alarmDate.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                        alarmDate.set(Calendar.MINUTE, minute);
+                        alarmDate.set(Calendar.SECOND, 0);
+                        alarmDate.set(Calendar.MILLISECOND, 0);
+                        if (alarmDate.getTimeInMillis() < System.currentTimeMillis()) {
+                            showToast("Your Date lies in the past");
+                        } else {
+                            setAlarm(alarmDate.getTimeInMillis(), e);
+                            updateFirebaseData();
+
+                            try {
+                                todolist.saveData(MainActivity.this);
+                            } catch (JSONException e1) {
+                                e1.printStackTrace();
+                            }
+                        }
+                    }
+                }).show();
     }
 
     public void setAlarm(long alarmTime, Event e) {
@@ -2207,9 +1547,9 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void silenceAlarmsToggleClicked() {
-        settings.toggle("vibrate");
+        settings.toggle(Settings.VIBRATE);
 
-        if (!(boolean) settings.get("vibrate")) {
+        if (!(boolean) settings.get(Settings.VIBRATE)) {
             showSnackbar(getString(R.string.all_alarm_are_now_silent));
         } else {
             showSnackbar(getString(R.string.now_the_Phone_will_vibrate_when_alarms_are_fired));
@@ -2217,36 +1557,11 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void autoSyncToggleClicked(boolean isChecked) {
-        settings.set("autoSync", isChecked);
+        settings.set(Settings.AUTO_SYNC, isChecked);
     }
 
     public void selectCategoryClicked() {
         mDrawerLayout.closeDrawers();
-
-        final View layout = inflateCategorySelector();
-        final ImageButton[] buttons = getColorButtons(layout);
-
-        View.OnLongClickListener onLongClickListener = new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                int colorIndex = getColorIndexByButtonId(v.getId());
-                for (int i = 1; i < buttons.length; i++) {
-                    if (i != colorIndex) {
-                        buttons[i].setSelected(false);
-                        settings.setCategory(i, false);
-                    } else {
-                        buttons[i].setSelected(true);
-                        settings.setCategory(i, true);
-                    }
-                }
-                return false;
-            }
-        };
-
-        for (int i = 1; i < buttons.length; i++) {
-            buttons[i].setOnLongClickListener(onLongClickListener);
-        }
-
         colorSelectedCallback = new ColorSelectedCallback() {
             @Override
             public void colorSelected(View v, int colorIndex) {
@@ -2260,19 +1575,22 @@ public class MainActivity extends AppCompatActivity
             }
         };
 
-        dialog = new AlertDialog.Builder(MainActivity.this, getDialogTheme())
-                .setView(layout)
-                .setTitle(getString(R.string.choose_a_category))
+        View layout = getLayoutInflater().inflate(R.layout.color_selector, mCoordinatorLayout, false);
+
+        boolean[] categoriesToDisable = new boolean[13];
+        for (int i = 0; i < categoriesToDisable.length; i++) {
+            categoriesToDisable[i] = !todolist.doesCategoryContainEvents(i);
+        }
+
+        dialog = DialogBuilder.getCategorySelectorDialog(layout, helper, getDialogTheme(), settings, categoriesToDisable)
                 .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         closeOpenCard();
-
                         todolist.addOrRemoveEventFromAdapter(mAdapter);
                         if (mAdapter.getList().size() == 0 && todolist.getTodolistArray().size() != 0) {
                             showSnackbar(getString(R.string.no_category_selected));
                         }
-
                         handler.postDelayed(new Runnable() {
                             public void run() {
                                 checkToolbarElevation();
@@ -2286,9 +1604,7 @@ public class MainActivity extends AppCompatActivity
                         colorSelectedCallback = null;
                         MainActivity.this.dialog = null;
                     }
-                })
-                .create();
-        //dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimations;
+                }).create();
         dialog.show();
         changeDialogButtonColor(dialog);
     }
@@ -2300,9 +1616,9 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void notificationToggleClicked() {
-        settings.toggle("notificationToggle");
+        settings.toggle(Settings.NOTIFICATION_TOGGLE);
 
-        if (!(boolean) settings.get("notificationToggle")) {
+        if (!(boolean) settings.get(Settings.NOTIFICATION_TOGGLE)) {
             showSnackbar(getString(R.string.general_notification_is_hidden));
             cancelNotification();
         } else {
@@ -2320,7 +1636,7 @@ public class MainActivity extends AppCompatActivity
     public void showNothingTodo(boolean withAnim) {
         final ImageView illustration = (ImageView) findViewById(R.id.nothing_todo);
         illustration.setImageDrawable(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_ntd_illustration_vector));
-        illustration.setColorFilter(helper.get("cord_textcolor"), PorterDuff.Mode.SRC_IN);
+        illustration.setColorFilter(helper.get(ThemeHelper.CORD_TEXT_COLOR), PorterDuff.Mode.SRC_IN);
         illustration.setAlpha(0.5f);
 
         if (!withAnim) {
@@ -2372,7 +1688,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void checkToolbarElevation() {
-        if (helper.get("cord_color") != helper.get("toolbar_color")) {
+        if (helper.get(ThemeHelper.CORD_COLOR) != helper.get(ThemeHelper.TOOLBAR_COLOR)) {
             elevateToolbar();
             return;
         }
@@ -2407,8 +1723,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     public AlertDialog changeDialogButtonColor(AlertDialog dialog) {
-        int color = helper.get("fab_color");
-        if (helper.get("fab_color") == ContextCompat.getColor(MainActivity.this, R.color.white)) {
+        int color = helper.get(ThemeHelper.FAB_COLOR);
+        if (color == ContextCompat.getColor(MainActivity.this, R.color.white)) {
             color = ContextCompat.getColor(MainActivity.this, R.color.grey);
         }
 
@@ -2470,61 +1786,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public View inflateCategorySelector() {
-        View layout = getLayoutInflater().inflate(R.layout.color_selector, mCoordinatorLayout, false);
-        final ImageButton[] buttons = getColorButtons(layout);
-
-        int[] sortedColors = helper.getSortedColorsColorSelect();
-        for (int i = 1; i < buttons.length; i++) {
-            buttons[i].getBackground().setColorFilter(helper.getEventColor(sortedColors[i]), PorterDuff.Mode.SRC_IN);
-            buttons[i].setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_color_select).mutate());
-            buttons[i].getDrawable().setColorFilter(helper.getEventTextColor(sortedColors[i]), PorterDuff.Mode.SRC_IN);
-        }
-
-        boolean[] selected_categories = (boolean[]) settings.get("selected_categories");
-
-        for (int i = 1; i < selected_categories.length; i++) {
-            int colorIndex = sortedColors[getColorIndexByButtonId(buttons[i].getId())];
-            if (!todolist.doesCategoryContainEvents(colorIndex)) {
-                buttons[i].setEnabled(false);
-                buttons[i].getBackground().setAlpha(60);
-                buttons[i].setSelected(false);
-            } else if (selected_categories[colorIndex]) {
-                buttons[i].setSelected(true);
-            }
-        }
-        return layout;
-    }
-
-    public View inflateColorSelector() {
-        View layout = getLayoutInflater().inflate(R.layout.color_selector, mCoordinatorLayout, false);
-        final ImageButton[] buttons = getColorButtons(layout);
-
-        int[] sortedColors = helper.getSortedColorsColorSelect();
-        for (int i = 1; i < buttons.length; i++) {
-            buttons[i].getBackground().setColorFilter(helper.getEventColor(sortedColors[i]), PorterDuff.Mode.SRC_IN);
-        }
-
-        return layout;
-    }
-
-    public ImageButton[] getColorButtons(View layout) {
-        final ImageButton[] buttons = new ImageButton[13];
-        buttons[1] = (ImageButton) layout.findViewById(R.id.color1_button);
-        buttons[2] = (ImageButton) layout.findViewById(R.id.color2_button);
-        buttons[3] = (ImageButton) layout.findViewById(R.id.color3_button);
-        buttons[4] = (ImageButton) layout.findViewById(R.id.color4_button);
-        buttons[5] = (ImageButton) layout.findViewById(R.id.color5_button);
-        buttons[6] = (ImageButton) layout.findViewById(R.id.color6_button);
-        buttons[7] = (ImageButton) layout.findViewById(R.id.color7_button);
-        buttons[8] = (ImageButton) layout.findViewById(R.id.color8_button);
-        buttons[9] = (ImageButton) layout.findViewById(R.id.color9_button);
-        buttons[10] = (ImageButton) layout.findViewById(R.id.color10_button);
-        buttons[11] = (ImageButton) layout.findViewById(R.id.color11_button);
-        buttons[12] = (ImageButton) layout.findViewById(R.id.color12_button);
-        return buttons;
-    }
-
     public void showSnackbar(String content) {
         snackbar = Snackbar.make(mCoordinatorLayout, content, Snackbar.LENGTH_LONG);
         snackbar.show();
@@ -2533,11 +1794,12 @@ public class MainActivity extends AppCompatActivity
     public void eventRemovedSnackbar() {
         snackbar = Snackbar.make(mCoordinatorLayout,
                 getString(R.string.event_removed), Snackbar.LENGTH_LONG);
-        snackbar.setActionTextColor(helper.get("fab_color"))
+        snackbar.setActionTextColor(helper.get(ThemeHelper.FAB_COLOR))
                 .setAction(getString(R.string.undo), new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         restoreLastDoneEventClicked();
+                        updateFirebaseData();
                     }
                 });
         snackbar.show();
@@ -2558,7 +1820,7 @@ public class MainActivity extends AppCompatActivity
         //adding all Events to adapter List
         ArrayList<Event> itemToBeSetSemiTransparent = new ArrayList<>();
         for (int i = 0; i < todolist.getTodolistArray().size(); i++) {
-            if (!todolist.isEventInAdapterList(mAdapter, todolist.getTodolistArray().get(i))) {
+            if (!todolist.isEventInAdapterList(todolist.getTodolistArray().get(i))) {
                 mAdapter.addItem(i, todolist.getTodolistArray().get(i));
 
                 itemToBeSetSemiTransparent.add(todolist.getTodolistArray().get(i));
@@ -2581,7 +1843,7 @@ public class MainActivity extends AppCompatActivity
             public void cancel() {
                 fabShareAnim(false);
 
-                if ((boolean) settings.get("signedIn")) {
+                if ((boolean) settings.get(Settings.SIGNED_IN)) {
                     setOnRefreshListener(true);
                 }
 
@@ -2593,25 +1855,6 @@ public class MainActivity extends AppCompatActivity
                 todolist.addOrRemoveEventFromAdapter(mAdapter);
             }
         };
-    }
-
-    public void showSyncExperimentalFeatureDialog() {
-        String content = getString(R.string.signin_dialog_experimental_feature);
-
-        AlertDialog dialog
-                = new AlertDialog.Builder(MainActivity.this, getDialogTheme())
-                .setTitle(getString(R.string.experimental_feature))
-                .setMessage(content)
-                .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        signIn();
-                    }
-                })
-                .setNegativeButton(getString(R.string.cancel), null)
-                .create();
-        dialog.show();
-        changeDialogButtonColor(dialog);
     }
 
     public void fabShareAnim(boolean b) {
@@ -2640,7 +1883,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onAnimationEnd(Animation animation) {
                 mFab.setImageResource(draw_res_final);
-                mFab.getDrawable().setTint(helper.get("fab_textcolor"));
+                mFab.getDrawable().setTint(helper.get(ThemeHelper.FAB_TEXT_COLOR));
                 mFab.startAnimation(anim2);
             }
 
@@ -2724,8 +1967,8 @@ public class MainActivity extends AppCompatActivity
     public void removeEventNotificationDoneButton(long id) {
         Event e = todolist.getEventById(id);
         if (e != null) {
-            if (todolist.isEventInAdapterList(mAdapter, e)) {
-                removeEvent(todolist.getIndexOfEventInAdapterListById(mAdapter, id));
+            if (todolist.isEventInAdapterList(e)) {
+                removeEvent(todolist.getIndexOfEventInAdapterListById(id));
             } else {
                 todolist.removeEvent(e);
                 checkForNotificationUpdate();
@@ -2780,18 +2023,18 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) layout.findViewById(R.id.import_theme_toolbar);
         View statusBar = layout.findViewById(R.id.import_theme_statusbar);
 
-        fab.setBackgroundTintList(ColorStateList.valueOf(importHelper.get("fab_color")));
-        fab.getDrawable().setTint(importHelper.get("fab_textcolor"));
-        card.setCardBackgroundColor(importHelper.get("cord_color"));
+        fab.setBackgroundTintList(ColorStateList.valueOf(importHelper.get(ThemeHelper.FAB_COLOR)));
+        fab.getDrawable().setTint(importHelper.get(ThemeHelper.FAB_TEXT_COLOR));
+        card.setCardBackgroundColor(importHelper.get(ThemeHelper.CORD_COLOR));
 
-        toolbar.setBackgroundColor(importHelper.get("toolbar_color"));
-        toolbar.setTitleTextColor(importHelper.get("toolbar_textcolor"));
+        toolbar.setBackgroundColor(importHelper.get(ThemeHelper.TOOLBAR_COLOR));
+        toolbar.setTitleTextColor(importHelper.get(ThemeHelper.TOOLBAR_TEXT_COLOR));
         toolbar.setNavigationIcon(null);
 
-        if (importHelper.get("cord_color") != importHelper.get("toolbar_color")) {
+        if (importHelper.get(ThemeHelper.CORD_COLOR) != importHelper.get(ThemeHelper.TOOLBAR_COLOR)) {
             toolbar.setElevation(DPCalc.dpIntoPx(getResources(), 4));
 
-            statusBar.setBackgroundColor(importHelper.get("toolbar_color"));
+            statusBar.setBackgroundColor(importHelper.get(ThemeHelper.TOOLBAR_COLOR));
         }
 
         dialog = new AlertDialog.Builder(MainActivity.this, getDialogTheme())
@@ -2894,7 +2137,7 @@ public class MainActivity extends AppCompatActivity
                         todolist.importEvents(importEvents);
 
                         boolean[] selected_categories
-                                = (boolean[]) settings.get("selected_categories");
+                                = (boolean[]) settings.get(Settings.SELECTED_CATEGORIES);
                         for (int k = 1; k < selected_categories.length; k++) {
                             selected_categories[k] = true;
                         }
@@ -2959,6 +2202,13 @@ public class MainActivity extends AppCompatActivity
 
         updateWidget();
 
+        if (mAuthListener != null) {
+            mAuth.removeAuthStateListener(mAuthListener);
+        }
+
+        if (mValueEventListener != null) {
+            mDatabase.removeEventListener(mValueEventListener);
+        }
         super.onStop();
     }
 
