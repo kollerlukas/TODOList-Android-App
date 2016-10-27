@@ -1,24 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="Theme.TODOList" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:colorPrimary">@color/white</item>
         <item name="android:colorPrimaryDark">@color/white</item>
         <item name="android:colorAccent">@color/accent</item>
         <item name="android:windowTranslucentStatus">true</item>
         <item name="navigationIcon">@drawable/ic_arrow_back_white_24dp</item>
+        <!--for no white starting screen-->
         <item name="android:windowDisablePreview">false</item>
     </style>
 
-    <style name="InfoActivityTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="Theme.TODOList.InfoActivity" parent="Theme.TODOList">
         <item name="android:colorPrimary">@color/white</item>
         <item name="android:colorPrimaryDark">@color/white</item>
-        <item name="android:windowTranslucentStatus">true</item>
+        <!--<item name="android:windowTranslucentStatus">true</item>-->
     </style>
 
-    <style name="ThemeActivityTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="Theme.TODOList.ThemeActivity" parent="Theme.TODOList">
         <item name="android:colorPrimary">@color/white</item>
         <item name="android:colorPrimaryDark">@color/white</item>
-        <item name="android:windowTranslucentStatus">true</item>
+        <!--<item name="android:windowTranslucentStatus">true</item>-->
     </style>
 
     <style name="SwitchTheme" parent="Base.Widget.AppCompat.CompoundButton.Switch">

@@ -10,16 +10,15 @@ public class Alarm {
 
     public static final String ID = "id";
     public static final String TIME = "time";
-    public static final String LAST_CHANGE_TIMESTAMP = "lastChange_timeStamp";
     public static final String REPEATING = "repeating";
     public static final String REPEAT_MODE = "repeatMode";
+    static final String CERTAIN_DAYS = "certain_days";
     public static final String CUSTOM_INTERVALL = "custom_intervall";
     public static final String NUMBER_PICKER_1_VALUE = "numberPicker1_value";
     public static final String NUMBER_PICKER_2_VALUE = "numberPicker2_value";
 
     private long id;
     private long time;
-    private long lastChange_timeStamp;
 
     private boolean repeating = false;
     private int repeatMode; //0: daily; 1: weekly; 2: monthly; 3: certain days of the week; 4: custom intervall;
@@ -33,21 +32,15 @@ public class Alarm {
     Alarm(long id, long time) {
         this.id = id;
         this.time = time;
-
-        this.lastChange_timeStamp = System.currentTimeMillis();
     }
 
     public void setTime(long time){
         this.time = time;
-
-        this.lastChange_timeStamp = System.currentTimeMillis();
     }
 
     public void setRepeating(int repeatMode) {
         repeating = true;
         this.repeatMode = repeatMode;
-
-        this.lastChange_timeStamp = System.currentTimeMillis();
     }
 
     public void unRepeat() {
@@ -55,8 +48,6 @@ public class Alarm {
         repeatMode = 0;
         certain_days = null;
         custom_intervall = 0;
-
-        this.lastChange_timeStamp = System.currentTimeMillis();
     }
 
     void restoreCertainDays(String s) {
@@ -150,12 +141,15 @@ public class Alarm {
     }
 
     public boolean equals(Alarm alarm){
-        return this.id == alarm.id ||
-                this.time == alarm.time ||
-                this.repeating == alarm.repeating ||
-                this.repeatMode == alarm.repeatMode ||
-                equalsCertainDays(alarm.certain_days) ||
-                this.custom_intervall == alarm.custom_intervall;
+        if(alarm != null){
+            return this.id == alarm.id ||
+                    this.time == alarm.time ||
+                    this.repeating == alarm.repeating ||
+                    this.repeatMode == alarm.repeatMode ||
+                    equalsCertainDays(alarm.certain_days) ||
+                    this.custom_intervall == alarm.custom_intervall;
+        }
+        return false;
     }
 
     private boolean equalsCertainDays(boolean[] certain_days){
@@ -187,8 +181,6 @@ public class Alarm {
                 return id;
             case TIME:
                 return time;
-            case LAST_CHANGE_TIMESTAMP:
-                return lastChange_timeStamp;
             case REPEATING:
                 return repeating;
             case REPEAT_MODE:

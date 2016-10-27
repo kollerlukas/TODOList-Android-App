@@ -84,13 +84,16 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
                         .create(this.itemView.getContext(), R.drawable.ic_alarm_animatable));
             } else {
                 color_button.setBackground(null);
-                color_button.setImageDrawable(ContextCompat.getDrawable(this.itemView.getContext(), R.drawable.ic_color_vector));
+                color_button.setImageDrawable(ContextCompat.getDrawable(this.itemView.getContext(),
+                        R.drawable.ic_color_lens_white_24dp));
 
                 edit_button.setBackground(null);
-                edit_button.setImageDrawable(ContextCompat.getDrawable(this.itemView.getContext(), R.drawable.ic_edit_vector));
+                edit_button.setImageDrawable(ContextCompat.getDrawable(this.itemView.getContext(),
+                        R.drawable.ic_create_white_24dp));
 
                 alarm_button.setBackground(null);
-                alarm_button.setImageDrawable(ContextCompat.getDrawable(this.itemView.getContext(), R.drawable.ic_alarm_vector));
+                alarm_button.setImageDrawable(ContextCompat.getDrawable(this.itemView.getContext(),
+                        R.drawable.ic_alarm_white_24dp));
             }
 
             color_button.setOnClickListener(this);

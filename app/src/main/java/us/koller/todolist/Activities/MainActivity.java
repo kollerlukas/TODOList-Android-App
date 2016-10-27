@@ -4,6 +4,7 @@ import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.OptionalPendingResult;
@@ -33,7 +34,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.content.res.ColorStateList;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -59,28 +59,25 @@ import android.support.v4.content.FileProvider;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
 import android.support.v7.widget.CardView;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.text.SpannableString;
-import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.SubMenu;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
@@ -116,11 +113,11 @@ import us.koller.todolist.Settings;
 import us.koller.todolist.Todolist.Alarm;
 import us.koller.todolist.Todolist.Event;
 import us.koller.todolist.Todolist.Todolist;
+import us.koller.todolist.Util.Callbacks.AlarmInfoDialogOnPositiveCallback;
 import us.koller.todolist.Util.Callbacks.ColorSelectedCallback;
 import us.koller.todolist.Util.Callbacks.OnItemClickInterface;
 import us.koller.todolist.Util.Callbacks.ShareEventCallback;
 import us.koller.todolist.Util.Callbacks.SyncDataCallback;
-import us.koller.todolist.Util.Callbacks.AlarmInfoDialogOnPositiveCallback;
 import us.koller.todolist.Util.ClickHelper.OnItemClickHelper;
 import us.koller.todolist.Util.DPCalc;
 import us.koller.todolist.Util.DialogBuilder;
@@ -150,17 +147,14 @@ public class MainActivity extends AppCompatActivity
     private RecyclerView mRecyclerView;
     private RVAdapter mAdapter;
 
-    private SwipeRefreshLayout mSwipeRefreshLayout;
-
     private DrawerLayout mDrawerLayout;
     private NavigationView mNavigationView;
     private ActionBarDrawerToggle mDrawerToggle;
     private View drawerIcon;
     private Drawable overflowIcon;
 
-    private ArrayList<MenuItem> navigationHeaders;
     private MenuItem silenceAllAlarmsToggle;
-    private MenuItem autoSyncToggle;
+    private MenuItem syncToggle;
     private MenuItem notificationToggle;
 
     private Toolbar mToolbar;
@@ -192,11 +186,12 @@ public class MainActivity extends AppCompatActivity
     private boolean updateWithDataFromFirebase = true; // the device that send data should not update
     private boolean wasItemMoved = false;
 
+    private SyncDataAsyncTask syncDataAsyncTask;
+
     private TextView personName;
     private TextView personEmail;
     private LinearLayout personData;
     private static final int RC_SIGN_IN = 66;
-    private MenuItem syncDataMenuItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -229,9 +224,9 @@ public class MainActivity extends AppCompatActivity
         super.onPostCreate(savedInstanceState);
 
         tablet = getResources().getBoolean(R.bool.tablet);
-        if (!tablet) {
+        /*if (!tablet) {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        }
+        }*/
 
         mDrawerToggle.syncState();
 
@@ -247,6 +242,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onStart() {
         super.onStart();
+
+        checkEventRemoved();
+
         if (mAuth != null && mAuthListener != null) {
             mAuth.addAuthStateListener(mAuthListener);
         }
@@ -257,8 +255,6 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onResume() {
-        checkEventRemoved();
-
         isRunning = true;
 
         checkForNotificationUpdate();
@@ -280,8 +276,6 @@ public class MainActivity extends AppCompatActivity
         mRecyclerView = (RecyclerView) findViewById(R.id.rv);
         mRecyclerView.setHasFixedSize(true);
 
-        addOnItemTouchListenerToRecyclerView();
-
         /*if (tablet) {
             //Put Tablet specific layout here
         } else {
@@ -290,8 +284,14 @@ public class MainActivity extends AppCompatActivity
 
         mAdapter = new RVAdapter(todolist.initAdapterList());
 
-        LinearLayoutManager mLinearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
-        mRecyclerView.setLayoutManager(mLinearLayoutManager);
+        /*LinearLayoutManager mLinearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+        mRecyclerView.setLayoutManager(mLinearLayoutManager);*/
+
+        StaggeredGridLayoutManager mStaggeredGridLayoutManager = new StaggeredGridLayoutManager(
+                getResources().getInteger(R.integer.layout_manager_span_count),
+                StaggeredGridLayoutManager.VERTICAL);
+        mStaggeredGridLayoutManager.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_NONE);
+        mRecyclerView.setLayoutManager(mStaggeredGridLayoutManager);
 
         mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -302,27 +302,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
-        setOnRefreshListener(false);
-    }
-
-    public void setOnRefreshListener(boolean setListener) {
-        mSwipeRefreshLayout.setOnRefreshListener(null);
-        mSwipeRefreshLayout.setEnabled(false);
-        /*if (!setListener) {
-            mSwipeRefreshLayout.setOnRefreshListener(null);
-            mSwipeRefreshLayout.setEnabled(false);
-            return;
-        }
-
-        SwipeRefreshLayout.OnRefreshListener mRefreshListener = new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                lookForSync();
-            }
-        };
-        mSwipeRefreshLayout.setOnRefreshListener(mRefreshListener);
-        mSwipeRefreshLayout.setEnabled(true);*/
+        addOnItemTouchListenerToRecyclerView();
     }
 
     public void addOnItemTouchListenerToRecyclerView() {
@@ -417,7 +397,10 @@ public class MainActivity extends AppCompatActivity
                             resetAllSemiTransparentEvents();
                             if (actionState == ItemTouchHelper.ACTION_STATE_DRAG && wasItemMoved) {
                                 wasItemMoved = false;
-                                updateFirebaseData();
+                                if ((boolean) settings.get(Settings.SIGNED_IN)
+                                        && (boolean) settings.get(Settings.SYNC_TOGGLE)) {
+                                    updateFirebaseData();
+                                }
                             }
                         }
                     }, 500);
@@ -516,34 +499,11 @@ public class MainActivity extends AppCompatActivity
         personName = (TextView) headerLayout.findViewById(R.id.personName);
         personEmail = (TextView) headerLayout.findViewById(R.id.personEmail);
         personData = (LinearLayout) headerLayout.findViewById(R.id.personData);
-        navigationHeaders = new ArrayList<>();
+        ArrayList<MenuItem> navigationHeaders = new ArrayList<>();
         Menu m = mNavigationView.getMenu();
         for (int i = 0; i < m.size(); i++) {
             MenuItem mi = m.getItem(i);
             navigationHeaders.add(mi);
-            if (mi.getItemId() == R.id.navigation_header0) {
-                syncDataMenuItem = mi;
-            }
-            SubMenu subMenu = mi.getSubMenu();
-            if (subMenu != null && subMenu.size() > 0) {
-                for (int j = 0; j < subMenu.size(); j++) {
-                    MenuItem subMenuItem = subMenu.getItem(j);
-                    switch (subMenuItem.getItemId()) {
-                        case R.id.autoSync:
-                            autoSyncToggle = subMenuItem;
-                            final SwitchCompat autoSyncToggle
-                                    = (SwitchCompat) subMenu.getItem(j).getActionView();
-                            autoSyncToggle.setChecked((boolean) settings.get(Settings.AUTO_SYNC));
-                            autoSyncToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                                @Override
-                                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                                    autoSyncToggleClicked(isChecked);
-                                }
-                            });
-                            break;
-                    }
-                }
-            }
 
             switch (mi.getItemId()) {
                 case R.id.show_notification_toggle:
@@ -574,15 +534,15 @@ public class MainActivity extends AppCompatActivity
                         }
                     });
                     break;
-                case R.id.autoSync:
-                    autoSyncToggle = mi;
-                    final SwitchCompat autoSyncToggle
+                case R.id.sync_switch:
+                    syncToggle = mi;
+                    final SwitchCompat syncToggle
                             = (SwitchCompat) mi.getActionView();
-                    autoSyncToggle.setChecked((boolean) settings.get(Settings.AUTO_SYNC));
-                    autoSyncToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    syncToggle.setChecked((boolean) settings.get(Settings.SYNC_TOGGLE));
+                    syncToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                         @Override
                         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                            autoSyncToggleClicked(isChecked);
+                            syncToggleClicked(isChecked);
                         }
                     });
                     break;
@@ -652,12 +612,6 @@ public class MainActivity extends AppCompatActivity
         mNavigationView.setItemTextColor(new ColorStateList(state, colors));
         mNavigationView.setItemIconTintList(new ColorStateList(state, colors));
 
-        for (int i = 0; i < navigationHeaders.size(); i++) {
-            SpannableString s = new SpannableString(navigationHeaders.get(i).getTitle());
-            s.setSpan(new ForegroundColorSpan(color), 0, s.length(), 0);
-            navigationHeaders.get(i).setTitle(s);
-        }
-
         personName.setTextColor(getDialogTextColor());
         personEmail.setTextColor(getDialogTextColor());
 
@@ -701,9 +655,9 @@ public class MainActivity extends AppCompatActivity
                 silenceAllAlarmsToggle.getActionView()).getTrackDrawable()), new ColorStateList(states, trackColors));
 
         DrawableCompat.setTintList(DrawableCompat.wrap(((SwitchCompat)
-                autoSyncToggle.getActionView()).getThumbDrawable()), new ColorStateList(states, thumbColors));
+                syncToggle.getActionView()).getThumbDrawable()), new ColorStateList(states, thumbColors));
         DrawableCompat.setTintList(DrawableCompat.wrap(((SwitchCompat)
-                autoSyncToggle.getActionView()).getTrackDrawable()), new ColorStateList(states, trackColors));
+                syncToggle.getActionView()).getTrackDrawable()), new ColorStateList(states, trackColors));
 
         DrawableCompat.setTintList(DrawableCompat.wrap(((SwitchCompat)
                 notificationToggle.getActionView()).getThumbDrawable()), new ColorStateList(states, thumbColors));
@@ -794,7 +748,9 @@ public class MainActivity extends AppCompatActivity
                 if (user != null) {
                     // User is signed in
                     Log.d("MainActivity", "signed in");
-                    mDatabase = FirebaseDatabase.getInstance().getReference().child("accounts").child(mAuth.getCurrentUser().getUid());
+                    mDatabase = FirebaseDatabase.getInstance()
+                            .getReference().child("accounts")
+                            .child(user.getUid());
                     personEmail.setText(user.getEmail());
                     personName.setText(user.getDisplayName());
                 } else {
@@ -803,8 +759,6 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         };
-
-        //mDatabase = FirebaseDatabase.getInstance().getReference().child("accounts").child(mAuth.getCurrentUser().getUid());
     }
 
     public void showSyncExperimentalFeatureDialog() {
@@ -836,8 +790,7 @@ public class MainActivity extends AppCompatActivity
                 personName = acct.getDisplayName();
                 personEmail = acct.getEmail();
             }
-            mNavigationView.getHeaderView(0)
-                    .findViewById(R.id.sign_in_button).setVisibility(View.GONE);
+            mNavigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.GONE);
             personData.setVisibility(View.VISIBLE);
             this.personName.setText(personName);
             this.personEmail.setText(personEmail);
@@ -848,24 +801,23 @@ public class MainActivity extends AppCompatActivity
                     signOutDialog();
                 }
             });
-            //syncDataMenuItem.setVisible(true);
             settings.set(Settings.SYNC_ENABLED, true);
             settings.set(Settings.SIGNED_IN, true);
 
-            setOnRefreshListener(true);
+            syncToggle.setVisible(true);
         } else {
-            showToast("SignIn not successful!");
+            showToast("SignIn not successful! "
+                    + GoogleSignInStatusCodes.getStatusCodeString(result.getStatus().getStatusCode()));
             // not Signed in
             personData.setOnClickListener(null);
             personData.setVisibility(View.GONE);
-            mNavigationView.getHeaderView(0)
-                    .findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
-            syncDataMenuItem.setVisible(false);
+            mNavigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
+            syncToggle.setVisible(false);
             settings.set(Settings.SYNC_ENABLED, false);
             settings.set(Settings.SIGNED_IN, false);
-
-            setOnRefreshListener(false);
+            syncToggle.setVisible(false);
         }
+        settings.saveSettings();
     }
 
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
@@ -923,16 +875,20 @@ public class MainActivity extends AppCompatActivity
                         // signed out!
                         settings.set(Settings.SIGNED_IN, false);
                         settings.set(Settings.SYNC_ENABLED, false);
-                        settings.set(Settings.WAS_EVER_SNYCED, false);
+                        settings.set(Settings.WAS_EVER_SYNCED, false);
 
-                        mDatabase.removeEventListener(mValueEventListener);
-                        mValueEventListener = null;
+                        syncToggle.setVisible(false);
 
-                        updateFirebaseData();
+                        if (mValueEventListener != null) {
+                            mDatabase.removeEventListener(mValueEventListener);
+                            mValueEventListener = null;
+                        }
+
+                        if ((boolean) settings.get(Settings.SIGNED_IN)
+                                && (boolean) settings.get(Settings.SYNC_TOGGLE)) {
+                            updateFirebaseData();
+                        }
                         mAuth.signOut();
-
-                        setOnRefreshListener(false);
-                        syncDataMenuItem.setVisible(false);
                         initSignInWithGoogle();
                     }
                 });
@@ -960,7 +916,7 @@ public class MainActivity extends AppCompatActivity
         if (mAuth.getCurrentUser() == null) {
             return;
         }
-        if(isNetworkAvailable()){
+        if (isNetworkAvailable()) {
             updateWithDataFromFirebase = false;
 
             String data = todolist.getSyncData();
@@ -976,10 +932,10 @@ public class MainActivity extends AppCompatActivity
         mValueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                //mSwipeRefreshLayout.setRefreshing(true);
-                if (updateWithDataFromFirebase) {
-                    String data = dataSnapshot.getValue(String.class);
+                if (updateWithDataFromFirebase
+                        && (boolean) settings.get(Settings.SYNC_TOGGLE)) {
                     showToast("onDataChange()");
+                    String data = dataSnapshot.getValue(String.class);
                     interpretDataFromFirebase(data);
                 } else {
                     updateWithDataFromFirebase = true;
@@ -988,25 +944,25 @@ public class MainActivity extends AppCompatActivity
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
-                mSwipeRefreshLayout.setRefreshing(false);
-            }
+            public void onCancelled(DatabaseError databaseError) {/*nothing*/}
         };
         mDatabase.addValueEventListener(mValueEventListener);
     }
 
     public void interpretDataFromFirebase(String data) {
-        if (data == null) {
-            mSwipeRefreshLayout.setRefreshing(false);
+        if (data == null && (boolean) settings.get(Settings.SYNC_TOGGLE)) {
             return;
         }
-        new SyncDataAsyncTask(todolist, data, (boolean) settings.get(Settings.WAS_EVER_SNYCED),
+        //Handler needed to update RVAdapter from UI-Thread
+        final Handler mainHandler = new Handler(getMainLooper());
+        syncDataAsyncTask = new SyncDataAsyncTask(todolist, data, (boolean) settings.get(Settings.WAS_EVER_SYNCED),
                 new SyncDataCallback() {
                     @Override
                     public void doneSyncingData(JSONObject selected_categories) {
+                        syncDataAsyncTask = null;
                         settings.readSelectedCategories(selected_categories.toString());
+                        todolist.addOrRemoveEventFromAdapter(mAdapter);
                         MainActivity.this.doneSyncingData();
-                        mSwipeRefreshLayout.setRefreshing(false);
                     }
 
                     @Override
@@ -1017,32 +973,82 @@ public class MainActivity extends AppCompatActivity
 
                     @Override
                     public void error(String error) {
+                        syncDataAsyncTask = null;
                         showToast("SyncDataAsyncTask: " + error);
-                        mSwipeRefreshLayout.setRefreshing(false);
                     }
 
-                }).execute();
+                    @Override
+                    public void notifyItemInserted(final int pos) {
+                        mainHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                mAdapter.notifyItemInserted(pos);
+                                Log.d("MainActivity", "notifyItemInserted");
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void notifyItemChanged(final int pos) {
+                        mainHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                mAdapter.notifyItemChanged(pos);
+                                Log.d("MainActivity", "notifyItemChanged");
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void notifyItemRemoved(final int pos) {
+                        mainHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                mAdapter.notifyItemRemoved(pos);
+                                Log.d("MainActivity", "notifyItemRemoved");
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void notifyItemMoved(final int from, final int to) {
+                        mainHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                mAdapter.notifyItemMoved(from, to);
+                                Log.d("MainActivity", "notifyItemMoved");
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void doneFirstEverSync() {
+                        settings.set(Settings.WAS_EVER_SYNCED, true);
+                        updateFirebaseData();
+                        Log.d("MainActivity", "doneFirstEverSync");
+                    }
+
+                });
+        syncDataAsyncTask.execute();
     }
 
     public void doneSyncingData() {
-        todolist.clearRemovedAndAddedEvents(MainActivity.this);
+        todolist.clearRemovedAndAddedEvents();
         checkForNotificationUpdate();
-        if (todolist.getTodolistArray().size() != 0) {
-            removeNothingTodo();
-        } else {
-            showNothingTodo(true);
-        }
-
-        mAdapter.setList(todolist.initAdapterList());
-        mAdapter.notifyDataSetChanged();
-
         try {
             todolist.saveData(MainActivity.this);
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        closeOpenCard();
+        checkForNotificationUpdate();
 
-        settings.set(Settings.WAS_EVER_SNYCED, true);
+        //show or hide illustration
+        if (todolist.getTodolistArray().size() != 0) {
+            removeNothingTodo();
+        } else {
+            showNothingTodo(true);
+        }
     }
 
     public void updateAlarms(ArrayList<Long> alarmsToCancel, ArrayList<Alarm> alarmsToSet) {
@@ -1098,7 +1104,6 @@ public class MainActivity extends AppCompatActivity
                         todolist.getEventById(eventId).setAlarm(eventId, alarmTime);
                     }
                     setAlarm(alarmTime, eventId);
-                    updateFirebaseData();
                     break;
 
                 case NEW_THEME:
@@ -1177,7 +1182,10 @@ public class MainActivity extends AppCompatActivity
         }
         checkToolbarElevation();
         eventRemovedSnackbar();
-        updateFirebaseData();
+        if ((boolean) settings.get(Settings.SIGNED_IN)
+                && (boolean) settings.get(Settings.SYNC_TOGGLE)) {
+            updateFirebaseData();
+        }
 
         if (mAdapter.mExpandedPosition == index) {
             mAdapter.mExpandedPosition = -1;
@@ -1219,7 +1227,10 @@ public class MainActivity extends AppCompatActivity
                     handler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            updateFirebaseData();
+                            if ((boolean) settings.get(Settings.SIGNED_IN)
+                                    && (boolean) settings.get(Settings.SYNC_TOGGLE)) {
+                                updateFirebaseData();
+                            }
                         }
                     }, 1000);
                     if (!settings.getCategory(colorIndex)) {
@@ -1268,7 +1279,10 @@ public class MainActivity extends AppCompatActivity
                         checkForNotificationUpdate();
                         notifAdapterItemChanged(e);
 
-                        updateFirebaseData();
+                        if ((boolean) settings.get(Settings.SIGNED_IN)
+                                && (boolean) settings.get(Settings.SYNC_TOGGLE)) {
+                            updateFirebaseData();
+                        }
                     }
                 }).create();
         dialog.show();
@@ -1307,7 +1321,8 @@ public class MainActivity extends AppCompatActivity
         final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Animation anim = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fab_scale_down);
-            anim.setDuration(100);
+            anim.setDuration(200);
+            anim.setInterpolator(new AccelerateDecelerateInterpolator());
             anim.setAnimationListener(new Animation.AnimationListener() {
                 @Override
                 public void onAnimationStart(Animation animation) {/*nothing*/}
@@ -1345,7 +1360,7 @@ public class MainActivity extends AppCompatActivity
                                 possible_colors[i] = true;
                             }
                         }
-                        Event e = new Event(s, 0, color, 0, 0, possible_colors);
+                        Event e = new Event(s, color, 0, possible_colors);
                         todolist.addEvent(mAdapter, e);
                         settings.setCategory(e.getColor(), true);
                         closeOpenCard();
@@ -1353,7 +1368,10 @@ public class MainActivity extends AppCompatActivity
                         mRecyclerView.scrollToPosition(mAdapter.getList().indexOf(e));
                         checkForNotificationUpdate();
 
-                        updateFirebaseData();
+                        if ((boolean) settings.get(Settings.SIGNED_IN)
+                                && (boolean) settings.get(Settings.SYNC_TOGGLE)) {
+                            updateFirebaseData();
+                        }
                     }
                 })
                 .setOnDismissListener(
@@ -1362,7 +1380,8 @@ public class MainActivity extends AppCompatActivity
                             public void onDismiss(DialogInterface dialog) {
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                                     Animation anim = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fab_scale_up);
-                                    anim.setDuration(100);
+                                    anim.setDuration(200);
+                                    anim.setInterpolator(new AccelerateDecelerateInterpolator());
                                     fab.startAnimation(anim);
                                     fab.setVisibility(View.VISIBLE);
                                 }
@@ -1378,7 +1397,7 @@ public class MainActivity extends AppCompatActivity
                     dialog.show();
                     changeDialogButtonColor(dialog);
                 }
-            }, 100);
+            }, 200);
         } else {
             dialog.show();
             changeDialogButtonColor(dialog);
@@ -1400,7 +1419,10 @@ public class MainActivity extends AppCompatActivity
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                        updateFirebaseData();
+                        if ((boolean) settings.get(Settings.SIGNED_IN)
+                                && (boolean) settings.get(Settings.SYNC_TOGGLE)) {
+                            updateFirebaseData();
+                        }
                     }
                 })
                 .setNeutralButton(layout.getContext().getString(R.string.edit_time), new DialogInterface.OnClickListener() {
@@ -1463,7 +1485,10 @@ public class MainActivity extends AppCompatActivity
                             showToast("Your Date lies in the past");
                         } else {
                             setAlarm(alarmDate.getTimeInMillis(), e);
-                            updateFirebaseData();
+                            if ((boolean) settings.get(Settings.SIGNED_IN)
+                                    && (boolean) settings.get(Settings.SYNC_TOGGLE)) {
+                                updateFirebaseData();
+                            }
 
                             try {
                                 todolist.saveData(MainActivity.this);
@@ -1491,6 +1516,7 @@ public class MainActivity extends AppCompatActivity
         PendingIntent pendingIntent
                 = PendingIntent.getBroadcast(MainActivity.this, (int) id, intent, 0);
         mAlarmManager.setExact(AlarmManager.RTC_WAKEUP, alarmTime, pendingIntent);
+
         silenceAllAlarmsToggle.setEnabled(true);
         silenceAllAlarmsToggle.getActionView().setEnabled(true);
     }
@@ -1556,8 +1582,8 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void autoSyncToggleClicked(boolean isChecked) {
-        settings.set(Settings.AUTO_SYNC, isChecked);
+    public void syncToggleClicked(boolean isChecked) {
+        settings.set(Settings.SYNC_TOGGLE, isChecked);
     }
 
     public void selectCategoryClicked() {
@@ -1596,6 +1622,11 @@ public class MainActivity extends AppCompatActivity
                                 checkToolbarElevation();
                             }
                         }, 400);
+
+                        if ((boolean) settings.get(Settings.SIGNED_IN)
+                                && (boolean) settings.get(Settings.SYNC_TOGGLE)) {
+                            updateFirebaseData();
+                        }
                     }
                 })
                 .setOnDismissListener(new DialogInterface.OnDismissListener() {
@@ -1799,7 +1830,10 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onClick(View view) {
                         restoreLastDoneEventClicked();
-                        updateFirebaseData();
+                        if ((boolean) settings.get(Settings.SIGNED_IN)
+                                && (boolean) settings.get(Settings.SYNC_TOGGLE)) {
+                            updateFirebaseData();
+                        }
                     }
                 });
         snackbar.show();
@@ -1812,7 +1846,6 @@ public class MainActivity extends AppCompatActivity
         }
 
         fabShareAnim(true);
-        setOnRefreshListener(false);
         closeOpenCard();
 
         eventsToShare = new ArrayList<>();
@@ -1842,10 +1875,6 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void cancel() {
                 fabShareAnim(false);
-
-                if ((boolean) settings.get(Settings.SIGNED_IN)) {
-                    setOnRefreshListener(true);
-                }
 
                 shareEvents = false;
                 shareEventCallback = null;
@@ -1997,7 +2026,7 @@ public class MainActivity extends AppCompatActivity
     public void importTheme(String data) {
         ArrayList<Event> colors = new ArrayList<>();
         for (int i = 1; i < 13; i++) {
-            Event e = new Event("Color" + i, 0, i, 0, 0, null);
+            Event e = new Event("Color" + i, i, 0, null);
             colors.add(e);
         }
 
@@ -2080,7 +2109,7 @@ public class MainActivity extends AppCompatActivity
         } else {
             String lines[] = data.split("\\r?\\n");
             for (int i = 0; i < lines.length; i++) {
-                Event e = new Event(lines[i], 0, 0, 0, 0, null);
+                Event e = new Event(lines[i], 0, 0, null);
                 events.add(e);
             }
         }
@@ -2198,8 +2227,6 @@ public class MainActivity extends AppCompatActivity
         }
         settings.saveSettings();
 
-        isRunning = false;
-
         updateWidget();
 
         if (mAuthListener != null) {
@@ -2215,12 +2242,17 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if (isChangingConfigurations()
+                && syncDataAsyncTask != null) {
+            syncDataAsyncTask.dettach();
+        }
     }
 
 
     @Override
     protected void onPause() {
         super.onPause();
+        isRunning = false;
     }
 
     @Override

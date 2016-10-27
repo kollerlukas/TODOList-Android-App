@@ -1,6 +1,8 @@
 package us.koller.todolist.FirebaseSync;
 
+import android.content.Context;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -8,6 +10,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import us.koller.todolist.Todolist.Alarm;
 import us.koller.todolist.Todolist.Event;
@@ -30,11 +33,6 @@ public class SyncDataAsyncTask extends AsyncTask<Void, Void, String> {
     private ArrayList<Long> todolist_rE;
     private ArrayList<Long> todolist_aE;
 
-    private ArrayList<Boolean> driveList_removed;
-    private ArrayList<Boolean> todolist_removed;
-
-    private ArrayList<Long> eventsToUpdate;
-
     private ArrayList<Long> alarmsToCancel;
     private ArrayList<Alarm> alarmsToSet;
 
@@ -53,13 +51,10 @@ public class SyncDataAsyncTask extends AsyncTask<Void, Void, String> {
         todolist_rE = todolist.getRemovedEvents();
         todolist_aE = todolist.getAddedEvents();
 
-        driveList_removed = new ArrayList<>();
-        todolist_removed = new ArrayList<>();
-
-        eventsToUpdate = new ArrayList<>();
-
         alarmsToCancel = new ArrayList<>();
         alarmsToSet = new ArrayList<>();
+
+        Log.d("SyncDataAsyncTask", String.valueOf(Todolist.getTodolistArray().size()));
     }
 
 
@@ -71,7 +66,7 @@ public class SyncDataAsyncTask extends AsyncTask<Void, Void, String> {
             JSONArray array_drL = array.getJSONArray(1);
             try {
                 selected_categories = array.getJSONObject(2);
-            } catch (JSONException e){
+            } catch (JSONException e) {
                 e.printStackTrace();
             }
 
@@ -79,15 +74,8 @@ public class SyncDataAsyncTask extends AsyncTask<Void, Void, String> {
             //Load Data into driveList
             if (array_drL != null) {
                 for (int i = 0; i < array_drL.length(); i++) {
-                    Event e = new Event(array_drL.getJSONObject(i));
-                    driveList.add(e);
-
-                    driveList_removed.add(false);
+                    driveList.add(new Event(array_drL.getJSONObject(i)));
                 }
-            }
-
-            for (int i = 0; i < Todolist.getTodolistArray().size(); i++) {
-                todolist_removed.add(false);
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -100,106 +88,9 @@ public class SyncDataAsyncTask extends AsyncTask<Void, Void, String> {
             //remove Events from driveList
             for (int i = 0; i < todolist_rE.size(); i++) {
                 for (int k = 0; k < driveList.size(); k++) {
-                    if (todolist_rE.get(i) == driveList.get(k).getId()) {
-                        driveList_removed.set(k, true);
-                    }
-                }
-            }
-
-            //update Events
-            for (int i = 0; i < driveList.size(); i++) {
-                if (!driveList_removed.get(i)) {
-                    for (int k = 0; k < Todolist.getTodolistArray().size(); k++) {
-                        if (driveList.get(i).getId() == Todolist.getTodolistArray().get(k).getId()) {
-                            driveList_removed.set(i, true);
-                            todolist_removed.set(k, true);
-
-                            Event event_T = Todolist.getTodolistArray().get(k);
-                            Event event_d = driveList.get(i);
-
-                            eventsToUpdate.add(event_T.getId());
-
-                            String WhatToDo;
-                            long whatToDo_timeStamp, color_timeStamp;
-                            int color;
-
-                            if (event_T.getWhatToDo_timeStamp() > event_d.getWhatToDo_timeStamp()) {
-                                WhatToDo = event_T.getWhatToDo();
-                                whatToDo_timeStamp = event_T.getWhatToDo_timeStamp();
-                            } else {
-                                WhatToDo = event_d.getWhatToDo();
-                                whatToDo_timeStamp = event_d.getWhatToDo_timeStamp();
-                            }
-
-                            if (event_T.getColor_timeStamp() > event_d.getColor_timeStamp()) {
-                                color = event_T.getColor();
-                                color_timeStamp = event_T.getColor_timeStamp();
-                            } else {
-                                color = event_d.getColor();
-                                color_timeStamp = event_d.getColor_timeStamp();
-                            }
-
-                            Todolist.getTodolistArray().get(k)
-                                    .update(WhatToDo, whatToDo_timeStamp, color, color_timeStamp);
-
-                            //Alarms
-                            if (event_T.hasAlarm() || event_d.hasAlarm()) {
-                                if (event_T.hasAlarm() && event_d.hasAlarm()) {
-                                    if (event_T.getAlarm().equals(event_d.getAlarm())
-                                            && event_T.getAlarm_timeStamp() < event_d.getAlarm_timeStamp()) {
-                                        alarmsToCancel.add((long) event_T.getAlarm().get(Alarm.ID));
-                                        alarmsToSet.add(event_d.getAlarm());
-                                        event_T.setAlarm(event_d.getAlarm());
-                                    }
-                                } else {
-                                    if (event_T.hasAlarm()) {
-                                        if (event_T.getAlarm_timeStamp() < event_d.getAlarm_timeStamp()) {
-                                            alarmsToCancel.add((long) event_T.getAlarm().get(Alarm.ID));
-                                            event_T.removeAlarm();
-                                        }
-                                    } else {
-                                        if (event_T.getAlarm_timeStamp() < event_d.getAlarm_timeStamp()) {
-                                            alarmsToSet.add(event_d.getAlarm());
-                                            event_T.setAlarm(event_d.getAlarm());
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            //remove Events from todolist
-            for (int i = 0; i < todolist_aE.size(); i++) {
-                int index = Todolist.getEventIndexById(todolist_aE.get(i));
-                if (index >= Todolist.getTodolistArray().size()) {
-                    break;
-                }
-                todolist_removed.set(index, true);
-            }
-
-            for (int i = 0; i < Todolist.getTodolistArray().size(); i++) {
-                if (!todolist_removed.get(i)) {
-                    Todolist.getTodolistArray().remove(i);
-                }
-            }
-
-            //add Events to todolist
-            for (int i = 0; i < driveList.size(); i++) {
-                if (!driveList_removed.get(i)) {
-                    Event e = driveList.get(i);
-                    if (!Todolist.isEventInTodolist(e.getId())) {
-                        if (i < Todolist.getTodolistArray().size()) {
-                            Todolist.getTodolistArray().add(i, e);
-                        } else {
-                            Todolist.getTodolistArray().add(e);
-                        }
-
-                        //set Alarms
-                        if (e.hasAlarm()) {
-                            alarmsToSet.add(e.getAlarm());
-                        }
+                    if (driveList.get(k).getId() == todolist_rE.get(i)) {
+                        driveList.remove(k);
+                        break;
                     }
                 }
             }
@@ -215,17 +106,78 @@ public class SyncDataAsyncTask extends AsyncTask<Void, Void, String> {
                 }
             }
 
-            //remove Events from driveList
-            for (int i = 0; i < todolist_rE.size(); i++) {
-                for (int k = 0; k < driveList.size(); k++) {
-                    if (driveList.get(k).getId() == todolist_rE.get(i)) {
-                        driveList.remove(k);
-                        break;
+            //update Events
+            for (int i = 0; i < Todolist.getTodolistArray().size(); i++) {
+                for (int j = 0; j < driveList.size(); j++) {
+                    Event e = Todolist.getTodolistArray().get(i);
+                    Event e_d = driveList.get(j);
+                    if (e_d != null) {
+                        if (e.getId() == e_d.getId()) {
+                            if (!e.equals(e_d)) {
+                                e.editWhatToDo(e_d.getWhatToDo());
+                                e.setColor(e_d.getColor());
+                                if (e.getAlarm() != null) {
+                                    alarmsToCancel.add((long) e.getAlarm().get(Alarm.ID));
+                                }
+                                e.setAlarm(e_d.getAlarm());
+                                if (e.getAlarm() != null) {
+                                    alarmsToSet.add(e.getAlarm());
+                                }
+                                int adapter_index = Todolist.getAdapterIndexFromTodolistIndex(i);
+                                syncDataCallback.notifyItemChanged(adapter_index);
+                            }
+                        }
                     }
                 }
             }
 
-            //move Events
+            //add Events to TodoList
+            for (int i = 0; i < driveList.size(); i++) {
+                Event e = driveList.get(i);
+                if (e != null) {
+                    if (!Todolist.isEventInTodolist(e.getId())) {
+                        //add Event
+                        if (i < Todolist.getTodolistArray().size()) {
+                            Todolist.getTodolistArray().add(i, e);
+                            int adapter_index = Todolist.getAdapterIndexFromTodolistIndex(i);
+                            Todolist.getAdapterList().add(adapter_index, e);
+                            syncDataCallback.notifyItemInserted(adapter_index);
+                        } else {
+                            Todolist.getTodolistArray().add(e);
+                            int adapter_index = Todolist.getAdapterIndexFromTodolistIndex(Todolist.getTodolistArray().size() -1);
+                            Todolist.getAdapterList().add(adapter_index, e);
+                            syncDataCallback.notifyItemInserted(adapter_index);
+                        }
+                        //set Alarms
+                        if (e.hasAlarm()) {
+                            alarmsToSet.add(e.getAlarm());
+                        }
+                    }
+                }
+            }
+
+            //remove Events from TodoList
+            for (int i = 0; i < Todolist.getTodolistArray().size(); i++) {
+                boolean found = false;
+                Event e = Todolist.getTodolistArray().get(i);
+                for (int k = 0; k < driveList.size(); k++) {
+                    if(driveList.get(k) != null){
+                        if (driveList.get(k).getId()
+                                == e.getId()) {
+                            found = true;
+                        }
+                    }
+                }
+                if (!found) {
+                    //remove Event
+                    int adapter_index = Todolist.getIndexOfEventInAdapterListById(e.getId());
+                    Todolist.getAdapterList().remove(adapter_index);
+                    Todolist.getTodolistArray().remove(i);
+                    syncDataCallback.notifyItemRemoved(adapter_index);
+                }
+            }
+
+            //move events
             if ((Todolist.getTodolistArray().size() == driveList.size())) {
                 for (int i = 0; i < driveList.size(); i++) {
                     int index = Todolist.getEventIndexById(driveList.get(i).getId());
@@ -235,89 +187,47 @@ public class SyncDataAsyncTask extends AsyncTask<Void, Void, String> {
                         if (event_t == null) {
                             break;
                         }
-                        if (event_d.getMove_timeStamp() > event_t.getMove_timeStamp()) {
-                            Todolist.eventMoved(index, i);
+                        Todolist.eventMoved(index, i);
+                        int from = Todolist.getAdapterIndexFromTodolistIndex(index);
+                        int to = Todolist.getAdapterIndexFromTodolistIndex(i);
+
+                        //swap event in adapter-List
+                        if (from < to) {
+                            for (int j = from; j < to; j++) {
+                                Collections.swap(Todolist.getAdapterList(), j, j + 1);
+                            }
+                        } else {
+                            for (int k = from; k > to; k--) {
+                                Collections.swap(Todolist.getAdapterList(), k, k - 1);
+                            }
                         }
+                        syncDataCallback.notifyItemMoved(from, to);
                     }
                 }
             }
+
         } else {
             //if device was never synced -> add all Events
+            Log.d("SyncDataAsyncTask", "device was never synced");
             for (int i = 0; i < driveList.size(); i++) {
                 Event e = driveList.get(i);
                 if (!Todolist.isEventInTodolist(e.getId())) {
+                    //add events
                     if (i < Todolist.getTodolistArray().size()) {
                         Todolist.getTodolistArray().add(i, e);
+                        int adapter_index = Todolist.getAdapterIndexFromTodolistIndex(i);
+                        Todolist.getAdapterList().add(adapter_index, e);
+                        syncDataCallback.notifyItemInserted(adapter_index);
                     } else {
                         Todolist.getTodolistArray().add(e);
+                        int adapter_index = Todolist.getAdapterIndexFromTodolistIndex(Todolist.getTodolistArray().size() -1);
+                        Todolist.getAdapterList().add(adapter_index, e);
+                        syncDataCallback.notifyItemInserted(adapter_index);
                     }
 
                     //set Alarms
                     if (e.hasAlarm()) {
                         alarmsToSet.add(e.getAlarm());
-                    }
-                } else {
-                    for (int j = 0; j < driveList.size(); j++) {
-                        if (!driveList_removed.get(i)) {
-                            for (int k = 0; k < Todolist.getTodolistArray().size(); k++) {
-                                if (driveList.get(i).getId() == Todolist.getTodolistArray().get(k).getId()) {
-                                    driveList_removed.set(j, true);
-                                    todolist_removed.set(k, true);
-
-                                    Event event_T = Todolist.getTodolistArray().get(k);
-                                    Event event_d = driveList.get(j);
-
-                                    eventsToUpdate.add(event_T.getId());
-
-                                    String WhatToDo;
-                                    long whatToDo_timeStamp, color_timeStamp;
-                                    int color;
-
-                                    if (event_T.getWhatToDo_timeStamp() > event_d.getWhatToDo_timeStamp()) {
-                                        WhatToDo = event_T.getWhatToDo();
-                                        whatToDo_timeStamp = event_T.getWhatToDo_timeStamp();
-                                    } else {
-                                        WhatToDo = event_d.getWhatToDo();
-                                        whatToDo_timeStamp = event_d.getWhatToDo_timeStamp();
-                                    }
-
-                                    if (event_T.getColor_timeStamp() > event_d.getColor_timeStamp()) {
-                                        color = event_T.getColor();
-                                        color_timeStamp = event_T.getColor_timeStamp();
-                                    } else {
-                                        color = event_d.getColor();
-                                        color_timeStamp = event_d.getColor_timeStamp();
-                                    }
-
-                                    Todolist.getTodolistArray().get(k)
-                                            .update(WhatToDo, whatToDo_timeStamp, color, color_timeStamp);
-
-                                    //Alarms
-                                    if (event_T.hasAlarm() || event_d.hasAlarm()) {
-                                        if (event_T.hasAlarm() && event_d.hasAlarm()) {
-                                            if (event_T.getAlarm().equals(event_d.getAlarm())
-                                                    && event_T.getAlarm_timeStamp() < event_d.getAlarm_timeStamp()) {
-                                                alarmsToCancel.add((long) event_T.getAlarm().get(Alarm.ID));
-                                                alarmsToSet.add(event_d.getAlarm());
-                                                event_T.setAlarm(event_d.getAlarm());
-                                            }
-                                        } else {
-                                            if (event_T.hasAlarm()) {
-                                                if (event_T.getAlarm_timeStamp() < event_d.getAlarm_timeStamp()) {
-                                                    alarmsToCancel.add((long) event_T.getAlarm().get(Alarm.ID));
-                                                    event_T.removeAlarm();
-                                                }
-                                            } else {
-                                                if (event_T.getAlarm_timeStamp() < event_d.getAlarm_timeStamp()) {
-                                                    alarmsToSet.add(event_d.getAlarm());
-                                                    event_T.setAlarm(event_d.getAlarm());
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
             }
@@ -328,11 +238,24 @@ public class SyncDataAsyncTask extends AsyncTask<Void, Void, String> {
 
     @Override
     protected void onPostExecute(String result) {
-        if (!result.equals("Success")) {
-            syncDataCallback.error(result);
-            return;
+        if(syncDataCallback != null){
+            if (!result.equals("Success")) {
+                syncDataCallback.error(result);
+                return;
+            }
+
+            syncDataCallback.updateAlarms(alarmsToCancel, alarmsToSet);
+            syncDataCallback.doneSyncingData(selected_categories);
+
+            //when device was sync for the first time, write data back
+            if (!wasEverSynced) {
+                syncDataCallback.doneFirstEverSync();
+            }
         }
-        syncDataCallback.updateAlarms(alarmsToCancel, alarmsToSet);
-        syncDataCallback.doneSyncingData(selected_categories);
+    }
+
+    public void dettach(){
+        syncDataCallback = null;
+        cancel(true);
     }
 }

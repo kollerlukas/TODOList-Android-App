@@ -13,35 +13,36 @@
         android:icon="@mipmap/ic_launcher"
         android:label="${applicationLabel}"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/Theme.TODOList">
 
         <activity
             android:name=".Activities.MainActivity"
             android:label="${applicationLabel}"
             android:launchMode="singleTop"
-            android:theme="@style/AppTheme">
-            <!--android:configChanges="orientation|screenSize"-->
+            android:theme="@style/Theme.TODOList">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
                 <action android:name="us.koller.WidgetProvider"/>
             </intent-filter>
-            <meta-data
+            <meta-data android:name="android.app.shortcuts"
+                       android:resource="@xml/shortcuts" />
+            <!--<meta-data
                     android:name="com.google.android.apps.drive.APP_ID"
-                    android:value="id=AIzaSyB_0c1bBI9DZ6QeAmLf6XBBdzV5SIBeWfg"/>
+                    android:value="id=AIzaSyB_0c1bBI9DZ6QeAmLf6XBBdzV5SIBeWfg"/>-->
         </activity>
 
         <activity
             android:name=".Activities.InfoActivity"
             android:label="@string/info"
             android:launchMode="singleTask"
-            android:theme="@style/InfoActivityTheme"/>
+            android:theme="@style/Theme.TODOList.InfoActivity"/>
 
         <activity
             android:name=".Activities.ThemeActivity"
             android:label="@string/app_theme"
             android:launchMode="singleTask"
-            android:theme="@style/ThemeActivityTheme"/>
+            android:theme="@style/Theme.TODOList.ThemeActivity"/>
 
         <activity
             android:name=".Activities.ImportDataActivity"

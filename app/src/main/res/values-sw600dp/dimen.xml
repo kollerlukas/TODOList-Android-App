@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="layout_manager_span_count">3</integer>
+    <dimen name="status_bar_height">24dp</dimen>
+    <dimen name="status_toolbar_height">72dp</dimen>
+    <dimen name="theme_color_panel_height">200dp</dimen>
+</resources>

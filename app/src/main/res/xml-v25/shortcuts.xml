@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--not working, because need support libraries 25.0.0; I am not upgrading until fab bug is fixed-->
+    <!--<shortcut
+            android:shortcutId="add_event"
+            android:enabled="true"
+            android:icon="@drawable/ic_add_shortcut"
+            android:shortcutShortLabel="@string/add_event">
+        <intent
+                android:action="ADD_EVENT"
+                android:targetPackage="us.koller.todolist"
+                android:targetClass="us.koller.todolist.Activities.MainActivity" />
+        <categories android:name="android.shortcut.conversations" />
+    </shortcut>-->
+</shortcuts>

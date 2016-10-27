@@ -64,7 +64,7 @@ public class Todolist {
     public void initData(Context context) {
         try {
             readData(context);
-        } catch (JSONException|FileNotFoundException e) {
+        } catch (JSONException | FileNotFoundException e) {
             e.printStackTrace();
         }
     }
@@ -160,11 +160,7 @@ public class Todolist {
             if (settings.getCategory(todolist.get(i).getColor())
                     && !isEventInAdapterList(todolist.get(i))) {
                 int index = getExpectedAdapterListPosition(todolist.get(i));
-                if(index > -1){
-                    mAdapter.addItem(index, todolist.get(i));
-                } else {
-                    Log.d("Todolist", "adapter index = -1");
-                }
+                mAdapter.addItem(index, todolist.get(i));
             }
         }
     }
@@ -178,8 +174,22 @@ public class Todolist {
         return false;
     }
 
-    private int getExpectedAdapterListPosition(Event e) {
+    public int getExpectedAdapterListPosition(Event e) {
         int adapterListPosition = 0;
+        for (int i = 0; i < todolist.size(); i++) {
+            if (todolist.get(i).getId() == e.getId()) {
+                return adapterListPosition;
+            }
+            if (settings.getCategory(todolist.get(i).getColor())) {
+                adapterListPosition++;
+            }
+        }
+        return adapter_list.size();
+    }
+
+    public int getAdapterIndexFromTodolistIndex(int todolist_index) {
+        int adapterListPosition = 0;
+        Event e = todolist.get(todolist_index);
         for (int i = 0; i < todolist.size(); i++) {
             if (todolist.get(i).getId() == e.getId()) {
                 return adapterListPosition;
@@ -213,7 +223,6 @@ public class Todolist {
     }
 
     public void eventMoved(int fromPosition, int toPosition) {
-        todolist.get(fromPosition).setMove_timeStamp(System.currentTimeMillis());
         if (fromPosition < toPosition) {
             for (int i = fromPosition; i < toPosition; i++) {
                 Collections.swap(todolist, i, i + 1);
@@ -252,14 +261,9 @@ public class Todolist {
         saveFile(context, ADDED_EVENTS_FILENAME, getAddedEventsString());
     }
 
-    public void clearRemovedAndAddedEvents(Context context) {
+    public void clearRemovedAndAddedEvents() {
         removedEvents.clear();
         addedEvents.clear();
-        try {
-            saveData(context);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
     }
 
     public String getData() throws JSONException {
@@ -403,5 +407,9 @@ public class Todolist {
 
     public ArrayList<Event> getTodolistArray() {
         return todolist;
+    }
+
+    public ArrayList<Event> getAdapterList() {
+        return adapter_list;
     }
 }

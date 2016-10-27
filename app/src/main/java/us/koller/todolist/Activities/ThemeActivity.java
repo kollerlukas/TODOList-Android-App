@@ -21,6 +21,7 @@ import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -83,9 +84,9 @@ public class ThemeActivity extends AppCompatActivity {
 
         helper = new ThemeHelper(this);
 
-        if (!getResources().getBoolean(R.bool.tablet)) {
+        /*if (!getResources().getBoolean(R.bool.tablet)) {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        }
+        }*/
 
         setContentView(R.layout.activity_theme);
 
@@ -132,8 +133,14 @@ public class ThemeActivity extends AppCompatActivity {
         mRecyclerView.setHasFixedSize(true);
         addOnItemTouchListenerToRecyclerView();
 
-        LinearLayoutManager mLinearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
-        mRecyclerView.setLayoutManager(mLinearLayoutManager);
+        /*LinearLayoutManager mLinearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+        mRecyclerView.setLayoutManager(mLinearLayoutManager);*/
+
+        StaggeredGridLayoutManager mStaggeredGridLayoutManager = new StaggeredGridLayoutManager(
+                getResources().getInteger(R.integer.layout_manager_span_count),
+                StaggeredGridLayoutManager.VERTICAL);
+        mStaggeredGridLayoutManager.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_NONE);
+        mRecyclerView.setLayoutManager(mStaggeredGridLayoutManager);
 
         mAdapter = new Theme_RVAdapter(helper);
         mRecyclerView.setAdapter(mAdapter);
@@ -168,7 +175,7 @@ public class ThemeActivity extends AppCompatActivity {
         toolbar_card.setBackgroundColor(helper.get(ThemeHelper.TOOLBAR_COLOR));
         toolbar_card.setTitleTextColor(helper.get(ThemeHelper.TOOLBAR_TEXT_COLOR));
 
-        statusBar.setBackgroundColor(helper.get(ThemeHelper.TEXT_COLOR));
+        statusBar.setBackgroundColor(helper.get(ThemeHelper.TOOLBAR_COLOR));
 
         int color;
         if (helper.isToolbarIconsTranslucent()) {

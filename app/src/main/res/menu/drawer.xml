@@ -2,23 +2,13 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <group android:id="@+id/group0">
-        <item android:id="@+id/navigation_header0"
-              android:title="@string/navigation_header0"
-              android:visible="false">
-            <menu>
-                <item android:id="@+id/syncData"
-                      android:title="@string/syncData"
-                      app:showAsAction="ifRoom"
-                      android:visible="false"/>
-
-                <item android:id="@+id/autoSync"
-                      android:icon="@drawable/ic_vibration_grey_500_24dp"
-                      android:title="@string/autoSync"
-                      app:actionLayout="@layout/menu_switch"
-                      app:showAsAction="ifRoom"/>
-            </menu>
-        </item>
+    <group android:id="@+id/group0"
+           android:visible="false">
+        <item android:id="@+id/sync_switch"
+              android:icon="@drawable/ic_vibration_grey_500_24dp"
+              android:title="@string/sync_switch"
+              app:actionLayout="@layout/menu_switch"
+              app:showAsAction="ifRoom"/>
     </group>
 
     <group android:id="@+id/group1">

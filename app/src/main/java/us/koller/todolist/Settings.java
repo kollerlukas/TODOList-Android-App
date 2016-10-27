@@ -15,8 +15,8 @@ public class Settings {
     public static final String NOTIFICATION_TOGGLE = "notificationToggle";
     public static final String SYNC_ENABLED = "syncEnabled";
     public static final String SIGNED_IN = "signedIn";
-    public static final String AUTO_SYNC = "autoSync";
-    public static final String WAS_EVER_SNYCED = "wasEverSynced";
+    public static final String SYNC_TOGGLE = "sync_toggle";
+    public static final String WAS_EVER_SYNCED = "wasEverSynced";
     public static final String SELECTED_CATEGORIES = "selected_categories";
 
     private SharedPreferences sharedpreferences;
@@ -28,7 +28,7 @@ public class Settings {
     private boolean syncEnabled; //if user was signed in; App might not be signed in yet
     private boolean signedIn = false; //app successfully signed in
     private boolean wasEverSynced = false;
-    private boolean autoSync;
+    private boolean sync_toggle;
 
     public Settings(Context context) {
         sharedpreferences = context.getSharedPreferences("todolist", Context.MODE_PRIVATE);
@@ -39,8 +39,8 @@ public class Settings {
         notificationToggle = sharedpreferences.getBoolean(NOTIFICATION_TOGGLE, true);
 
         syncEnabled = sharedpreferences.getBoolean(SYNC_ENABLED, false);
-        autoSync = sharedpreferences.getBoolean(AUTO_SYNC, true);
-        wasEverSynced = sharedpreferences.getBoolean(WAS_EVER_SNYCED, false);
+        sync_toggle = sharedpreferences.getBoolean(SYNC_TOGGLE, true);
+        wasEverSynced = sharedpreferences.getBoolean(WAS_EVER_SYNCED, false);
 
         readSelectedCategories("no data");
     }
@@ -51,11 +51,6 @@ public class Settings {
             data = sharedpreferences.getString(SELECTED_CATEGORIES, "");
         }
         try {
-            /*JSONArray array = new JSONArray(s);
-
-            for (int i = 0; i < selected_categories.length; i++) {
-                selected_categories[i] = array.getBoolean(i);
-            }*/
             JSONObject json = new JSONObject(data);
             for (int i = 0; i < selected_categories.length; i++){
                 selected_categories[i] = json.getBoolean(SELECTED_CATEGORIES + i);
@@ -63,10 +58,6 @@ public class Settings {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-    }
-
-    public int getCategoryCount(){
-        return selected_categories.length;
     }
 
     public JSONObject getSelectedCategoriesJSON() throws JSONException {
@@ -82,8 +73,8 @@ public class Settings {
                 .putBoolean(VIBRATE, vibrate)
                 .putBoolean(NOTIFICATION_TOGGLE, notificationToggle)
                 .putBoolean(SYNC_ENABLED, syncEnabled)
-                .putBoolean(AUTO_SYNC, autoSync)
-                .putBoolean(WAS_EVER_SNYCED, wasEverSynced)
+                .putBoolean(SYNC_TOGGLE, sync_toggle)
+                .putBoolean(WAS_EVER_SYNCED, wasEverSynced)
                 .apply();
 
         try {
@@ -94,11 +85,6 @@ public class Settings {
     }
 
     private void saveCategorySettings() throws JSONException {
-        /*JSONArray array = new JSONArray();
-        for (int i = 0; i < selected_categories.length; i++) {
-            array.put(selected_categories[i]);
-        }*/
-
         SharedPreferences.Editor editor
                 = sharedpreferences.edit();
         editor.putString(SELECTED_CATEGORIES, getSelectedCategoriesJSON().toString());
@@ -122,10 +108,10 @@ public class Settings {
             case SIGNED_IN:
                 signedIn = (boolean) o;
                 break;
-            case AUTO_SYNC:
-                autoSync = (boolean) o;
+            case SYNC_TOGGLE:
+                sync_toggle = (boolean) o;
                 break;
-            case WAS_EVER_SNYCED:
+            case WAS_EVER_SYNCED:
                 wasEverSynced = (boolean) o;
                 break;
         }
@@ -141,9 +127,9 @@ public class Settings {
                 return syncEnabled;
             case SIGNED_IN:
                 return signedIn;
-            case AUTO_SYNC:
-                return autoSync;
-            case WAS_EVER_SNYCED:
+            case SYNC_TOGGLE:
+                return sync_toggle;
+            case WAS_EVER_SYNCED:
                 return wasEverSynced;
             case SELECTED_CATEGORIES:
                 return selected_categories;
@@ -162,8 +148,8 @@ public class Settings {
             case SYNC_ENABLED:
                 syncEnabled = !syncEnabled;
                 break;
-            case AUTO_SYNC:
-                autoSync = !autoSync;
+            case SYNC_TOGGLE:
+                sync_toggle = !sync_toggle;
                 break;
         }
     }

@@ -25,6 +25,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -49,9 +50,9 @@ public class InfoActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (!getResources().getBoolean(R.bool.tablet)) {
+        /*if (!getResources().getBoolean(R.bool.tablet)) {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        }
+        }*/
 
         setContentView(R.layout.activity_info);
 
@@ -131,9 +132,9 @@ public class InfoActivity extends AppCompatActivity {
 
     public void initTheme(Toolbar toolbar) {
         helper = new ThemeHelper(this);
-        RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.info_activity_layout);
+        LinearLayout linearLayout = (LinearLayout) findViewById(R.id.info_activity_layout);
 
-        relativeLayout.setBackgroundColor(helper.get(ThemeHelper.CORD_COLOR));
+        linearLayout.setBackgroundColor(helper.get(ThemeHelper.CORD_COLOR));
         toolbar.setBackgroundColor(helper.get(ThemeHelper.TOOLBAR_COLOR));
         toolbar.setTitleTextColor(helper.get(ThemeHelper.TOOLBAR_TEXT_COLOR));
         if (helper.get(ThemeHelper.CORD_COLOR) != helper.get(ThemeHelper.TOOLBAR_COLOR)) {
