@@ -145,4 +145,7 @@
     <string name="color_button" translatable="false">Color Button</string>
     <string name="button" translatable="false">Button</string>
     <string name="sync_switch">Sync</string>
+    <string name="sign_out">sign out</string>
+    <string name="add">add</string>
+    <string name="edit">edit</string>
 </resources>

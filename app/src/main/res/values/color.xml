@@ -33,5 +33,6 @@
     <color name="black_light">#161616</color>
     <color name="black">#000000</color>
     <color name="black_semi_transparent">#64000000</color>
+    <color name="translucent_black">#33000000</color>
     <color name="separator_color">#1e000000</color>
 </resources>

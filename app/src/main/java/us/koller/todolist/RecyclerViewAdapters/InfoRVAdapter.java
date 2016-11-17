@@ -15,7 +15,7 @@ import us.koller.todolist.R;
  * Created by Lukas on 27.09.2016.
  */
 
-public class Info_RVAdapter extends RecyclerView.Adapter {
+public class InfoRVAdapter extends RecyclerView.Adapter {
 
     public static class InfoViewHolder extends RecyclerView.ViewHolder {
 
@@ -46,7 +46,7 @@ public class Info_RVAdapter extends RecyclerView.Adapter {
     private String[] itemsText_small;
     private Drawable[] drawables;
 
-    public Info_RVAdapter(String[] itemsText, String[] itemsText_small, Drawable[] drawables) {
+    public InfoRVAdapter(String[] itemsText, String[] itemsText_small, Drawable[] drawables) {
         this.itemsText = itemsText;
         this.itemsText_small = itemsText_small;
         this.drawables = drawables;

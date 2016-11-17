@@ -19,6 +19,7 @@
             android:name=".Activities.MainActivity"
             android:label="${applicationLabel}"
             android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustNothing"
             android:theme="@style/Theme.TODOList">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -27,9 +28,6 @@
             </intent-filter>
             <meta-data android:name="android.app.shortcuts"
                        android:resource="@xml/shortcuts" />
-            <!--<meta-data
-                    android:name="com.google.android.apps.drive.APP_ID"
-                    android:value="id=AIzaSyB_0c1bBI9DZ6QeAmLf6XBBdzV5SIBeWfg"/>-->
         </activity>
 
         <activity

@@ -3,12 +3,12 @@ package us.koller.todolist.Activities;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ShareCompat;
@@ -19,7 +19,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.CardView;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
@@ -36,8 +35,6 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import us.koller.todolist.R;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -45,7 +42,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import us.koller.todolist.RecyclerViewAdapters.Theme_RVAdapter;
+import us.koller.todolist.R;
+import us.koller.todolist.RecyclerViewAdapters.ThemeRVAdapter;
 import us.koller.todolist.Util.Callbacks.ColorPickerDialogCallback;
 import us.koller.todolist.Util.Callbacks.OnItemClickInterface;
 import us.koller.todolist.Util.ClickHelper.OnItemClickHelper;
@@ -62,14 +60,13 @@ public class ThemeActivity extends AppCompatActivity {
     private Toolbar toolbar_card;
     private FloatingActionButton fab;
     private CardView card;
-    private View drawerIcon;
     private MenuItem infoIcon;
     private Drawable overflowIcon;
 
     private View statusBar;
 
     private RecyclerView mRecyclerView;
-    private Theme_RVAdapter mAdapter;
+    private ThemeRVAdapter mAdapter;
 
     private AlertDialog dialog;
     private AlertDialog themePickerDialog;
@@ -94,7 +91,7 @@ public class ThemeActivity extends AppCompatActivity {
         toolbar.setTitleTextColor(helper.getDarkTextColor());
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null){
+        if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
@@ -103,12 +100,18 @@ public class ThemeActivity extends AppCompatActivity {
         toolbar_card = (Toolbar) findViewById(R.id.toolbar_theme_card);
         statusBar = findViewById(R.id.statusbar);
 
+        //set status bar icon color
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            toolbar.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+        }
+
         presetThemes = (Button) findViewById(R.id.preset_themes);
 
         toolbar_card.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
                 helper.toggleToolbarIconsTranslucent();
+                changeColorOfToolbarDrawerIcon(toolbar_card, helper.getToolbarIconColor());
                 if (helper.isToolbarIconsTranslucent()) {
                     Toast.makeText(ThemeActivity.this, "Toolbar icons translucent", Toast.LENGTH_SHORT).show();
                 } else {
@@ -126,7 +129,8 @@ public class ThemeActivity extends AppCompatActivity {
         //showInfoDialog();
     }
 
-    public ThemeActivity() {}
+    public ThemeActivity() {
+    }
 
     public void initRecyclerView() {
         mRecyclerView = (RecyclerView) findViewById(R.id.rv_theme);
@@ -142,7 +146,7 @@ public class ThemeActivity extends AppCompatActivity {
         mStaggeredGridLayoutManager.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_NONE);
         mRecyclerView.setLayoutManager(mStaggeredGridLayoutManager);
 
-        mAdapter = new Theme_RVAdapter(helper);
+        mAdapter = new ThemeRVAdapter(helper);
         mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -160,13 +164,13 @@ public class ThemeActivity extends AppCompatActivity {
                 ColorPickerDialogCallback colorPickerDialogCallback = new ColorPickerDialogCallback() {
                     @Override
                     public void colorPicked(int red, int green, int blue, int textColor) {
-                        helper.setEventColor(position +1, Color.rgb(red, green, blue));
-                        helper.setEventTextColor(position +1, textColor);
-                        ((Theme_RVAdapter.ColorViewHolder) holder).colorCard(position +1, Color.rgb(red, green, blue), textColor);
+                        helper.setEventColor(position + 1, Color.rgb(red, green, blue));
+                        helper.setEventTextColor(position + 1, textColor);
+                        ((ThemeRVAdapter.ColorViewHolder) holder).colorCard(position + 1, Color.rgb(red, green, blue), textColor);
                     }
                 };
-                showColorPickerDialog(colorPickerDialogCallback, true, helper.getEventColor(position +1),
-                        helper.getEventTextColor(position +1), false);
+                showColorPickerDialog(colorPickerDialogCallback, true, helper.getEventColor(position + 1),
+                        helper.getEventTextColor(position + 1), false);
             }
         });
     }
@@ -174,6 +178,7 @@ public class ThemeActivity extends AppCompatActivity {
     public void initTheme() {
         toolbar_card.setBackgroundColor(helper.get(ThemeHelper.TOOLBAR_COLOR));
         toolbar_card.setTitleTextColor(helper.get(ThemeHelper.TOOLBAR_TEXT_COLOR));
+        changeColorOfToolbarDrawerIcon(toolbar_card, helper.getToolbarIconColor());
 
         statusBar.setBackgroundColor(helper.get(ThemeHelper.TOOLBAR_COLOR));
 
@@ -184,7 +189,7 @@ public class ThemeActivity extends AppCompatActivity {
         } else {
             color = helper.getDarkTextColor();
         }
-        ChangeColorOfToolbarDrawerIcon(color);
+        changeColorOfToolbarDrawerIcon(toolbar, color);
         colorInfoIcon(color);
         setOverflowButtonColor(color);
 
@@ -256,6 +261,7 @@ public class ThemeActivity extends AppCompatActivity {
 
             toolbar_card.setBackgroundColor(Color.rgb(red, green, blue));
             toolbar_card.setTitleTextColor(textColor);
+            changeColorOfToolbarDrawerIcon(toolbar_card, helper.getToolbarIconColor());
 
             statusBar.setBackgroundColor(helper.get(ThemeHelper.TOOLBAR_COLOR));
         }
@@ -437,9 +443,9 @@ public class ThemeActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if (s.length() == 7 && s.charAt(0) == '#') {
                     int color;
-                    try{
+                    try {
                         color = Color.parseColor(String.valueOf(s));
-                    } catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                         return;
                     }
@@ -478,15 +484,11 @@ public class ThemeActivity extends AppCompatActivity {
         changeDialogButtonColor(themePickerDialog);
     }
 
-    public void ChangeColorOfToolbarDrawerIcon(int color) {
-        if (drawerIcon != null) {
-            ((ImageView) drawerIcon).setColorFilter(color, PorterDuff.Mode.SRC_IN);
-        } else {
-            for (int i = 0; i < toolbar.getChildCount(); i++) {
-                if (toolbar.getChildAt(i) instanceof ImageView) {
-                    drawerIcon = toolbar.getChildAt(i);
-                    ((ImageView) drawerIcon).setColorFilter(color, PorterDuff.Mode.SRC_IN);
-                }
+    public void changeColorOfToolbarDrawerIcon(Toolbar toolbar, int color) {
+        for (int i = 0; i < toolbar.getChildCount(); i++) {
+            if (toolbar.getChildAt(i) instanceof ImageView) {
+                ImageView drawerIcon = (ImageView) toolbar.getChildAt(i);
+                drawerIcon.setColorFilter(color, PorterDuff.Mode.SRC_IN);
             }
         }
     }
@@ -622,7 +624,7 @@ public class ThemeActivity extends AppCompatActivity {
                 .setView(layout)
                 .setCancelable(true)
                 .create();
-        if(dialog.getWindow() != null){
+        if (dialog.getWindow() != null) {
             dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimations;
         }
         dialog.show();
@@ -645,7 +647,7 @@ public class ThemeActivity extends AppCompatActivity {
         helper.saveData(ThemeActivity.this);
         initTheme();
 
-        if(helper.get(ThemeHelper.TOOLBAR_COLOR) == helper.get(ThemeHelper.CORD_COLOR)){
+        if (helper.get(ThemeHelper.TOOLBAR_COLOR) == helper.get(ThemeHelper.CORD_COLOR)) {
             toolbarAndBackgroundSameColor = true;
         }
         checkToolbarElevation();
@@ -693,12 +695,12 @@ public class ThemeActivity extends AppCompatActivity {
     public String getShareData() throws JSONException {
         JSONObject json = new JSONObject()
 
-        .put(ThemeHelper.FAB_COLOR, helper.get(ThemeHelper.FAB_COLOR))
-        .put(ThemeHelper.FAB_TEXT_COLOR, helper.get(ThemeHelper.FAB_TEXT_COLOR))
-        .put(ThemeHelper.TOOLBAR_COLOR, helper.get(ThemeHelper.TOOLBAR_COLOR))
-        .put(ThemeHelper.TOOLBAR_TEXT_COLOR, helper.get(ThemeHelper.TOOLBAR_TEXT_COLOR))
-        .put(ThemeHelper.CORD_COLOR, helper.get(ThemeHelper.CORD_COLOR))
-        .put(ThemeHelper.CORD_TEXT_COLOR, helper.get(ThemeHelper.CORD_TEXT_COLOR));
+                .put(ThemeHelper.FAB_COLOR, helper.get(ThemeHelper.FAB_COLOR))
+                .put(ThemeHelper.FAB_TEXT_COLOR, helper.get(ThemeHelper.FAB_TEXT_COLOR))
+                .put(ThemeHelper.TOOLBAR_COLOR, helper.get(ThemeHelper.TOOLBAR_COLOR))
+                .put(ThemeHelper.TOOLBAR_TEXT_COLOR, helper.get(ThemeHelper.TOOLBAR_TEXT_COLOR))
+                .put(ThemeHelper.CORD_COLOR, helper.get(ThemeHelper.CORD_COLOR))
+                .put(ThemeHelper.CORD_TEXT_COLOR, helper.get(ThemeHelper.CORD_TEXT_COLOR));
 
         for (int i = 1; i < 13; i++) {
             json.put(ThemeHelper.COLOR + i, helper.getEventColor(i));
@@ -723,7 +725,7 @@ public class ThemeActivity extends AppCompatActivity {
     }
 
     public void checkToolbarElevation() {
-        if(helper.get(ThemeHelper.CORD_COLOR) != helper.get(ThemeHelper.TOOLBAR_COLOR)){
+        if (helper.get(ThemeHelper.CORD_COLOR) != helper.get(ThemeHelper.TOOLBAR_COLOR)) {
             elevateToolbar();
             return;
         }

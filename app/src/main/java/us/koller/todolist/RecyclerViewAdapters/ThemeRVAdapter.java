@@ -14,7 +14,7 @@ import us.koller.todolist.Util.ThemeHelper;
 /**
  * Created by Lukas on 14.06.2016.
  */
-public class Theme_RVAdapter extends RecyclerView.Adapter {
+public class ThemeRVAdapter extends RecyclerView.Adapter {
 
     public static class ColorViewHolder extends RecyclerView.ViewHolder {
         private View v;
@@ -33,7 +33,7 @@ public class Theme_RVAdapter extends RecyclerView.Adapter {
 
     private ThemeHelper helper;
 
-    public Theme_RVAdapter(ThemeHelper helper){
+    public ThemeRVAdapter(ThemeHelper helper){
         this.helper = helper;
     }
 

@@ -8,8 +8,8 @@ android {
         applicationId "us.koller.todolist"
         minSdkVersion 21
         targetSdkVersion 23
-        versionCode 54
-        versionName "2.1"
+        versionCode 58
+        versionName "2.1.2"
         manifestPlaceholders = [applicationLabel: "@string/app_name"]
     }
 
@@ -24,6 +24,7 @@ android {
 }
 
 dependencies {
+    /*still using 23.2.0 becasue this is the last version, where Snackbar-Fab Animations are working*/
     compile 'com.android.support:appcompat-v7:23.2.0'
     compile 'com.android.support:cardview-v7:23.2.0'
     compile 'com.android.support:design:23.2.0'

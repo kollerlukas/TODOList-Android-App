@@ -5,12 +5,58 @@
         android:id="@+id/drawer_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".Activities.MainActivity">
+        tools:context=".Activities.MainActivity"
+        android:fitsSystemWindows="true">
 
     <android.support.design.widget.CoordinatorLayout
             android:id="@+id/coordinatorLayout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:fitsSystemWindows="true">
+
+        <android.support.design.widget.AppBarLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:stateListAnimator="@animator/toolbar_raise"
+                app:elevation="0dp"
+                android:fitsSystemWindows="true">
+
+            <android.support.v7.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/app_name"
+                    android:fitsSystemWindows="true"/>
+        </android.support.design.widget.AppBarLayout>
+
+        <android.support.v7.widget.RecyclerView
+                android:id="@+id/rv"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:splitMotionEvents="false"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+
+        <!--<LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+            <android.support.v7.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/app_name"
+                    android:elevation="0dp"
+                    android:stateListAnimator="@animator/toolbar_raise"
+                    android:minHeight="?android:attr/actionBarSize"
+                    android:fitsSystemWindows="true"/>
+
+            <android.support.v7.widget.RecyclerView
+                    android:id="@+id/rv"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:splitMotionEvents="false"/>
+        </LinearLayout>-->
 
         <ImageView
                 android:id="@+id/nothing_todo"
@@ -19,22 +65,6 @@
                 android:layout_gravity="center"
                 android:visibility="gone"
                 android:contentDescription="@string/nothing_to_do_illustration"/>
-
-        <android.support.v7.widget.RecyclerView
-                android:id="@+id/rv"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:splitMotionEvents="false"
-                android:layout_marginTop="@dimen/status_toolbar_height"/>
-
-        <android.support.v7.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="@dimen/status_bar_height"
-                android:elevation="0dp"
-                android:stateListAnimator="@animator/toolbar_raise"
-                android:text="@string/app_name"/>
 
         <android.support.design.widget.FloatingActionButton
                 android:id="@+id/fab"
@@ -60,5 +90,6 @@
             app:headerLayout="@layout/header"
             app:itemIconTint="@color/grey"
             app:itemTextColor="@color/grey"
-            app:menu="@menu/drawer"/>
+            app:menu="@menu/drawer"
+            android:fitsSystemWindows="true"/>
 </android.support.v4.widget.DrawerLayout>

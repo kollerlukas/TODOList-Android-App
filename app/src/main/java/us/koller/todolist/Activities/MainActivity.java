@@ -108,7 +108,7 @@ import us.koller.todolist.BroadcastReceiver;
 import us.koller.todolist.FirebaseSync.SyncDataAsyncTask;
 import us.koller.todolist.ImportListViewAdapter;
 import us.koller.todolist.R;
-import us.koller.todolist.RecyclerViewAdapters.RVAdapter;
+import us.koller.todolist.RecyclerViewAdapters.MainRVAdapter;
 import us.koller.todolist.Settings;
 import us.koller.todolist.Todolist.Alarm;
 import us.koller.todolist.Todolist.Event;
@@ -145,7 +145,7 @@ public class MainActivity extends AppCompatActivity
     private NotificationManager mNotificationManager;
 
     private RecyclerView mRecyclerView;
-    private RVAdapter mAdapter;
+    private MainRVAdapter mAdapter;
 
     private DrawerLayout mDrawerLayout;
     private NavigationView mNavigationView;
@@ -214,9 +214,6 @@ public class MainActivity extends AppCompatActivity
         initFirebase();
         buildGoogleApiClient();
         initSignInWithGoogle();
-
-        //App might been started through AddEvent-Widget
-        checkIntent(this.getIntent());
     }
 
     @Override
@@ -224,9 +221,6 @@ public class MainActivity extends AppCompatActivity
         super.onPostCreate(savedInstanceState);
 
         tablet = getResources().getBoolean(R.bool.tablet);
-        /*if (!tablet) {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        }*/
 
         mDrawerToggle.syncState();
 
@@ -237,6 +231,9 @@ public class MainActivity extends AppCompatActivity
         }
 
         initTheme();
+
+        //App might been started through AddEvent-Widget
+        checkIntent(this.getIntent());
     }
 
     @Override
@@ -276,21 +273,12 @@ public class MainActivity extends AppCompatActivity
         mRecyclerView = (RecyclerView) findViewById(R.id.rv);
         mRecyclerView.setHasFixedSize(true);
 
-        /*if (tablet) {
-            //Put Tablet specific layout here
-        } else {
-
-        }*/
-
-        mAdapter = new RVAdapter(todolist.initAdapterList());
-
-        /*LinearLayoutManager mLinearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
-        mRecyclerView.setLayoutManager(mLinearLayoutManager);*/
+        mAdapter = new MainRVAdapter(todolist.initAdapterList());
 
         StaggeredGridLayoutManager mStaggeredGridLayoutManager = new StaggeredGridLayoutManager(
                 getResources().getInteger(R.integer.layout_manager_span_count),
                 StaggeredGridLayoutManager.VERTICAL);
-        mStaggeredGridLayoutManager.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_NONE);
+        mStaggeredGridLayoutManager.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_MOVE_ITEMS_BETWEEN_SPANS);
         mRecyclerView.setLayoutManager(mStaggeredGridLayoutManager);
 
         mRecyclerView.setAdapter(mAdapter);
@@ -419,7 +407,7 @@ public class MainActivity extends AppCompatActivity
         OnItemClickHelper.addTo(mRecyclerView).setOnItemClickListener(new OnItemClickInterface() {
             @Override
             public void onItemClicked(RecyclerView recyclerView, int position, ViewHolder holder) {
-                RVAdapter.EventViewHolder viewHolder = (RVAdapter.EventViewHolder) holder;
+                MainRVAdapter.EventViewHolder viewHolder = (MainRVAdapter.EventViewHolder) holder;
                 if (shareEvents) {
                     viewHolder.setSemiTransparent(!viewHolder.semiTransparent);
                     viewHolder.initCard(helper);
@@ -450,8 +438,8 @@ public class MainActivity extends AppCompatActivity
             return;
         }
 
-        RVAdapter.EventViewHolder holder
-                = (RVAdapter.EventViewHolder) mRecyclerView.findViewHolderForAdapterPosition(mAdapter.mExpandedPosition);
+        MainRVAdapter.EventViewHolder holder
+                = (MainRVAdapter.EventViewHolder) mRecyclerView.findViewHolderForAdapterPosition(mAdapter.mExpandedPosition);
         if (holder != null) {
             holder.collapse();
         }
@@ -670,10 +658,20 @@ public class MainActivity extends AppCompatActivity
 
         checkToolbarElevation();
 
+        //set color and icon for recents screen bar
         this.setTaskDescription(new ActivityManager.TaskDescription(
                 getString(R.string.app_name),
                 ((BitmapDrawable) ContextCompat.getDrawable(MainActivity.this, R.mipmap.ic_launcher)).getBitmap(),
                 helper.get(ThemeHelper.TOOLBAR_COLOR)));
+
+        //set status bar icon color
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (helper.lightCoordColor()) {
+                mCoordinatorLayout.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+            } else {
+                mCoordinatorLayout.setSystemUiVisibility(0);
+            }
+        }
     }
 
     //<FirebaseSync Methods>
@@ -712,29 +710,31 @@ public class MainActivity extends AppCompatActivity
                     }
                 });
 
-        //check if user previouly signed in
-        if (!(boolean) settings.get(Settings.SYNC_ENABLED)) {
-            personData.setVisibility(View.GONE);
-            mNavigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
-        } else {
-            //try silent sign in
-            mNavigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.GONE);
-            personData.setVisibility(View.VISIBLE);
-            this.personName.setText("");
-            this.personEmail.setText("...");
-
-            OptionalPendingResult<GoogleSignInResult> opr
-                    = Auth.GoogleSignInApi.silentSignIn(mGoogleApiClient);
-            if (opr.isDone()) {
-                GoogleSignInResult result = opr.get();
-                handleSignInResult(result);
+        if (isNetworkAvailable()) {
+            //check if user previouly signed in
+            if (!(boolean) settings.get(Settings.SYNC_ENABLED)) {
+                personData.setVisibility(View.GONE);
+                mNavigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
             } else {
-                opr.setResultCallback(new ResultCallback<GoogleSignInResult>() {
-                    @Override
-                    public void onResult(@NonNull GoogleSignInResult googleSignInResult) {
-                        handleSignInResult(googleSignInResult);
-                    }
-                });
+                //try silent sign in
+                mNavigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.GONE);
+                personData.setVisibility(View.VISIBLE);
+                this.personName.setText("");
+                this.personEmail.setText("...");
+
+                OptionalPendingResult<GoogleSignInResult> opr
+                        = Auth.GoogleSignInApi.silentSignIn(mGoogleApiClient);
+                if (opr.isDone()) {
+                    GoogleSignInResult result = opr.get();
+                    handleSignInResult(result);
+                } else {
+                    opr.setResultCallback(new ResultCallback<GoogleSignInResult>() {
+                        @Override
+                        public void onResult(@NonNull GoogleSignInResult googleSignInResult) {
+                            handleSignInResult(googleSignInResult);
+                        }
+                    });
+                }
             }
         }
     }
@@ -853,7 +853,7 @@ public class MainActivity extends AppCompatActivity
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this, getDialogTheme());
         builder.setMessage(content)
                 .setTitle(getString(R.string.signOut))
-                .setPositiveButton(getString(R.string.yes), new DialogInterface.OnClickListener() {
+                .setPositiveButton(getString(R.string.sign_out), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         if (mGoogleApiClient.isConnected()) {
@@ -921,6 +921,8 @@ public class MainActivity extends AppCompatActivity
 
             String data = todolist.getSyncData();
             mDatabase.setValue(data);
+
+            todolist.clearRemovedAndAddedEvents();
         }
     }
 
@@ -953,7 +955,7 @@ public class MainActivity extends AppCompatActivity
         if (data == null && (boolean) settings.get(Settings.SYNC_TOGGLE)) {
             return;
         }
-        //Handler needed to update RVAdapter from UI-Thread
+        //Handler needed to update MainRVAdapter from UI-Thread
         final Handler mainHandler = new Handler(getMainLooper());
         syncDataAsyncTask = new SyncDataAsyncTask(todolist, data, (boolean) settings.get(Settings.WAS_EVER_SYNCED),
                 new SyncDataCallback() {
@@ -1221,7 +1223,7 @@ public class MainActivity extends AppCompatActivity
                 if (colorIndex != e.getColor()) {
                     e.setColor(colorIndex);
                     int index = mAdapter.getList().indexOf(e);
-                    ((RVAdapter.EventViewHolder) mRecyclerView.findViewHolderForAdapterPosition(index))
+                    ((MainRVAdapter.EventViewHolder) mRecyclerView.findViewHolderForAdapterPosition(index))
                             .changeCardColorAnim(MainActivity.this, helper.getEventColor(colorIndex),
                                     helper.getEventTextColor(colorIndex));
                     handler.postDelayed(new Runnable() {
@@ -1256,7 +1258,7 @@ public class MainActivity extends AppCompatActivity
         };
 
         View layout = getLayoutInflater().inflate(R.layout.color_selector, mCoordinatorLayout, false);
-        dialog = DialogBuilder.getColorEventDialog(layout, getDialogTheme(), helper)
+        dialog = new DialogBuilder().getColorEventDialog(layout, getDialogTheme(), helper)
                 .setOnDismissListener(new DialogInterface.OnDismissListener() {
                     @Override
                     public void onDismiss(DialogInterface dialog) {
@@ -1270,8 +1272,8 @@ public class MainActivity extends AppCompatActivity
 
     public void EditButtonClicked(final Event e) {
         final View dialogView = getLayoutInflater().inflate(R.layout.input_dialog, mCoordinatorLayout, false);
-        AlertDialog dialog = DialogBuilder.getEditEventDialog(dialogView, getDialogTheme(), getDialogTextColor(), e)
-                .setPositiveButton(dialogView.getContext().getString(R.string.ok), new DialogInterface.OnClickListener() {
+        AlertDialog dialog = new DialogBuilder().getEditEventDialog(dialogView, getDialogTheme(), getDialogTextColor(), e)
+                .setPositiveButton(getString(R.string.edit), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String s = ((EditText) dialogView.findViewById(R.id.edit_text)).getText().toString();
@@ -1339,8 +1341,8 @@ public class MainActivity extends AppCompatActivity
         }
 
         final View layout = getLayoutInflater().inflate(R.layout.add_event_dialog, mCoordinatorLayout, false);
-        dialog = DialogBuilder.getAddEventDialog(layout, helper, getDialogTheme(), getDialogTextColor())
-                .setPositiveButton(layout.getContext().getString(R.string.ok), new DialogInterface.OnClickListener() {
+        dialog = new DialogBuilder().getAddEventDialog(layout, helper, getDialogTheme(), getDialogTextColor())
+                .setPositiveButton(getString(R.string.add), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String s = ((EditText) layout.findViewById(R.id.edit_text)).getText().toString();
@@ -1365,7 +1367,7 @@ public class MainActivity extends AppCompatActivity
                         settings.setCategory(e.getColor(), true);
                         closeOpenCard();
                         todolist.addOrRemoveEventFromAdapter(mAdapter);
-                        mRecyclerView.scrollToPosition(mAdapter.getList().indexOf(e));
+                        //mRecyclerView.scrollToPosition(mAdapter.getList().indexOf(e));
                         checkForNotificationUpdate();
 
                         if ((boolean) settings.get(Settings.SIGNED_IN)
@@ -1410,7 +1412,7 @@ public class MainActivity extends AppCompatActivity
 
     public void showAlarmInfoDialog(final Event e) {
         final View layout = getLayoutInflater().inflate(R.layout.alarm_info_dialog, mCoordinatorLayout, false);
-        dialog = DialogBuilder.getAlarmInfoDialog(layout, helper, getDialogTheme(), getDialogTextColor(), e,
+        dialog = new DialogBuilder().getAlarmInfoDialog(layout, helper, getDialogTheme(), getDialogTextColor(), e,
                 new AlarmInfoDialogOnPositiveCallback() {
                     @Override
                     public void onPositive() {
@@ -1449,7 +1451,7 @@ public class MainActivity extends AppCompatActivity
 
     @SuppressWarnings("deprecation")
     public void showAlarmDatePicker(final Event e) {
-        DialogBuilder.getDatePickerDialog(this, helper,
+        new DialogBuilder().getDatePickerDialog(this, helper,
                 new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
@@ -1473,7 +1475,7 @@ public class MainActivity extends AppCompatActivity
 
     @SuppressWarnings("deprecation")
     public void ShowAlarmTimePicker(final Event e, final Calendar alarmDate) {
-        DialogBuilder.getTimePickerDialog(this, helper,
+        new DialogBuilder().getTimePickerDialog(this, helper,
                 new TimePickerDialog.OnTimeSetListener() {
                     @Override
                     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
@@ -1608,7 +1610,7 @@ public class MainActivity extends AppCompatActivity
             categoriesToDisable[i] = !todolist.doesCategoryContainEvents(i);
         }
 
-        dialog = DialogBuilder.getCategorySelectorDialog(layout, helper, getDialogTheme(), settings, categoriesToDisable)
+        dialog = new DialogBuilder().getCategorySelectorDialog(layout, helper, getDialogTheme(), settings, categoriesToDisable)
                 .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -1732,11 +1734,11 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void elevateToolbar() {
-        mToolbar.setSelected(true);
+        ((View) mToolbar.getParent()).setSelected(true);
     }
 
     public void deelevateToolbar() {
-        mToolbar.setSelected(false);
+        ((View) mToolbar.getParent()).setSelected(false);
     }
 
 

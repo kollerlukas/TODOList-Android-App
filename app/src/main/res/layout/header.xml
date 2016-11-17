@@ -6,7 +6,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingTop="24dp"
-        android:background="@color/transparent">
+        android:background="@color/grey700_transparent">
 
     <com.google.android.gms.common.SignInButton
             android:id="@+id/sign_in_button"
@@ -46,5 +46,6 @@
 
     <View android:layout_width="match_parent"
           android:layout_height="1dp"
-          android:background="@color/separator_color"/>
+          android:background="@color/separator_color"
+          android:visibility="gone"/>
 </LinearLayout>

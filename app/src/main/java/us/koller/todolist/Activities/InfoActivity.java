@@ -5,7 +5,6 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import android.app.ActivityManager;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -26,12 +25,11 @@ import android.view.View;
 import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import us.koller.todolist.BuildConfig;
 import us.koller.todolist.R;
-import us.koller.todolist.RecyclerViewAdapters.Info_RVAdapter;
+import us.koller.todolist.RecyclerViewAdapters.InfoRVAdapter;
 import us.koller.todolist.Util.Callbacks.OnItemClickInterface;
 import us.koller.todolist.Util.ClickHelper.OnItemClickHelper;
 import us.koller.todolist.Util.ThemeHelper;
@@ -49,10 +47,6 @@ public class InfoActivity extends AppCompatActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        /*if (!getResources().getBoolean(R.bool.tablet)) {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        }*/
 
         setContentView(R.layout.activity_info);
 
@@ -97,7 +91,7 @@ public class InfoActivity extends AppCompatActivity {
                 ContextCompat.getDrawable(InfoActivity.this, R.drawable.ic_bug_report_grey_700_48dp),
                 ContextCompat.getDrawable(InfoActivity.this, R.drawable.ic_share_white_48dp),};
 
-        Info_RVAdapter mAdapter = new Info_RVAdapter(itemsText, itemsText_small, drawables);
+        InfoRVAdapter mAdapter = new InfoRVAdapter(itemsText, itemsText_small, drawables);
         mRecyclerView.setAdapter(mAdapter);
     }
 
@@ -138,7 +132,11 @@ public class InfoActivity extends AppCompatActivity {
         toolbar.setBackgroundColor(helper.get(ThemeHelper.TOOLBAR_COLOR));
         toolbar.setTitleTextColor(helper.get(ThemeHelper.TOOLBAR_TEXT_COLOR));
         if (helper.get(ThemeHelper.CORD_COLOR) != helper.get(ThemeHelper.TOOLBAR_COLOR)) {
-            toolbar.setSelected(true);
+            ((View) toolbar.getParent()).setSelected(true);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && helper.lightCoordColor()) {
+            toolbar.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         }
 
         View drawerIcon;

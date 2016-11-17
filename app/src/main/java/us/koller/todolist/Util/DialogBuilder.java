@@ -48,7 +48,7 @@ public class DialogBuilder {
     public static int selectedColor = 0;
     public static String addEventHint = "hint";
 
-    public static AlertDialog.Builder getAddEventDialog(final View layout, final ThemeHelper helper, int dialogTheme,
+    public AlertDialog.Builder getAddEventDialog(final View layout, final ThemeHelper helper, int dialogTheme,
                                                         int dialogTextColor) {
         final TextInputEditText editText = (TextInputEditText) layout.findViewById(R.id.edit_text);
         final RadioButton color_rb = (RadioButton) layout.findViewById(R.id.radio_button_color);
@@ -147,7 +147,7 @@ public class DialogBuilder {
                 .setNegativeButton(layout.getContext().getString(R.string.cancel), null);
     }
 
-    private static String getAddEventHint(Context context) {
+    private String getAddEventHint(Context context) {
         Random rand = new Random();
         String string;
         switch (rand.nextInt(3)) {
@@ -164,7 +164,7 @@ public class DialogBuilder {
         return string;
     }
 
-    public static AlertDialog.Builder getColorEventDialog(View layout, int dialogTheme, ThemeHelper helper) {
+    public AlertDialog.Builder getColorEventDialog(View layout, int dialogTheme, ThemeHelper helper) {
         return new AlertDialog.Builder(layout.getContext(), dialogTheme)
                 .setView(inflateColorSelector(layout, helper))
                 .setTitle(layout.getContext().getString(R.string.choose_a_color))
@@ -172,7 +172,7 @@ public class DialogBuilder {
                 .setNegativeButton(layout.getContext().getString(R.string.cancel), null);
     }
 
-    public static AlertDialog.Builder getEditEventDialog(final View dialogView, int dialogTheme, int dialogTextColor,
+    public AlertDialog.Builder getEditEventDialog(final View dialogView, int dialogTheme, int dialogTextColor,
                                                          final Event e) {
         final EditText editText = (EditText) dialogView.findViewById(R.id.edit_text);
         editText.setTextColor(dialogTextColor);
@@ -183,15 +183,9 @@ public class DialogBuilder {
                 .setTitle(dialogView.getContext().getString(R.string.edit_event))
                 .setView(dialogView)
                 .setNegativeButton(dialogView.getContext().getString(R.string.cancel), null);
-                /*.setPositiveButton(dialogView.getContext().getString(R.string.ok), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        editEventCallback.onPositiveButton(editText.getText().toString());
-                    }
-                });*/
     }
 
-    public static AlertDialog.Builder getAlarmInfoDialog(final View layout, final ThemeHelper helper, int dialogTheme,
+    public AlertDialog.Builder getAlarmInfoDialog(final View layout, final ThemeHelper helper, int dialogTheme,
                                                          final int dialogTextColor, final Event e, final AlarmInfoDialogOnPositiveCallback callback) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis((long) e.getAlarm().get(Alarm.TIME));
@@ -451,7 +445,7 @@ public class DialogBuilder {
                 });
     }
 
-    public static TimePickerDialog getTimePickerDialog(Context context, ThemeHelper helper,
+    public TimePickerDialog getTimePickerDialog(Context context, ThemeHelper helper,
                                                        TimePickerDialog.OnTimeSetListener onTimeSetListener) {
         Calendar calendar = Calendar.getInstance(TimeZone.getDefault());
         calendar.add(Calendar.MINUTE, 1);
@@ -476,7 +470,7 @@ public class DialogBuilder {
                 onTimeSetListener, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), timeFormat);
     }
 
-    public static DatePickerDialog getDatePickerDialog(Context context, ThemeHelper helper,
+    public DatePickerDialog getDatePickerDialog(Context context, ThemeHelper helper,
                                                        DatePickerDialog.OnDateSetListener onDateSetListener){
         final Calendar calendar = Calendar.getInstance(TimeZone.getDefault());
         int theme;
@@ -498,7 +492,7 @@ public class DialogBuilder {
                         calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
     }
 
-    public static AlertDialog.Builder getCategorySelectorDialog(View layout, ThemeHelper helper, int dialogTheme,
+    public AlertDialog.Builder getCategorySelectorDialog(View layout, ThemeHelper helper, int dialogTheme,
                                                                 final Settings settings, boolean[] categoriesToDisable){
         final ImageButton[] buttons = getColorButtons(layout);
         int[] sortedColors = helper.getSortedColorsColorSelect();
@@ -548,7 +542,7 @@ public class DialogBuilder {
     }
 
 
-    private static ColorStateList getColorStateListForSpinner(Context context, ThemeHelper helper) {
+    private ColorStateList getColorStateListForSpinner(Context context, ThemeHelper helper) {
         int color = helper.get(ThemeHelper.FAB_COLOR);
         if (helper.get(ThemeHelper.FAB_COLOR) == ContextCompat.getColor(context, R.color.white)) {
             color = ContextCompat.getColor(context, R.color.grey);
@@ -572,7 +566,7 @@ public class DialogBuilder {
         return new ColorStateList(states_spinner, colors_spinner);
     }
 
-    private static ColorStateList getColorStateListForCheckbox(Context context, ThemeHelper helper) {
+    private ColorStateList getColorStateListForCheckbox(Context context, ThemeHelper helper) {
         int color = helper.get(ThemeHelper.FAB_COLOR);
         if (helper.get(ThemeHelper.FAB_COLOR) == ContextCompat.getColor(context, R.color.white)) {
             color = ContextCompat.getColor(context, R.color.grey);
@@ -595,7 +589,7 @@ public class DialogBuilder {
         return new ColorStateList(states, colors);
     }
 
-    private static void hideOrShowView(View v, boolean show) {
+    private void hideOrShowView(View v, boolean show) {
         if (show) {
             v.setVisibility(View.VISIBLE);
         } else {
@@ -603,7 +597,7 @@ public class DialogBuilder {
         }
     }
 
-    private static Button[] getWeekButtons(View layout) {
+    private Button[] getWeekButtons(View layout) {
         Button[] buttons = new Button[7];
         buttons[0] = (Button) layout.findViewById(R.id.monday_button);
         buttons[1] = (Button) layout.findViewById(R.id.tuesday_button);
@@ -615,7 +609,7 @@ public class DialogBuilder {
         return buttons;
     }
 
-    private static int getWeekButtonsIndexById(View v) {
+    private int getWeekButtonsIndexById(View v) {
         int id = v.getId();
         switch (id) {
             case R.id.monday_button:
@@ -636,7 +630,7 @@ public class DialogBuilder {
         return 0;
     }
 
-    private static void colorSpinnerTextView(TextView textView, boolean enabled, int dialogTextColor, Context context) {
+    private void colorSpinnerTextView(TextView textView, boolean enabled, int dialogTextColor, Context context) {
         if (enabled) {
             textView.setTextColor(dialogTextColor);
         } else {
@@ -647,7 +641,7 @@ public class DialogBuilder {
         }
     }
 
-    private static View inflateColorSelector(View layout, ThemeHelper helper) {
+    private View inflateColorSelector(View layout, ThemeHelper helper) {
         final ImageButton[] buttons = getColorButtons(layout);
 
         int[] sortedColors = helper.getSortedColorsColorSelect();
@@ -658,7 +652,7 @@ public class DialogBuilder {
         return layout;
     }
 
-    private static ImageButton[] getColorButtons(View layout) {
+    private ImageButton[] getColorButtons(View layout) {
         final ImageButton[] buttons = new ImageButton[13];
         buttons[1] = (ImageButton) layout.findViewById(R.id.color1_button);
         buttons[2] = (ImageButton) layout.findViewById(R.id.color2_button);
@@ -675,7 +669,7 @@ public class DialogBuilder {
         return buttons;
     }
 
-    private static int getColorIndexByButtonId(int button_id) {
+    private int getColorIndexByButtonId(int button_id) {
         switch (button_id) {
             case R.id.color1_button:
                 return 1;

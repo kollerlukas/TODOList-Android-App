@@ -19,6 +19,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -35,20 +36,16 @@ import us.koller.todolist.Util.ThemeHelper;
 /**
  * Created by Lukas on 23.08.2015.
  */
-public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
+public class MainRVAdapter extends RecyclerView.Adapter<MainRVAdapter.EventViewHolder> {
 
     public static class EventViewHolder extends RecyclerView.ViewHolder implements OnClickListener {
         Event event;
 
         CardView card;
         CardView card_action_view;
-
         private TextView textview;
-
         private ImageView color_button;
-
         private ImageView edit_button;
-
         private ImageView alarm_button;
 
         public boolean semiTransparent = false;
@@ -172,14 +169,33 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
                 new Handler().postDelayed(new Runnable() {
                     public void run() {
                         ((MainActivity) itemView.getContext()).actionButtonClicked(edit_button, event);
+                        //replaceTextViewWithEditText();
+
                         isAnimationRunning = false;
                     }
                 }, 550);
             } else {
                 ((MainActivity) itemView.getContext()).actionButtonClicked(edit_button, event);
+                //replaceTextViewWithEditText();
             }
-
         }
+
+        /*private void replaceTextViewWithEditText(){
+            final EditText editText = (EditText) itemView.findViewById(R.id.event_name_edit);
+            editText.setText(textview.getText());
+            textview.setVisibility(View.GONE);
+            editText.setVisibility(View.VISIBLE);
+            *//*editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View v, boolean hasFocus) {
+                    if(!hasFocus){
+                        editText.setVisibility(View.GONE);
+                        textview.setText(editText.getText().toString());
+                        textview.setVisibility(View.VISIBLE);
+                    }
+                }
+            });*//*
+        }*/
 
         private void alarmButtonClicked() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
@@ -245,7 +261,8 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
             Animator animator = ViewAnimationUtils.createCircularReveal(reveal_bg,
                     color_button.getWidth() / 2 + color_button.getLeft() + card_action_view.getLeft(),
                     color_button.getHeight() / 2 + color_button.getTop() + card_action_view.getTop(),
-                    0, reveal_bg.getWidth() - color_button.getLeft());
+                    0, (float) Math.hypot(reveal_bg.getWidth() - color_button.getLeft() + color_button.getWidth()/2,
+                            reveal_bg.getHeight() - color_button.getBottom() + color_button.getHeight()/2));
             animator.setDuration(1000);
             animator.setStartDelay(250);
             animator.setInterpolator(new AccelerateDecelerateInterpolator());
@@ -367,7 +384,7 @@ public class RVAdapter extends RecyclerView.Adapter<RVAdapter.EventViewHolder> {
 
     private ArrayList<Long> semiTransparentEventIds;
 
-    public RVAdapter(ArrayList<Event> events) {
+    public MainRVAdapter(ArrayList<Event> events) {
         this.events = events;
         semiTransparentEventIds = new ArrayList<>();
     }

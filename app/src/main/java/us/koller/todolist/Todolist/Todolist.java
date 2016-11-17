@@ -1,7 +1,6 @@
 package us.koller.todolist.Todolist;
 
 import android.content.Context;
-import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -15,7 +14,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import us.koller.todolist.RecyclerViewAdapters.RVAdapter;
+import us.koller.todolist.RecyclerViewAdapters.MainRVAdapter;
 import us.koller.todolist.Settings;
 
 /**
@@ -52,7 +51,7 @@ public class Todolist {
         addedEvents = new ArrayList<>();
     }
 
-    public void addEvent(RVAdapter mAdapter, Event e) {
+    public void addEvent(MainRVAdapter mAdapter, Event e) {
         todolist.add(e);
         mAdapter.addItem(e);
 
@@ -65,7 +64,7 @@ public class Todolist {
         try {
             readData(context);
         } catch (JSONException | FileNotFoundException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
     }
 
@@ -100,7 +99,7 @@ public class Todolist {
         }
     }
 
-    public void removeEvent(RVAdapter mAdapter, int index) {
+    public void removeEvent(MainRVAdapter mAdapter, int index) {
         Event e = adapter_list.get(index);
         removeEvent(e);
         mAdapter.removeItem(index);
@@ -145,7 +144,7 @@ public class Todolist {
         return false;
     }
 
-    public void addOrRemoveEventFromAdapter(RVAdapter mAdapter) {
+    public void addOrRemoveEventFromAdapter(MainRVAdapter mAdapter) {
         Event[] tempAdapterList = new Event[adapter_list.size()];
         //Needed for running through the whole mAdapterlist
         for (int i = 0; i < adapter_list.size(); i++) {

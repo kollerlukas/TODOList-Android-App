@@ -107,4 +107,7 @@
     <string name="dark">dark</string>
     <string name="black">black</string>
     <string name="sync_switch">Sync</string>
+    <string name="sign_out">sign out</string>
+    <string name="add">add</string>
+    <string name="edit">edit</string>
 </resources>
