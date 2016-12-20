@@ -23,6 +23,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import android.animation.ObjectAnimator;
 import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.DatePickerDialog;
@@ -573,7 +574,10 @@ public class MainActivity extends AppCompatActivity
 
         mFab = (FloatingActionButton) findViewById(R.id.fab);
         mFab.setBackgroundTintList(ColorStateList.valueOf(helper.get(ThemeHelper.FAB_COLOR)));
-        mFab.getDrawable().setTint(helper.get(ThemeHelper.FAB_TEXT_COLOR));
+        //mFab.getDrawable().setTint(helper.get(ThemeHelper.FAB_TEXT_COLOR));
+        Drawable d = mFab.getDrawable().mutate();
+        d.setTint(helper.get(ThemeHelper.FAB_TEXT_COLOR));
+        mFab.setImageDrawable(d);
         mFab.setRippleColor(ContextCompat.getColor(MainActivity.this, R.color.white));
 
         mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
@@ -710,33 +714,37 @@ public class MainActivity extends AppCompatActivity
                     }
                 });
 
-        if (isNetworkAvailable()) {
+
             //check if user previouly signed in
             if (!(boolean) settings.get(Settings.SYNC_ENABLED)) {
                 personData.setVisibility(View.GONE);
                 mNavigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
             } else {
-                //try silent sign in
                 mNavigationView.getHeaderView(0).findViewById(R.id.sign_in_button).setVisibility(View.GONE);
                 personData.setVisibility(View.VISIBLE);
-                this.personName.setText("");
-                this.personEmail.setText("...");
-
-                OptionalPendingResult<GoogleSignInResult> opr
-                        = Auth.GoogleSignInApi.silentSignIn(mGoogleApiClient);
-                if (opr.isDone()) {
-                    GoogleSignInResult result = opr.get();
-                    handleSignInResult(result);
+                if (!isNetworkAvailable()) {
+                    this.personName.setText("");
+                    this.personEmail.setText("No internet connection...");
                 } else {
-                    opr.setResultCallback(new ResultCallback<GoogleSignInResult>() {
-                        @Override
-                        public void onResult(@NonNull GoogleSignInResult googleSignInResult) {
-                            handleSignInResult(googleSignInResult);
-                        }
-                    });
+                    //try silent sign in
+                    this.personName.setText("");
+                    this.personEmail.setText("...");
+
+                    OptionalPendingResult<GoogleSignInResult> opr
+                            = Auth.GoogleSignInApi.silentSignIn(mGoogleApiClient);
+                    if (opr.isDone()) {
+                        GoogleSignInResult result = opr.get();
+                        handleSignInResult(result);
+                    } else {
+                        opr.setResultCallback(new ResultCallback<GoogleSignInResult>() {
+                            @Override
+                            public void onResult(@NonNull GoogleSignInResult googleSignInResult) {
+                                handleSignInResult(googleSignInResult);
+                            }
+                        });
+                    }
                 }
             }
-        }
     }
 
     public void initFirebase() {
@@ -751,8 +759,8 @@ public class MainActivity extends AppCompatActivity
                     mDatabase = FirebaseDatabase.getInstance()
                             .getReference().child("accounts")
                             .child(user.getUid());
-                    personEmail.setText(user.getEmail());
-                    personName.setText(user.getDisplayName());
+                    /*personEmail.setText(user.getEmail());
+                    personName.setText(user.getDisplayName());*/
                 } else {
                     // User is signed out
                     Log.d("MainActivity", "signed out");
@@ -1119,7 +1127,7 @@ public class MainActivity extends AppCompatActivity
         if (todolist.getTodolistArray().size() != 0
                 && (boolean) settings.get(Settings.NOTIFICATION_TOGGLE)) {
             showNotification();
-        } else if (!(boolean) settings.get(Settings.NOTIFICATION_TOGGLE)) {
+        } else {
             cancelNotification();
         }
     }
@@ -1734,11 +1742,18 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void elevateToolbar() {
-        ((View) mToolbar.getParent()).setSelected(true);
+        if(((View) mToolbar.getParent()).getElevation() == 0f){
+            ObjectAnimator.ofFloat((View) mToolbar.getParent(), "elevation", 0f,
+                    getResources().getDimension(R.dimen.toolbar_elevation)).start();
+        }
     }
 
     public void deelevateToolbar() {
-        ((View) mToolbar.getParent()).setSelected(false);
+        if(((View) mToolbar.getParent()).getElevation() == 0f){
+            return;
+        }
+        ObjectAnimator.ofFloat((View) mToolbar.getParent(), "elevation",
+                getResources().getDimension(R.dimen.toolbar_elevation), 0f).start();
     }
 
 
@@ -1785,9 +1800,9 @@ public class MainActivity extends AppCompatActivity
 
     public int getDialogTheme() {
         if (helper.lightCoordColor()) {
-            return R.style.DialogTheme_light;
+            return R.style.DialogTheme_Light;
         }
-        return R.style.DialogTheme_dark;
+        return R.style.DialogTheme;
     }
 
     public int getColorIndexByButtonId(int button_id) {

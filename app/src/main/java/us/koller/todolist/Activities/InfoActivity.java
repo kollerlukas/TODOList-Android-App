@@ -2,36 +2,35 @@ package us.koller.todolist.Activities;
 
 import com.google.android.gms.common.GoogleApiAvailability;
 
+import android.animation.ObjectAnimator;
 import android.app.ActivityManager;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ShareCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.GravityCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.webkit.WebView;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
+
+import com.bumptech.glide.Glide;
 
 import us.koller.todolist.BuildConfig;
 import us.koller.todolist.R;
-import us.koller.todolist.RecyclerViewAdapters.InfoRVAdapter;
-import us.koller.todolist.Util.Callbacks.OnItemClickInterface;
-import us.koller.todolist.Util.ClickHelper.OnItemClickHelper;
 import us.koller.todolist.Util.ThemeHelper;
 
 
@@ -42,97 +41,113 @@ public class InfoActivity extends AppCompatActivity {
 
     private ThemeHelper helper;
 
-    private RecyclerView mRecyclerView;
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_info);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.info_activity_toolbar);
+        final Toolbar toolbar = (Toolbar) findViewById(R.id.info_activity_toolbar);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
         if(actionBar != null){
             actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setTitle("");
         }
 
-        initRecyclerView();
-
         initTheme(toolbar);
+
+        final ScrollView scrollView = (ScrollView) findViewById(R.id.scroll_view);
+        scrollView.getViewTreeObserver()
+                .addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {
+                    @Override
+                    public void onScrollChanged() {
+                        if(scrollView.getScrollY() != 0){
+                            elevateToolbar(toolbar);
+                        } else {
+                            deelevateToolbar(toolbar);
+                        }
+                    }
+                });
+
+        TextView version = (TextView) findViewById(R.id.version);
+        if(helper.lightCoordColor()){
+            version.setTextColor(ContextCompat.getColor(this, R.color.grey700));
+        }
+        version.setText(BuildConfig.VERSION_NAME);
+
+        ImageView icon = (ImageView) findViewById(R.id.icon);
+        Glide.with(this)
+                .load("http://todolist.koller.us/todolist_icon_512px")
+                .into(icon);
+
+        //Glide license
+        View license_item_1 = findViewById(R.id.license_item_1);
+        ((TextView) license_item_1.findViewById(R.id.text)).setText(R.string.glide);
+        license_item_1.findViewById(R.id.text).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(Intent.ACTION_VIEW)
+                        .setData(Uri.parse("https://github.com/bumptech/glide/blob/master/LICENSE")));
+            }
+        });
+        license_item_1.findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(Intent.ACTION_VIEW)
+                        .setData(Uri.parse("https://github.com/bumptech/glide")));
+            }
+        });
+
+        //MaterialNumberPicker license
+        View license_item_2 = findViewById(R.id.license_item_2);
+        ((TextView) license_item_2.findViewById(R.id.text)).setText(R.string.materialnumberpicker);
+        license_item_2.findViewById(R.id.text).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(Intent.ACTION_VIEW)
+                        .setData(Uri.parse("https://github.com/KasualBusiness/MaterialNumberPicker/blob/master/LICENSE")));
+            }
+        });
+        license_item_2.findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(Intent.ACTION_VIEW)
+                        .setData(Uri.parse("https://github.com/KasualBusiness/MaterialNumberPicker")));
+            }
+        });
+
+        //Google Play Service Attribution
+        View license_item_3 = findViewById(R.id.license_item_3);
+        ((TextView) license_item_3.findViewById(R.id.text)).setText(R.string.google_play_servcie_attribution);
+        license_item_3.findViewById(R.id.text).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                WebView webView = new WebView(InfoActivity.this);
+                webView.loadData(GoogleApiAvailability.getInstance()
+                        .getOpenSourceSoftwareLicenseInfo(InfoActivity.this), "text/plain", "utf-8");
+
+                new AlertDialog.Builder(InfoActivity.this)
+                        .setTitle("Google Play Servcie Attribution")
+                        .setView(webView)
+                        .setPositiveButton("Ok", null)
+                        .create().show();
+            }
+        });
+        license_item_3.findViewById(R.id.button).setVisibility(View.GONE);
     }
 
     public InfoActivity() {
     }
 
-    public void initRecyclerView() {
-        mRecyclerView = (RecyclerView) findViewById(R.id.info_recyclerView);
-        mRecyclerView.setHasFixedSize(true);
-
-        addOnItemTouchListenerToRecyclerView();
-
-        LinearLayoutManager mLinearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
-        mRecyclerView.setLayoutManager(mLinearLayoutManager);
-
-        String[] itemsText = {getString(R.string.version),
-                getString(R.string.developer), getString(R.string.supported_languages),
-                getString(R.string.translators), getString(R.string.legal_notices),
-                getString(R.string.report_a_bug), getString(R.string.share_app)};
-
-        String[] itemsText_small = {BuildConfig.VERSION_NAME,
-                getString(R.string.developer_name), getString(R.string.english_german),
-                "", "", "", ""};
-
-        Drawable[] drawables = {ContextCompat.getDrawable(InfoActivity.this, R.drawable.ic_info_outline_grey_700_48dp),
-                ContextCompat.getDrawable(InfoActivity.this, R.drawable.ic_account_circle_grey_700_48dp),
-                ContextCompat.getDrawable(InfoActivity.this, R.drawable.ic_language_grey_700_48dp),
-                ContextCompat.getDrawable(InfoActivity.this, R.drawable.ic_translate_black_48dp),
-                ContextCompat.getDrawable(InfoActivity.this, R.drawable.ic_description_grey_700_48dp),
-                ContextCompat.getDrawable(InfoActivity.this, R.drawable.ic_bug_report_grey_700_48dp),
-                ContextCompat.getDrawable(InfoActivity.this, R.drawable.ic_share_white_48dp),};
-
-        InfoRVAdapter mAdapter = new InfoRVAdapter(itemsText, itemsText_small, drawables);
-        mRecyclerView.setAdapter(mAdapter);
-    }
-
-    public void addOnItemTouchListenerToRecyclerView() {
-        OnItemClickHelper.addTo(mRecyclerView).setOnItemClickListener(new OnItemClickInterface() {
-            @Override
-            public void onItemClicked(RecyclerView recyclerView, final int position, final RecyclerView.ViewHolder holder) {
-                switch (position) {
-                    case 0: /*nothing*/
-                        break;
-                    case 1:
-                        developerClicked();
-                        break;
-                    case 2: /*nothing*/
-                        break;
-                    case 3:
-                        translatorsClicked();
-                        break;
-                    case 4:
-                        licencesClicked();
-                        break;
-                    case 5:
-                        reportBugButtonClicked();
-                        break;
-                    case 6:
-                        shareApp();
-                        break;
-                }
-            }
-        });
-    }
-
     public void initTheme(Toolbar toolbar) {
         helper = new ThemeHelper(this);
-        LinearLayout linearLayout = (LinearLayout) findViewById(R.id.info_activity_layout);
 
-        linearLayout.setBackgroundColor(helper.get(ThemeHelper.CORD_COLOR));
+        findViewById(R.id.info_activity_layout).setBackgroundColor(helper.get(ThemeHelper.CORD_COLOR));
         toolbar.setBackgroundColor(helper.get(ThemeHelper.TOOLBAR_COLOR));
         toolbar.setTitleTextColor(helper.get(ThemeHelper.TOOLBAR_TEXT_COLOR));
         if (helper.get(ThemeHelper.CORD_COLOR) != helper.get(ThemeHelper.TOOLBAR_COLOR)) {
-            ((View) toolbar.getParent()).setSelected(true);
+            elevateToolbar(toolbar);
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && helper.lightCoordColor()) {
@@ -169,62 +184,6 @@ public class InfoActivity extends AppCompatActivity {
         }
     }
 
-    public void licencesClicked() {
-        View layout = View.inflate(this, R.layout.licences_layout, null);
-
-        TextView text_view_1 = (TextView) layout.findViewById(R.id.text_view_1);
-        TextView text_view_2 = (TextView) layout.findViewById(R.id.text_view_2);
-        TextView text_view_3 = (TextView) layout.findViewById(R.id.text_view_3);
-
-        WebView web_view_1 = (WebView) layout.findViewById(R.id.web_view_1);
-        WebView web_view_2 = (WebView) layout.findViewById(R.id.web_view_2);
-        WebView web_view_3 = (WebView) layout.findViewById(R.id.web_view_3);
-
-        text_view_1.setTextColor(getDialogTextColor());
-        text_view_2.setTextColor(getDialogTextColor());
-        text_view_3.setTextColor(getDialogTextColor());
-
-        web_view_1.loadDataWithBaseURL("",
-                getString(R.string.licences_text2), "text/html", "UTF-8", "");
-        web_view_2.loadDataWithBaseURL("",
-                getString(R.string.licences_text4), "text/html", "UTF-8", "");
-        web_view_3.loadDataWithBaseURL("", GoogleApiAvailability.getInstance()
-                .getOpenSourceSoftwareLicenseInfo(InfoActivity.this), "text/html", "UTF-8", "");
-
-        AlertDialog dialog =
-                new AlertDialog.Builder(InfoActivity.this, getDialogTheme())
-                        .setTitle(getString(R.string.legal_notices))
-                        .setView(layout)
-                        .setCancelable(true)
-                        .create();
-        dialog.show();
-    }
-
-    public void translatorsClicked() {
-        View layout = View.inflate(this, R.layout.translators, null);
-
-        TextView text_view0 = (TextView) layout.findViewById(R.id.name0);
-        TextView text_view1 = (TextView) layout.findViewById(R.id.name1);
-        TextView text_view2 = (TextView) layout.findViewById(R.id.name2);
-        TextView text_view3 = (TextView) layout.findViewById(R.id.name3);
-        TextView text_view4 = (TextView) layout.findViewById(R.id.name4);
-
-        text_view0.setTextColor(getDialogTextColor());
-        text_view1.setTextColor(getDialogTextColor());
-        text_view2.setTextColor(getDialogTextColor());
-        text_view3.setTextColor(getDialogTextColor());
-        text_view4.setTextColor(getDialogTextColor());
-
-        AlertDialog dialog = new AlertDialog.Builder(InfoActivity.this, getDialogTheme())
-                .setView(layout)
-                .setCancelable(true)
-                .create();
-        if(dialog.getWindow() != null){
-            dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimations;
-        }
-        dialog.show();
-    }
-
     public void robbeCardClicked(View v) {
         openGPlus("102428112980509360621");
     }
@@ -233,7 +192,7 @@ public class InfoActivity extends AppCompatActivity {
         openGPlus("116337351061902993856");
     }
 
-    public void developerClicked() {
+    public void developerClicked(View v) {
         openGPlus("107903926422996280765");
     }
 
@@ -249,19 +208,26 @@ public class InfoActivity extends AppCompatActivity {
         }
     }
 
-    public void shareApp() {
-        String text = "Hey check out that awesome App called TODOList at: todolist.koller.us";
+    public void elevateToolbar(Toolbar toolbar) {
+        if(((View) toolbar.getParent()).getElevation() == 0f){
+            ObjectAnimator.ofFloat((View) toolbar.getParent(), "elevation", 0f,
+                    getResources().getDimension(R.dimen.toolbar_elevation)).start();
+        }
+    }
 
-        Intent sendIntent = new Intent();
-        sendIntent.setAction(Intent.ACTION_SEND);
-        sendIntent.putExtra(Intent.EXTRA_TEXT, text);
-        sendIntent.setType("text/plain");
-        startActivity(sendIntent);
+    public void deelevateToolbar(Toolbar toolbar) {
+        if(((View) toolbar.getParent()).getElevation() == 0f
+                || helper.get(ThemeHelper.CORD_COLOR) != helper.get(ThemeHelper.TOOLBAR_COLOR)){
+            return;
+        }
+        ObjectAnimator.ofFloat((View) toolbar.getParent(), "elevation",
+                getResources().getDimension(R.dimen.toolbar_elevation), 0f).start();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_info, menu);
+        menu.getItem(0).getIcon().setColorFilter(helper.getToolbarIconColor(), PorterDuff.Mode.SRC_IN);
         return true;
     }
 
@@ -271,30 +237,22 @@ public class InfoActivity extends AppCompatActivity {
             case android.R.id.home:
                 this.finish();
                 this.overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
-                return true;
+                break;
+            case R.id.reportBug:
+                reportBugButtonClicked();
+                break;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    public void doesNothing(View v) {
-        //Only for the ripple Effect
     }
 
     public int getDialogTheme() {
         int theme;
         if (helper.lightCoordColor()) {
-            theme = R.style.DialogTheme_light;
+            theme = R.style.DialogTheme_Light;
         } else {
-            theme = R.style.DialogTheme_dark;
+            theme = R.style.DialogTheme;
         }
         return theme;
-    }
-
-    public int getDialogTextColor() {
-        if (helper.lightCoordColor()) {
-            return helper.getDarkTextColor();
-        }
-        return helper.getLightTextColor();
     }
 
     @Override

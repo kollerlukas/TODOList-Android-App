@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import us.koller.todolist.R;
 
@@ -17,7 +18,7 @@ import us.koller.todolist.Util.ThemeHelper;
 public class ThemeRVAdapter extends RecyclerView.Adapter {
 
     public static class ColorViewHolder extends RecyclerView.ViewHolder {
-        private View v;
+        View v;
 
         ColorViewHolder(View v) {
             super(v);

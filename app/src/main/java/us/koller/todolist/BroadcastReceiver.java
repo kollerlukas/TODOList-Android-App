@@ -11,6 +11,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.media.AudioManager;
 import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
@@ -52,7 +53,7 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
         long id = intent.getLongExtra("EventId", 0L);
         switch (intent.getAction()) {
             case "ALARM":
-                Toast.makeText(context, "ALARM", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(context, "ALARM", Toast.LENGTH_SHORT).show();
                 SharedPreferences sharedpreferences
                         = context.getSharedPreferences("todolist", Context.MODE_PRIVATE);
 
@@ -60,8 +61,12 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
                 if (event == null) {
                     return;
                 }
+                AudioManager audioManager
+                        = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+                boolean vibrate = sharedpreferences.getBoolean(Settings.VIBRATE, true)
+                        && audioManager.getRingerMode() != AudioManager.RINGER_MODE_SILENT;
                 sendAlarmNotification(context, event.getWhatToDo(), event.getId(),
-                        sharedpreferences.getBoolean(Settings.VIBRATE, true), event.getColor());
+                        vibrate, event.getColor());
                 checkIfEventIsRepeating(context);
                 break;
 

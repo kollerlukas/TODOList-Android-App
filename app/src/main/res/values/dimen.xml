@@ -4,4 +4,5 @@
     <dimen name="status_bar_height">24dp</dimen>
     <dimen name="status_toolbar_height">80dp</dimen>
     <dimen name="theme_color_panel_height">200dp</dimen>
+    <dimen name="toolbar_elevation">4dp</dimen>
 </resources>

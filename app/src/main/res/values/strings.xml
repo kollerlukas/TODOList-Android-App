@@ -63,36 +63,6 @@
     <string name="no">No</string>
     <string name="syncData">Sync</string>
     <string name="navigation_header0">Sync</string>
-    <string name="licences_text1" translatable="false">Android Support Libraries:</string>
-    <string name="licences_text2" translatable="false">
-        Copyright © 2011 The Android Open Source Project
-\n
-\nLicensed under the Apache License, Version 2.0 (the "License");
-\nyou may not use this file except in compliance with the License.
-\nYou may obtain a copy of the License at
-\n
-\n      http://www.apache.org/licenses/LICENSE-2.0
-\n
-\nUnless required by applicable law or agreed to in writing, software
-\ndistributed under the License is distributed on an "AS IS" BASIS,
-\nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-\nSee the License for the specific language governing permissions and
-\nlimitations under the License.</string>
-    <string name="licences_text3" translatable="false">MaterialNumberPicker: </string>
-    <string name="licences_text4" translatable="false">Copyright 2015 Kasual Business.
-\n
-\nLicensed under the Apache License, Version 2.0 (the "License");
-\nyou may not use this file except in compliance with the License.
-\nYou may obtain a copy of the License at
-\n
-\n   http://www.apache.org/licenses/LICENSE-2.0
-\n
-\nUnless required by applicable law or agreed to in writing, software
-\ndistributed under the License is distributed on an "AS IS" BASIS,
-\nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-\nSee the License for the specific language governing permissions and
-\nlimitations under the License.</string>
-    <string name="licences_text5" translatable="false">Google Play Services Attribution:</string>
     <string name="translators">Translators</string>
     <string name="translators_names0">Matteo Delton</string>
     <string name="translators_names1">Renata Suzart</string>
@@ -148,4 +118,7 @@
     <string name="sign_out">sign out</string>
     <string name="add">add</string>
     <string name="edit">edit</string>
+    <string name="glide" translatable="false">bumptech/glide</string>
+    <string name="google_play_servcie_attribution" translatable="false">Google Play Service Attribution</string>
+    <string name="materialnumberpicker" translatable="false">KasualBusiness/MaterialNumberPicker</string>
 </resources>

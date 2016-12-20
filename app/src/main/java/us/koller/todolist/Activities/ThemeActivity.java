@@ -81,10 +81,6 @@ public class ThemeActivity extends AppCompatActivity {
 
         helper = new ThemeHelper(this);
 
-        /*if (!getResources().getBoolean(R.bool.tablet)) {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        }*/
-
         setContentView(R.layout.activity_theme);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar_theme);
@@ -107,6 +103,7 @@ public class ThemeActivity extends AppCompatActivity {
 
         presetThemes = (Button) findViewById(R.id.preset_themes);
 
+        toolbar_card.setNavigationIcon(ContextCompat.getDrawable(this, R.drawable.ic_menu_black_24dp));
         toolbar_card.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
@@ -136,9 +133,6 @@ public class ThemeActivity extends AppCompatActivity {
         mRecyclerView = (RecyclerView) findViewById(R.id.rv_theme);
         mRecyclerView.setHasFixedSize(true);
         addOnItemTouchListenerToRecyclerView();
-
-        /*LinearLayoutManager mLinearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
-        mRecyclerView.setLayoutManager(mLinearLayoutManager);*/
 
         StaggeredGridLayoutManager mStaggeredGridLayoutManager = new StaggeredGridLayoutManager(
                 getResources().getInteger(R.integer.layout_manager_span_count),
@@ -464,7 +458,7 @@ public class ThemeActivity extends AppCompatActivity {
         });
 
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DialogTheme_light_noKeyboard);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DialogTheme_Light_noKeyboard);
         builder.setView(layout)
                 .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
                     @Override
@@ -715,7 +709,7 @@ public class ThemeActivity extends AppCompatActivity {
 
     public void showInfoDialog() {
         AlertDialog infoDialog;
-        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DialogTheme_light)
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DialogTheme_Light)
                 .setTitle(getString(R.string.themeActivityInfoDialogTitle))
                 .setMessage(getString(R.string.themeActivityInfoDialogContent))
                 .setPositiveButton(getString(R.string.ok), null);

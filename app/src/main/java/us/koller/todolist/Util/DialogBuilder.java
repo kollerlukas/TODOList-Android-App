@@ -14,6 +14,7 @@ import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.AppCompatSpinner;
 import android.text.Html;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -166,10 +167,10 @@ public class DialogBuilder {
 
     public AlertDialog.Builder getColorEventDialog(View layout, int dialogTheme, ThemeHelper helper) {
         return new AlertDialog.Builder(layout.getContext(), dialogTheme)
-                .setView(inflateColorSelector(layout, helper))
-                .setTitle(layout.getContext().getString(R.string.choose_a_color))
-                .setCancelable(true)
-                .setNegativeButton(layout.getContext().getString(R.string.cancel), null);
+                .setView(inflateColorSelector(layout, helper));
+                //.setTitle(layout.getContext().getString(R.string.choose_a_color))
+                //.setCancelable(true)
+                //.setNegativeButton(layout.getContext().getString(R.string.cancel), null);
     }
 
     public AlertDialog.Builder getEditEventDialog(final View dialogView, int dialogTheme, int dialogTextColor,
@@ -381,7 +382,7 @@ public class DialogBuilder {
                             ContextCompat.getColor(layout.getContext(), R.color.white), PorterDuff.Mode.SRC_IN);
                     b = false;
                 } else {
-                    clickedButton.setTextColor(helper.get(ThemeHelper.FAB_COLOR));
+                    clickedButton.setTextColor(helper.get(ThemeHelper.FAB_TEXT_COLOR));
                     clickedButton.getBackground().setColorFilter(helper.get(ThemeHelper.FAB_COLOR), PorterDuff.Mode.SRC_IN);
                     b = true;
                 }

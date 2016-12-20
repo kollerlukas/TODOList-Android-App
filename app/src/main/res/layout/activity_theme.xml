@@ -7,8 +7,7 @@
         android:layout_height="match_parent"
         android:onClick="CoordinatorLayoutClicked"
         android:foreground="?android:attr/selectableItemBackground"
-        tools:context=".Activities.ThemeActivity"
-        android:fitsSystemWindows="true">
+        tools:context=".Activities.ThemeActivity">
 
     <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar_theme"
@@ -41,16 +40,9 @@
 
         <android.support.design.widget.CoordinatorLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:paddingTop="@dimen/status_bar_height"
                 android:foreground="?android:attr/selectableItemBackground">
-
-            <android.support.v7.widget.RecyclerView
-                    android:id="@+id/rv_theme"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:paddingTop="?attr/actionBarSize"
-                    android:splitMotionEvents="false"/>
 
             <android.support.v7.widget.Toolbar
                     android:id="@+id/toolbar_theme_card"
@@ -59,8 +51,8 @@
                     android:elevation="0dp"
                     android:onClick="ToolbarClicked"
                     android:stateListAnimator="@animator/toolbar_raise"
-                    app:title="@string/app_name"
-                    android:foreground="?android:attr/selectableItemBackground"/>
+                    android:foreground="?android:attr/selectableItemBackground"
+                    app:title="@string/app_name"/>
 
             <android.support.design.widget.FloatingActionButton
                     android:id="@+id/fab_theme"
@@ -77,6 +69,13 @@
                     app:fabSize="normal"
                     android:src="@drawable/ic_add"
                     app:rippleColor="@color/white"/>
+
+            <android.support.v7.widget.RecyclerView
+                    android:id="@+id/rv_theme"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="?actionBarSize"
+                    android:splitMotionEvents="false"/>
         </android.support.design.widget.CoordinatorLayout>
     </android.support.v7.widget.CardView>
 

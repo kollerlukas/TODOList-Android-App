@@ -1,18 +1,202 @@
-<LinearLayout
+<android.support.design.widget.CoordinatorLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/info_activity_layout"
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".Activities.InfoActivity"
-        android:fitsSystemWindows="true">
+        android:fitsSystemWindows="true"
+        tools:context=".Activities.InfoActivity">
+
+    <ScrollView
+            android:id="@+id/scroll_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingTop="?android:attr/actionBarSize"
+            android:clipToPadding="true">
+
+        <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+            <ImageView
+                    android:id="@+id/icon"
+                    android:layout_width="125dp"
+                    android:layout_height="125dp"
+                    android:layout_gravity="center_horizontal"
+                    android:padding="4dp"/>
+
+            <TextView
+                    android:id="@+id/version"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    style="@style/Theme.TODOList.InfoActivity.TextViewStyle"
+                    android:textColor="@color/white"/>
+
+            <!--developer card-->
+            <android.support.v7.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="16dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp">
+
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                    <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:background="@color/white">
+
+                        <ImageView
+                                android:layout_width="30dp"
+                                android:layout_height="30dp"
+                                android:src="@drawable/ic_account_circle_grey_700_48dp"
+                                android:layout_margin="16dp"/>
+
+                        <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/developer"
+                                android:layout_gravity="center_vertical"
+                                style="@style/Theme.TODOList.InfoActivity.TextViewStyle.Headline"/>
+                    </LinearLayout>
+
+                    <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/developer_name"
+                            android:onClick="developerClicked"
+                            style="@style/Theme.TODOList.InfoActivity.TextViewStyle"/>
+                </LinearLayout>
+            </android.support.v7.widget.CardView>
+
+            <!--translator card-->
+            <android.support.v7.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="16dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp">
+
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                    <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:background="@color/white">
+
+                        <ImageView
+                                android:layout_width="30dp"
+                                android:layout_height="30dp"
+                                android:src="@drawable/ic_translate_black_48dp"
+                                android:tint="@color/grey700"
+                                android:layout_margin="16dp"/>
+
+                        <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/translators"
+                                android:layout_gravity="center_vertical"
+                                style="@style/Theme.TODOList.InfoActivity.TextViewStyle.Headline"/>
+                    </LinearLayout>
+
+                    <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/translators_names0"
+                            style="@style/Theme.TODOList.InfoActivity.TextViewStyle"/>
+
+                    <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/translators_names1"
+                            style="@style/Theme.TODOList.InfoActivity.TextViewStyle"/>
+
+                    <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/translators_names2"
+                            android:onClick="oemerCardClicked"
+                            style="@style/Theme.TODOList.InfoActivity.TextViewStyle"/>
+
+                    <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/translators_names3"
+                            android:onClick="robbeCardClicked"
+                            style="@style/Theme.TODOList.InfoActivity.TextViewStyle"/>
+
+                    <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/translators_names4"
+                            style="@style/Theme.TODOList.InfoActivity.TextViewStyle"/>
+                </LinearLayout>
+            </android.support.v7.widget.CardView>
+
+            <!--legal notices card-->
+            <android.support.v7.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="16dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp">
+
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                    <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:background="@color/white">
+
+                        <ImageView
+                                android:layout_width="30dp"
+                                android:layout_height="30dp"
+                                android:src="@drawable/ic_description_grey_700_48dp"
+                                android:layout_margin="16dp"/>
+
+                        <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/legal_notices"
+                                android:layout_gravity="center_vertical"
+                                style="@style/Theme.TODOList.InfoActivity.TextViewStyle.Headline"/>
+                    </LinearLayout>
+
+                    <include
+                            android:id="@+id/license_item_1"
+                            layout="@layout/license_item"/>
+
+                    <include
+                            android:id="@+id/license_item_2"
+                            layout="@layout/license_item"/>
+
+                    <include
+                            android:id="@+id/license_item_3"
+                            layout="@layout/license_item"/>
+                </LinearLayout>
+            </android.support.v7.widget.CardView>
+        </LinearLayout>
+    </ScrollView>
 
     <android.support.design.widget.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:stateListAnimator="@animator/toolbar_raise"
             app:elevation="0dp"
             android:fitsSystemWindows="true">
 
@@ -20,69 +204,6 @@
                 android:id="@+id/info_activity_toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/app_name"
                 android:fitsSystemWindows="true"/>
     </android.support.design.widget.AppBarLayout>
-
-    <android.support.v7.widget.CardView
-            android:id="@+id/infocard"
-            android:layout_width="300dp"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:layout_margin="32dp"
-            android:foreground="?android:attr/selectableItemBackground"
-            android:layout_gravity="center"
-            app:cardCornerRadius="2dp"
-            app:cardElevation="2dp"
-            app:cardPreventCornerOverlap="false">
-
-        <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/transparent"
-                android:orientation="vertical">
-
-            <android.support.v7.widget.CardView
-                    android:id="@+id/icon_card"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:foreground="?android:attr/selectableItemBackground"
-                    android:padding="20dp"
-                    app:cardBackgroundColor="@color/white"
-                    app:cardCornerRadius="0dp"
-                    app:cardElevation="2dp">
-
-                <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent">
-
-                    <ImageView
-                            android:id="@+id/image1"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_centerVertical="true"
-                            android:layout_gravity="start"
-                            android:layout_margin="20dp"
-                            android:contentDescription="@string/launcher_icon"
-                            android:src="@mipmap/ic_launcher"/>
-
-                    <TextView
-                            android:id="@+id/text_view"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_centerVertical="true"
-                            android:layout_margin="5dp"
-                            android:layout_toEndOf="@+id/image1"
-                            android:text="@string/app_name"
-                            android:textColor="@color/grey700"
-                            android:textSize="30sp"/>
-                </RelativeLayout>
-            </android.support.v7.widget.CardView>
-
-            <android.support.v7.widget.RecyclerView
-                    android:id="@+id/info_recyclerView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
-        </LinearLayout>
-    </android.support.v7.widget.CardView>
-</LinearLayout>
+</android.support.design.widget.CoordinatorLayout>

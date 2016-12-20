@@ -45,16 +45,6 @@
                     android:padding="16dp"
                     android:textColor="@color/white"
                     android:textSize="24sp"/>
-
-            <!--<EditText
-                    android:id="@+id/event_name_edit"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="start"
-                    android:padding="16dp"
-                    android:textColor="@color/white"
-                    android:textSize="24sp"
-                    android:visibility="gone"/>-->
         </android.support.v7.widget.CardView>
 
         <android.support.v7.widget.CardView

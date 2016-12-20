@@ -19,7 +19,6 @@ import android.view.View.OnClickListener;
 import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -169,33 +168,19 @@ public class MainRVAdapter extends RecyclerView.Adapter<MainRVAdapter.EventViewH
                 new Handler().postDelayed(new Runnable() {
                     public void run() {
                         ((MainActivity) itemView.getContext()).actionButtonClicked(edit_button, event);
-                        //replaceTextViewWithEditText();
+                        /*textview.inEditMode = true;
+                        textview.setSelection(0);
+
+                        InputMethodManager inputMethodManager = (InputMethodManager) textview.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                        inputMethodManager.toggleSoftInputFromWindow(textview.getApplicationWindowToken(), InputMethodManager.SHOW_FORCED, 0);*/
 
                         isAnimationRunning = false;
                     }
                 }, 550);
             } else {
                 ((MainActivity) itemView.getContext()).actionButtonClicked(edit_button, event);
-                //replaceTextViewWithEditText();
             }
         }
-
-        /*private void replaceTextViewWithEditText(){
-            final EditText editText = (EditText) itemView.findViewById(R.id.event_name_edit);
-            editText.setText(textview.getText());
-            textview.setVisibility(View.GONE);
-            editText.setVisibility(View.VISIBLE);
-            *//*editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View v, boolean hasFocus) {
-                    if(!hasFocus){
-                        editText.setVisibility(View.GONE);
-                        textview.setText(editText.getText().toString());
-                        textview.setVisibility(View.VISIBLE);
-                    }
-                }
-            });*//*
-        }*/
 
         private void alarmButtonClicked() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){

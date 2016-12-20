@@ -5,7 +5,7 @@
     <group android:id="@+id/group0"
            android:visible="false">
         <item android:id="@+id/sync_switch"
-              android:icon="@drawable/ic_vibration_grey_500_24dp"
+              android:icon="@drawable/ic_sync_black_24dp"
               android:title="@string/sync_switch"
               app:actionLayout="@layout/menu_switch"
               app:showAsAction="ifRoom"/>
