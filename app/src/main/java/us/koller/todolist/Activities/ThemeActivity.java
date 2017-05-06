@@ -1,5 +1,6 @@
 package us.koller.todolist.Activities;
 
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -118,7 +119,7 @@ public class ThemeActivity extends AppCompatActivity {
             }
         });
 
-        deelevateToolbar();
+        deelevateToolbar(toolbar_card);
 
         initRecyclerView();
         initTheme();
@@ -197,7 +198,7 @@ public class ThemeActivity extends AppCompatActivity {
 
         if (helper.get(ThemeHelper.CORD_COLOR) != helper.get(ThemeHelper.TOOLBAR_COLOR)) {
             toolbarAndBackgroundSameColor = false;
-            elevateToolbar();
+            elevateToolbar(toolbar_card);
         }
 
         for (int i = 0; i < mAdapter.getItemCount(); i++) {
@@ -263,7 +264,7 @@ public class ThemeActivity extends AppCompatActivity {
             toolbarAndBackgroundSameColor = true;
         }
         if (!toolbarAndBackgroundSameColor) {
-            elevateToolbar();
+            elevateToolbar(toolbar_card);
         } else {
             checkToolbarElevation();
         }
@@ -720,23 +721,41 @@ public class ThemeActivity extends AppCompatActivity {
 
     public void checkToolbarElevation() {
         if (helper.get(ThemeHelper.CORD_COLOR) != helper.get(ThemeHelper.TOOLBAR_COLOR)) {
-            elevateToolbar();
+            elevateToolbar(toolbar_card);
             return;
         }
 
         if (mRecyclerView.canScrollVertically(-1)) {
-            elevateToolbar();
+            elevateToolbar(toolbar_card);
         } else {
-            deelevateToolbar();
+            deelevateToolbar(toolbar_card);
         }
     }
 
-    public void elevateToolbar() {
+    /*public void elevateToolbar() {
         toolbar_card.setSelected(true);
     }
 
     public void deelevateToolbar() {
         toolbar_card.setSelected(false);
+    }*/
+
+    public void elevateToolbar(Toolbar toolbar) {
+        if(!((View) toolbar.getParent()).isSelected()){
+            ObjectAnimator.ofFloat((View) toolbar.getParent(), "elevation", 0f,
+                    getResources().getDimension(R.dimen.toolbar_elevation)).start();
+            ((View) toolbar.getParent()).setSelected(true);
+        }
+    }
+
+    public void deelevateToolbar(Toolbar toolbar) {
+        if(!((View) toolbar.getParent()).isSelected()
+                || helper.get(ThemeHelper.CORD_COLOR) != helper.get(ThemeHelper.TOOLBAR_COLOR)){
+            return;
+        }
+        ObjectAnimator.ofFloat((View) toolbar.getParent(), "elevation",
+                getResources().getDimension(R.dimen.toolbar_elevation), 0f).start();
+        ((View) toolbar.getParent()).setSelected(false);
     }
 }
 

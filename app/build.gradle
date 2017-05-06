@@ -2,14 +2,14 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion "23.0.3"
+    buildToolsVersion "25.0.0"
 
     defaultConfig {
         applicationId "us.koller.todolist"
         minSdkVersion 21
         targetSdkVersion 25
-        versionCode 61
-        versionName "2.2.0"
+        versionCode 62
+        versionName "2.2.1"
         manifestPlaceholders = [applicationLabel: "@string/app_name"]
     }
 

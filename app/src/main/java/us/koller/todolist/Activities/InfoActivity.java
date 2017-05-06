@@ -127,11 +127,13 @@ public class InfoActivity extends AppCompatActivity {
                 webView.loadData(GoogleApiAvailability.getInstance()
                         .getOpenSourceSoftwareLicenseInfo(InfoActivity.this), "text/plain", "utf-8");
 
-                new AlertDialog.Builder(InfoActivity.this)
+                AlertDialog dialog = new AlertDialog.Builder(InfoActivity.this)
                         .setTitle("Google Play Servcie Attribution")
                         .setView(webView)
                         .setPositiveButton("Ok", null)
-                        .create().show();
+                        .create();
+                dialog.show();
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(helper.get(ThemeHelper.FAB_COLOR));
             }
         });
         license_item_3.findViewById(R.id.button).setVisibility(View.GONE);
@@ -197,31 +199,25 @@ public class InfoActivity extends AppCompatActivity {
     }
 
     public void openGPlus(String profile) {
-        try {
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setClassName("com.google.android.apps.plus",
-                    "com.google.android.apps.plus.phone.UrlGatewayActivity");
-            intent.putExtra("customAppUri", profile);
-            startActivity(intent);
-        } catch (ActivityNotFoundException e) {
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://plus.google.com/" + profile + "/posts")));
-        }
+        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://plus.google.com/" + profile + "/posts")));
     }
 
     public void elevateToolbar(Toolbar toolbar) {
-        if(((View) toolbar.getParent()).getElevation() == 0f){
+        if(!((View) toolbar.getParent()).isSelected()){
             ObjectAnimator.ofFloat((View) toolbar.getParent(), "elevation", 0f,
                     getResources().getDimension(R.dimen.toolbar_elevation)).start();
+            ((View) toolbar.getParent()).setSelected(true);
         }
     }
 
     public void deelevateToolbar(Toolbar toolbar) {
-        if(((View) toolbar.getParent()).getElevation() == 0f
+        if(!((View) toolbar.getParent()).isSelected()
                 || helper.get(ThemeHelper.CORD_COLOR) != helper.get(ThemeHelper.TOOLBAR_COLOR)){
             return;
         }
         ObjectAnimator.ofFloat((View) toolbar.getParent(), "elevation",
                 getResources().getDimension(R.dimen.toolbar_elevation), 0f).start();
+        ((View) toolbar.getParent()).setSelected(false);
     }
 
     @Override

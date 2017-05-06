@@ -15,9 +15,10 @@
 
     <ImageView
             android:id="@+id/button"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:src="@drawable/ic_github_circle_white_24dp"
+            android:padding="5dp"
             android:background="@drawable/transparent_ripple"
             android:tint="@color/grey700"
             android:layout_margin="16dp"/>

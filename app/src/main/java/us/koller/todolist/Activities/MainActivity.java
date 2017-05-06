@@ -332,7 +332,7 @@ public class MainActivity extends AppCompatActivity
 
                     switch (actionState) {
                         case ItemTouchHelper.ACTION_STATE_DRAG:
-                            elevateToolbar();
+                            elevateToolbar(mToolbar);
                             viewHolder.itemView.setPressed(false);
                             viewHolder.itemView.setHovered(true);
 
@@ -1312,40 +1312,13 @@ public class MainActivity extends AppCompatActivity
             shareEventCallback.shareEvents();
             return;
         }
-        int timeToWait = 0;
-        if (snackbar != null) {
-            if (snackbar.isShown()) {
-                snackbar.dismiss();
-                timeToWait = 500;
-            }
-        }
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                addEvent();
-            }
-        }, timeToWait);
+        addEvent();
     }
 
     public void addEvent() {
         final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Animation anim = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fab_scale_down);
-            anim.setDuration(200);
-            anim.setInterpolator(new AccelerateDecelerateInterpolator());
-            anim.setAnimationListener(new Animation.AnimationListener() {
-                @Override
-                public void onAnimationStart(Animation animation) {/*nothing*/}
-
-                @Override
-                public void onAnimationEnd(Animation animation) {
-                    fab.setVisibility(View.INVISIBLE);
-                }
-
-                @Override
-                public void onAnimationRepeat(Animation animation) {/*nothing*/}
-            });
-            fab.startAnimation(anim);
+            animateFab(fab, false, 200);
         }
 
         final View layout = getLayoutInflater().inflate(R.layout.add_event_dialog, mCoordinatorLayout, false);
@@ -1389,11 +1362,7 @@ public class MainActivity extends AppCompatActivity
                             @Override
                             public void onDismiss(DialogInterface dialog) {
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                    Animation anim = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fab_scale_up);
-                                    anim.setDuration(200);
-                                    anim.setInterpolator(new AccelerateDecelerateInterpolator());
-                                    fab.startAnimation(anim);
-                                    fab.setVisibility(View.VISIBLE);
+                                    animateFab(fab, true, 200);
                                 }
                                 MainActivity.this.dialog = null;
                             }
@@ -1730,30 +1699,33 @@ public class MainActivity extends AppCompatActivity
 
     public void checkToolbarElevation() {
         if (helper.get(ThemeHelper.CORD_COLOR) != helper.get(ThemeHelper.TOOLBAR_COLOR)) {
-            elevateToolbar();
+            elevateToolbar(mToolbar);
             return;
         }
 
         if (mRecyclerView.canScrollVertically(-1)) {
-            elevateToolbar();
+            elevateToolbar(mToolbar);
         } else {
-            deelevateToolbar();
+            deelevateToolbar(mToolbar);
         }
     }
 
-    public void elevateToolbar() {
-        if(((View) mToolbar.getParent()).getElevation() == 0f){
-            ObjectAnimator.ofFloat((View) mToolbar.getParent(), "elevation", 0f,
+    public void elevateToolbar(Toolbar toolbar) {
+        if(!((View) toolbar.getParent()).isSelected()){
+            ObjectAnimator.ofFloat((View) toolbar.getParent(), "elevation", 0f,
                     getResources().getDimension(R.dimen.toolbar_elevation)).start();
+            ((View) toolbar.getParent()).setSelected(true);
         }
     }
 
-    public void deelevateToolbar() {
-        if(((View) mToolbar.getParent()).getElevation() == 0f){
+    public void deelevateToolbar(Toolbar toolbar) {
+        if(!((View) toolbar.getParent()).isSelected()
+                || helper.get(ThemeHelper.CORD_COLOR) != helper.get(ThemeHelper.TOOLBAR_COLOR)){
             return;
         }
-        ObjectAnimator.ofFloat((View) mToolbar.getParent(), "elevation",
+        ObjectAnimator.ofFloat((View) toolbar.getParent(), "elevation",
                 getResources().getDimension(R.dimen.toolbar_elevation), 0f).start();
+        ((View) toolbar.getParent()).setSelected(false);
     }
 
 
@@ -1903,6 +1875,15 @@ public class MainActivity extends AppCompatActivity
         };
     }
 
+    public void animateFab(View fab, boolean scaleFabUp, int duration){
+        fab.animate()
+                .scaleX(scaleFabUp ? 1.0f : 0.0f)
+                .scaleY(scaleFabUp ? 1.0f : 0.0f)
+                .alpha(scaleFabUp ? 1.0f : 0.0f)
+                .setDuration(duration)
+                .start();
+    }
+
     public void fabShareAnim(boolean b) {
         int draw_res = R.drawable.ic_send_white_24dp;
         if (!b) {
@@ -1910,33 +1891,17 @@ public class MainActivity extends AppCompatActivity
         }
         final int draw_res_final = draw_res;
 
-        final Animation anim1
-                = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fab_scale_down);
-        final Animation anim2
-                = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fab_scale_up);
+        final int duration = 200;
 
-        anim1.setDuration(300);
-        anim2.setDuration(300);
-
-        anim1.setFillAfter(true);
-        anim2.setFillAfter(true);
-
-        anim1.setAnimationListener(new Animation.AnimationListener() {
+        animateFab(mFab, false, duration);
+        handler.postDelayed(new Runnable() {
             @Override
-            public void onAnimationStart(Animation animation) {
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
+            public void run() {
                 mFab.setImageResource(draw_res_final);
                 mFab.getDrawable().setTint(helper.get(ThemeHelper.FAB_TEXT_COLOR));
-                mFab.startAnimation(anim2);
+                animateFab(mFab, true, duration);
             }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {/*nothing*/}
-        });
-        mFab.startAnimation(anim1);
+        }, duration);
     }
 
     public void shareEvents(ArrayList<Event> eventsToShare) {
