@@ -17,7 +17,6 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.util.Log;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -300,14 +299,12 @@ public class BroadcastReceiver extends WakefulBroadcastReceiver {
             PendingIntent add_event_pendingIntent
                     = PendingIntent.getActivity(context, 6, add_event_intent, 0); // PendingIntent.FLAG_IMMUTABLE
 
-            android.support.v7.app.NotificationCompat.Builder mBuilder
-                    = (android.support.v7.app.NotificationCompat.Builder)
-                    new android.support.v7.app.NotificationCompat.Builder(context)
-                            .setSmallIcon(R.drawable.ic_logo)
-                            .setContentTitle(context.getString(R.string.app_name))
-                            .addAction(R.drawable.ic_add, context.getString(R.string.add_event), add_event_pendingIntent)
-                            .setColor(ContextCompat.getColor(context, R.color.button_color))
-                            .setContentText(content);
+            NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
+                    .setSmallIcon(R.drawable.ic_logo)
+                    .setContentTitle(context.getString(R.string.app_name))
+                    .addAction(R.drawable.ic_add, context.getString(R.string.add_event), add_event_pendingIntent)
+                    .setColor(ContextCompat.getColor(context, R.color.button_color))
+                    .setContentText(content);
             NotificationManager mNotificationManager
                     = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             Intent resultIntent

@@ -50,7 +50,7 @@ public class InfoActivity extends AppCompatActivity {
         final Toolbar toolbar = (Toolbar) findViewById(R.id.info_activity_toolbar);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
-        if(actionBar != null){
+        if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setTitle("");
         }
@@ -62,7 +62,7 @@ public class InfoActivity extends AppCompatActivity {
                 .addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {
                     @Override
                     public void onScrollChanged() {
-                        if(scrollView.getScrollY() != 0){
+                        if (scrollView.getScrollY() != 0) {
                             elevateToolbar(toolbar);
                         } else {
                             deelevateToolbar(toolbar);
@@ -71,7 +71,7 @@ public class InfoActivity extends AppCompatActivity {
                 });
 
         TextView version = (TextView) findViewById(R.id.version);
-        if(helper.lightCoordColor()){
+        if (helper.lightCoordColor()) {
             version.setTextColor(ContextCompat.getColor(this, R.color.grey700));
         }
         version.setText(BuildConfig.VERSION_NAME);
@@ -137,6 +137,18 @@ public class InfoActivity extends AppCompatActivity {
             }
         });
         license_item_3.findViewById(R.id.button).setVisibility(View.GONE);
+
+        //Google Play Service Attribution
+        View license_item_4 = findViewById(R.id.license_item_4);
+        ((TextView) license_item_4.findViewById(R.id.text)).setText("Privacy Policy");
+        license_item_4.findViewById(R.id.text).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(Intent.ACTION_VIEW)
+                        .setData(Uri.parse("https://github.com/kollerlukas/TODOList-Android-App/blob/master/PRIVACY.md")));
+            }
+        });
+        license_item_4.findViewById(R.id.button).setVisibility(View.GONE);
     }
 
     public InfoActivity() {
@@ -203,7 +215,7 @@ public class InfoActivity extends AppCompatActivity {
     }
 
     public void elevateToolbar(Toolbar toolbar) {
-        if(!((View) toolbar.getParent()).isSelected()){
+        if (!((View) toolbar.getParent()).isSelected()) {
             ObjectAnimator.ofFloat((View) toolbar.getParent(), "elevation", 0f,
                     getResources().getDimension(R.dimen.toolbar_elevation)).start();
             ((View) toolbar.getParent()).setSelected(true);
@@ -211,8 +223,8 @@ public class InfoActivity extends AppCompatActivity {
     }
 
     public void deelevateToolbar(Toolbar toolbar) {
-        if(!((View) toolbar.getParent()).isSelected()
-                || helper.get(ThemeHelper.CORD_COLOR) != helper.get(ThemeHelper.TOOLBAR_COLOR)){
+        if (!((View) toolbar.getParent()).isSelected()
+                || helper.get(ThemeHelper.CORD_COLOR) != helper.get(ThemeHelper.TOOLBAR_COLOR)) {
             return;
         }
         ObjectAnimator.ofFloat((View) toolbar.getParent(), "elevation",
