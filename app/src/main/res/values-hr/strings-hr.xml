@@ -1,0 +1,124 @@
+<resources>
+    <string name="app_name" translatable="false">TODOList</string>
+    <string name="add_event">Dodaj TODO</string>
+    <string name="show_notification">Općenita obavijest</string>
+    <string name="info">O aplikaciji</string>
+    <string name="restore_last_removed_event">Vrati zadnje uklonjen TODO</string>
+    <string name="select_category">Kategorije</string>
+    <string name="silence_all_alarms">Utišaj sve alarme</string>
+    <string name="report_a_bug">Prijavi pogrešku</string>
+    <string name="contact_me">Kontaktiraj me</string>
+    <string name="drawer_open">Otvori navigacijsku ladicu</string>
+    <string name="drawer_close">Zatvori navigacijsku ladicu</string>
+    <string name="navigation_header1">Alarm</string>
+    <string name="navigation_header2">Kategorije</string>
+    <string name="navigation_header3">Izgled</string>
+    <string name="navigation_header4">Obavijest</string>
+    <string name="navigation_header5">O aplikaciji</string>
+    <string name="choose_a_category">Odabrane kategorije</string>
+    <string name="cancel">Odustani</string>
+    <string name="you_have">Vi imate </string>
+    <string name="event_in_your_todolist">TODO u svom TODOListu</string>
+    <string name="events_in_your_todolist">TODOs u svom TODOListu</string>
+    <string name="your_events_are">Vaši TODOs su:</string>
+    <string name="today">Danas</string>
+    <string name="tomorrow">Sutra</string>
+    <string name="alarm_scheduled_for">Alarm je planiran za: </string>
+    <string name="at"> u </string>
+    <string name="alarm">Alarm</string>
+    <string name="edit_time">Uredi vrijeme</string>
+    <string name="remove">Ukloni</string>
+    <string name="alarm_removed">Alarm je uklonjen</string>
+    <string name="ok">U redu</string>
+    <string name="alarm_was_set_for">Alarm je postavljen za </string>
+    <string name="edit_event">Uredi TODO</string>
+    <string name="choose_a_color">Choose a Color</string>
+    <string name="general_notification_is_hidden">Općenita obavijest je skrivena</string>
+    <string name="general_notification_is_shown">Općenita obavijest je prikazana</string>
+    <string name="you_have_no_event_to_restore">Ne postoji nijedan TODO za vraćanje</string>
+    <string name="all_alarm_are_now_silent">Svi alarmi su sada utišani</string>
+    <string name="now_the_Phone_will_vibrate_when_alarms_are_fired">Uređaj će vibrirati kada se alarmi uključe</string>
+    <string name="event_removed">TODO je uklonjen</string>
+    <string name="undo">Poništi</string>
+    <string name="send_email">Pošalji email&#8230;</string>
+    <string name="do_not_remove">!!Ne brisati!!</string>
+    <string name="dont_forget">Ne zaboravite</string>
+    <string name="version">Verzija</string>
+    <string name="developer">Razvojni programer</string>
+    <string name="developer_name">©2016 Lukas Koller, Munich, Germany</string>
+    <string name="supported_languages">Podržani jezici</string>
+    <string name="english_german">Engleski, Njemački, Talijanski, Portugalski, Turski, Hrvatski</string>
+    <string name="licences">Licence</string>
+    <string name="do_homework">napravi zadaću</string>
+    <string name="clean_kitchen">očisti kuhinju</string>
+    <string name="do_laundry">spremi prljavo rublje</string>
+    <string name="done">Gotovo</string>
+    <string name="color">Boja</string>
+    <string name="share_app">Podijeli</string>
+    <string name="no_category_selected">Kategorija nije odabrana</string>
+    <string name="no_events">Nema ništa za raditi!</string>
+    <string name="signOut">Odjava</string>
+    <string name="signOutDialog_content">Želite li se odjaviti?</string>
+    <string name="yes">Da</string>
+    <string name="no">Ne</string>
+    <string name="syncData">Sinkronizacija</string>
+    <string name="navigation_header0">Sinkronizacija</string>
+    <string name="translators">Prevoditelji</string>
+    <string name="translators_names0">Matteo Delton</string>
+    <string name="translators_names1">Renata Suzart</string>
+    <string name="translators_names2">Ömer Yigit Uzun</string>
+    <string name="translators_names3">Robbe Delabre</string>
+    <string name="translators_names4">Eric Pujol</string>
+    <string name="app_theme">Tema aplikacije</string>
+    <string name="autoSync">Automatska sinkronizacija</string>
+    <string name="legal_notices">Pravne napomene</string>
+    <string name="themeActivityInfoDialogTitle">Dodirnite bilo koji element kako bi prilagodili njegovu boju!</string>
+    <string name="themeActivityInfoDialogContent">(čak i akcijsku traku i plutajući akcijski gumb)</string>
+    <string name="restore_from_default_themes">Vrati iz zadane teme</string>
+    <string name="repeat">ponovi: </string>
+    <string name="daily">Svaki dan</string>
+    <string name="weekly">Svaki tjedan</string>
+    <string name="monthly">Svaki mjesec</string>
+    <string name="certain_days">Određeni dani</string>
+    <string name="custom">Prilagođeno</string>
+    <string name="monday">PON</string>
+    <string name="tuesday">UTO</string>
+    <string name="wednesday">SRI</string>
+    <string name="thursday">ČET</string>
+    <string name="friday">PET</string>
+    <string name="saturday">SUB</string>
+    <string name="sunday">NED</string>
+    <string name="hours">Sati</string>
+    <string name="days">Dani</string>
+    <string name="weeks">Tjedni</string>
+    <string name="months">Mjeseci</string>
+    <string name="toolbarAndBackgroundSameColor">Ista boja alatne trake i pozadine</string>
+    <string name="share_todos">Podijeli TODOs</string>
+    <string name="import_todos">Uvezi TODOs</string>
+    <string name="import_">Uvezi</string>
+    <string name="import_dialog_content">Odaberite TODOs dodirom na njih.</string>
+    <string name="preset_themes">Predefinirane teme</string>
+    <string name="share_theme">Podijeli temu</string>
+    <string name="experimental_feature">Eksperimentalna značajka</string>
+    <string name="signin_dialog_experimental_feature">
+        The signIn allows you to sync your TODOs across devices!\n\n
+        Please note that feature is still (very) experimental.
+        \nThe developer does not take any responsibility for the loss of any TODOs.</string>
+
+    <string name="light">svijetla</string>
+    <string name="dark">tamna</string>
+    <string name="black">crna</string>
+    <string name="textcolor" translatable="false">Boja teksta</string>
+
+    <string name="launcher_icon" translatable="false">Ikona pokretača</string>
+    <string name="nothing_to_do_illustration" translatable="false">Nothing to Do Illustration</string>
+    <string name="color_button" translatable="false">Boja gumba</string>
+    <string name="button" translatable="false">Gumb</string>
+    <string name="sync_switch">Sinkronizacija</string>
+    <string name="sign_out">odjava</string>
+    <string name="add">dodaj</string>
+    <string name="edit">uredi</string>
+    <string name="glide" translatable="false">bumptech/glide</string>
+    <string name="google_play_servcie_attribution" translatable="false">Google Play Service Attribution</string>
+    <string name="materialnumberpicker" translatable="false">KasualBusiness/MaterialNumberPicker</string>
+</resources>
